@@ -26,6 +26,7 @@ describe("nVent challenge detection", () => {
     expect(isExactNventProductPage({ ...base, text: exactHtml }, "611380", base.requestedUrl)).toBe(true);
     expect(isExactNventProductPage({ ...base, text: wrongPathHtml }, "611380", base.requestedUrl)).toBe(false);
     expect(isExactNventProductPage({ ...base, text: wrongSkuHtml }, "611380", base.requestedUrl)).toBe(false);
+    expect(isExactNventProductPage({ ...base, text: exactHtml }, "611381", base.requestedUrl.replace("efs611380", "efs611381"))).toBe(false);
   });
 
   it.each([

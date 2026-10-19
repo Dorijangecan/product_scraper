@@ -4,7 +4,7 @@ import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import type { DocumentRecord } from "../../shared/types.js";
 import type { FetchedText } from "./http-client.js";
 import { multiplyDecimalExactly } from "../unit-conversion.js";
-import { catalogTextMatches } from "./catalog-number.js";
+import { compactCatalogNumber } from "./catalog-number.js";
 import * as cheerio from "cheerio";
 
 /**
@@ -172,7 +172,6 @@ export class NventConnector implements ManufacturerConnector {
         // identity-marker fast path, then the robust renderer only if identity is not yet present.
         // Admit browser HTML only when canonical path + on-page SKU both prove the requested product.
         // Cloudflare telemetry appended to a real PDP is removed below by the same sanitizer.
-        const pageSkuToken = new URL(url).pathname.split("/").pop() ?? "";
         const fastBrowserRecipe = {
           ...context.manufacturer.scrapeRecipe,
           interactionPolicy: {
@@ -184,9 +183,9 @@ export class NventConnector implements ManufacturerConnector {
             scrollPasses: 0,
             blockResourceTypes: ["image", "media", "font"] as ("image" | "media" | "font")[],
             fastIdentityCapture: true,
-            waitForSelectors: [
-              `meta[property='coveo:product_item_sku'][content='${pageSkuToken}'], meta[property='coveo:product_item_catalog_num'][content='${pageSkuToken}']`
-            ]
+            // Wake once nVent's identity metadata exists; the exact canonical URL/SKU proof below
+            // remains authoritative and rejects a different SKU even if this selector matches.
+            waitForSelectors: ["meta[property='coveo:product_item_sku'], meta[property='coveo:product_item_catalog_num']"]
           }
         };
         debugTiming("browser fallback start");
@@ -194,6 +193,7 @@ export class NventConnector implements ManufacturerConnector {
         let exactBrowserPage = Boolean(rendered.fetched && isExactNventProductPage(rendered.fetched, catalogNumber, url));
         debugTiming(`fast browser capture exact=${exactBrowserPage}`);
         if (!exactBrowserPage) {
+          await context.browserRenderer.discardFastIdentityPage(url);
           const robustBrowserRecipe = {
             ...context.manufacturer.scrapeRecipe,
             interactionPolicy: {
@@ -346,7 +346,7 @@ export class NventConnector implements ManufacturerConnector {
 }
 
 export function isExactNventProductPage(fetched: FetchedText, catalogNumber: string, expectedUrl: string): boolean {
-  if (fetched.statusCode < 200 || fetched.statusCode >= 300 || !catalogTextMatches(fetched.text, catalogNumber)) return false;
+  if (fetched.statusCode < 200 || fetched.statusCode >= 300) return false;
   const $ = cheerio.load(fetched.text);
   const canonical = $("link[rel='canonical']").attr("href") ?? fetched.effectiveUrl;
   try {
@@ -356,10 +356,12 @@ export function isExactNventProductPage(fetched: FetchedText, catalogNumber: str
     const expectedPath = expected.pathname.replace(/\/+$/, "").toLowerCase();
     if (!actual.hostname.toLowerCase().endsWith("nvent.com") || actualPath !== expectedPath) return false;
     const canonicalSkuToken = actualPath.split("/").pop()?.replace(/[^a-z0-9]/g, "") ?? "";
+    const expectedSkuToken = compactCatalogNumber(catalogNumber).toLowerCase();
+    if (!expectedSkuToken || !canonicalSkuToken.includes(expectedSkuToken)) return false;
     const skuMetadata = $("meta[property='coveo:product_item_sku'], meta[property='coveo:product_item_catalog_num']")
       .toArray()
       .map((element) => $(element).attr("content")?.replace(/[^a-z0-9]/gi, "").toLowerCase() ?? "");
-    return skuMetadata.includes(canonicalSkuToken) && catalogTextMatches(fetched.text, catalogNumber);
+    return skuMetadata.includes(canonicalSkuToken);
   } catch {
     return false;
   }

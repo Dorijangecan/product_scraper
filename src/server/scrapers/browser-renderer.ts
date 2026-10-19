@@ -42,7 +42,9 @@ interface PageLike {
   locator(selector: string): LocatorLike;
   waitForLoadState(state: "load" | "domcontentloaded" | "networkidle", options?: Record<string, unknown>): Promise<void>;
   waitForTimeout(ms: number): Promise<void>;
-  evaluate<T>(fn: string | (() => T | Promise<T>)): Promise<T>;
+  evaluate<T>(fn: string): Promise<T>;
+  evaluate<T>(fn: () => T | Promise<T>): Promise<T>;
+  evaluate<T>(fn: (arg: string) => T | Promise<T>, arg: string): Promise<T>;
   content(): Promise<string>;
   close(): Promise<void>;
   keyboard: KeyboardLike;
@@ -392,6 +394,7 @@ export async function renderProductPage(url: string, recipe: ScrapeRecipeConfig 
 export class BrowserRenderSession {
   private browser?: BrowserLike;
   private context?: BrowserContextLike;
+  private readonly fastIdentityPages = new Map<string, PageLike>();
   private unavailableReason?: string;
   /**
    * Number of consecutive launch failures that have occurred. We only stop trying
@@ -411,6 +414,19 @@ export class BrowserRenderSession {
 
   getLastLaunchError(): string | undefined {
     return this.lastLaunchError;
+  }
+
+  async discardFastIdentityPage(url: string): Promise<void> {
+    let key: string;
+    try {
+      key = new URL(url).origin.toLowerCase();
+    } catch {
+      return;
+    }
+    const page = this.fastIdentityPages.get(key);
+    if (!page) return;
+    this.fastIdentityPages.delete(key);
+    await page.close().catch(() => undefined);
   }
 
   async renderProductPage(url: string, recipe: ScrapeRecipeConfig | undefined, signal?: AbortSignal): Promise<RenderedPage> {
@@ -440,10 +456,56 @@ export class BrowserRenderSession {
     const networkDiagnostics: BrowserNetworkRecord[] = [];
     const captureState = createNetworkCaptureState();
     const fastIdentityCapture = recipe?.interactionPolicy?.fastIdentityCapture === true;
+    const fastPageKey = fastIdentityCapture ? new URL(url).origin.toLowerCase() : undefined;
     let page: PageLike | undefined;
+    let retainFastPage = false;
     try {
       const context = await this.ensureContext();
       debugRenderTiming("context ready");
+      const existingFastPage = fastPageKey ? this.fastIdentityPages.get(fastPageKey) : undefined;
+      if (existingFastPage && !signal?.aborted) {
+        try {
+          const response = await existingFastPage.evaluate<{
+            statusCode: number;
+            effectiveUrl: string;
+            contentType: string;
+            text: string;
+          }>(
+            async (target) => {
+              const response = await fetch(target, { credentials: "include", redirect: "follow" });
+              return {
+                statusCode: response.status,
+                effectiveUrl: response.url,
+                contentType: response.headers.get("content-type") ?? "text/html",
+                text: await response.text()
+              };
+            },
+            url
+          );
+          if (response.text.trim()) {
+            debugRenderTiming(`same-origin browser fetch status=${response.statusCode} bytes=${response.text.length}`);
+            return {
+              fetched: {
+                requestedUrl: url,
+                effectiveUrl: response.effectiveUrl || url,
+                statusCode: response.statusCode,
+                contentType: response.contentType,
+                text: response.text,
+                fetchedAt: new Date().toISOString(),
+                fromCache: false
+              },
+              networkTexts: [],
+              networkDiagnostics: []
+            };
+          }
+          throw new Error("Same-origin browser fetch returned an empty product page.");
+        } catch (error) {
+          if (signal?.aborted) throw new Error("Cancelled by user.");
+          if (fastPageKey) this.fastIdentityPages.delete(fastPageKey);
+          await existingFastPage.close().catch(() => undefined);
+          debugRenderTiming(`same-origin browser fetch failed: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
       page = await context.newPage();
       debugRenderTiming("page created");
       if (!fastIdentityCapture) {
@@ -463,8 +525,12 @@ export class BrowserRenderSession {
         await page.waitForLoadState("domcontentloaded", { timeout: gotoTimeoutMs }).catch(() => undefined);
       }
       if (fastIdentityCapture) {
-        await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal, 250);
-        debugRenderTiming("identity selector checked");
+        const identitySelectorFound = await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal, 250);
+        debugRenderTiming(`identity selector checked exactMarker=${identitySelectorFound}`);
+        if (identitySelectorFound && fastPageKey) {
+          this.fastIdentityPages.set(fastPageKey, page);
+          retainFastPage = true;
+        }
       } else {
         await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
         await waitForNonInteractiveCloudflareChallenge(page);
@@ -550,7 +616,7 @@ export class BrowserRenderSession {
         error: message
       };
     } finally {
-      await page?.close().catch(() => undefined);
+      if (!retainFastPage) await page?.close().catch(() => undefined);
     }
   }
 
@@ -1110,19 +1176,20 @@ export async function captureFrameFragments(page: PageLike, mainUrl: string): Pr
   return fragments;
 }
 
-async function waitForRecipeSelectors(page: PageLike, selectors: string[], signal?: AbortSignal, timeoutMs = 4000): Promise<void> {
+async function waitForRecipeSelectors(page: PageLike, selectors: string[], signal?: AbortSignal, timeoutMs = 4000): Promise<boolean> {
   for (const selector of uniqueStrings(selectors).slice(0, 8)) {
     const attempts = Math.ceil(timeoutMs / 250);
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       try {
-        if (await page.locator(selector).count()) return;
+        if (await page.locator(selector).count()) return true;
       } catch {
         // Keep waiting for the next selector or retry.
       }
       await page.waitForTimeout(250);
     }
   }
+  return false;
 }
 
 async function scrollToBottom(page: PageLike, passes: number, signal?: AbortSignal): Promise<void> {
