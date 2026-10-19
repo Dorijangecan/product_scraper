@@ -22,6 +22,20 @@ describe("splitNameValue (Phase A4)", () => {
   });
 });
 
+describe("Turck power supply normalization", () => {
+  it("uses exact output ratings ahead of power-input voltage and unrelated currents", () => {
+    const normalized = normalizeFields([
+      { name: "Product Name", value: "PSU67-1P 24 V power supply" },
+      { name: "Operating voltage UB", value: "100...240 VAC" },
+      { name: "Output voltage", value: "24...28 VDC" },
+      { name: "Power supply", value: "230 VUC" },
+      { name: "Nominal current (A)", value: "15" }
+    ], [], "turck");
+    expect(normalized.voltage).toMatch(/24.*28/);
+    expect(normalized.current).toMatch(/15/);
+  });
+});
+
 describe("normalizer", () => {
   it("does not treat Schmersal pull-wire travel as the device envelope", () => {
     const normalized = normalizeFields([

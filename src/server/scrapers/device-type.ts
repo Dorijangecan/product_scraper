@@ -76,7 +76,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("I/O Module", /\b(?:i\/o|io|input\/output)\s+(?:module|expansion|system|block|card|interface)|(?:analog|digital)\s+(?:input|output)s?\s+(?:module|card|expansion|board)|(?:input|digital input)\s+boards?|\b(?:\d+[-\s]?way\s+)?(?:binary|digital)\s+input\b|remote\s+i\/o|io-link\s+(?:master|hub|module)\b/i, 1120),
   rule("I/O Module", /\b(?:digital|binary|Dupline)?\s*(?:signal\s+)?input\s+modules?\b|\bDSU\s*\d+\s*plus\b/i, 1140),
   rule("Roller Shutter Controller", /\b(?:roller shutter|roller blind|blind|shutter)\s+(?:control|controlling)\s+(?:device|module|unit|relay|slave module)\b|\broller shutters?\s+control\s+modules?\b|\brollosteuer[-\s]?(?:slave[-\s]?)?module\b/i, 970),
-  rule("Signal Conditioner", /\b(?:input\s+)?signal\s+conditioners?|isolating\s+amplifiers?\b/i, 1140),
+  rule("Signal Conditioner", /\b(?:(?:input\s+)?signal\s+conditioners?|signal\s+isolators?|isolating\s+amplifiers?)\b/i, 1140),
   rule("HMI", /\b(?:hmi|human[\s-]?machine[\s-]?interface|operator panel|web panel|touch panel|touchscreen panel|display terminal|graphic terminal)\b/i, 890),
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
 

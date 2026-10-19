@@ -520,7 +520,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       inferredOntologyFieldValue(voltageAttributes, "ratedVoltage", normalizeVoltageValue)
    ));
   const voltage = manufacturerId === "turck"
-    ? turckOperatingVoltage(attributes) ?? fallbackVoltage
+    ? (isPowerSupplyProduct(attributes)
+        ? powerSupplyOutputVoltage(voltageAttributes) ?? turckOperatingVoltage(attributes) ?? fallbackVoltage
+        : turckOperatingVoltage(attributes) ?? fallbackVoltage)
     : manufacturerId === "doepke"
     ? (doepkeDuplineBusPowered
         ? doepkeExactAttribute(attributes, /^device supply voltage$/i)?.value
@@ -579,7 +581,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       inferredOntologyFieldValue(currentAttributes, "ratedCurrent", normalizeCurrentValue)
     );
   const current = manufacturerId === "turck"
-    ? turckCurrent(attributes)
+    ? (isPowerSupplyProduct(attributes) ? powerSupplyOutputCurrent(attributes) ?? turckCurrent(attributes) : turckCurrent(attributes))
     : manufacturerId === "doepke"
     ? doepkeCurrent(attributes, genericCurrent)
     : genericCurrent;
@@ -2127,7 +2129,7 @@ function powerSupplyOutputCurrent(attributes: AttributeRecord[]): string | undef
   const candidates = attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-      return /\b(?:output current|current at secondary voltage|power supply output current)\b/.test(label) &&
+      return /\b(?:output current|current at secondary voltage|power supply output current|nominal current)\b/.test(label) &&
         !/\b(?:input|inrush|package|short[- ]circuit)\b/.test(label) &&
         !isDisqualifiedForQuantityKind(label, attr.value, "current") &&
         isLikelySpecText(attr.value) && isAvailableSpecValue(attr.value);
@@ -2136,6 +2138,12 @@ function powerSupplyOutputCurrent(attributes: AttributeRecord[]): string | undef
   for (const attr of candidates) {
     const value = extractCurrentValues(attr.value, `${attr.group ?? ""} ${attr.name}`)[0];
     if (value) return value;
+    const explicitUnit = attr.name.match(/\(\s*(mA|A)\s*\)/i)?.[1];
+    const explicitMagnitude = cleanText(attr.value).match(/\d+(?:[.,]\d+)?(?:\s*(?:\.\.\.|…|–|to)\s*\d+(?:[.,]\d+)?)?/i)?.[0];
+    if (explicitUnit && explicitMagnitude) {
+      const labelledValue = normalizeCurrentValue(`${explicitMagnitude} ${explicitUnit}`);
+      if (labelledValue) return labelledValue;
+    }
   }
   return undefined;
 }
@@ -3197,6 +3205,12 @@ function turckOperatingVoltage(attributes: AttributeRecord[]): string | undefine
  * pressure transmitter's rated switching-output current when that is the only rated current.
  */
 function turckCurrent(attributes: AttributeRecord[]): string | undefined {
+  const exactTurckSafetyRelayCurrent = attributes
+    .filter((attribute) => attribute.parser === "turck-safety-solutions-catalog" && /^rated output current$/i.test(attribute.name.trim()) && attribute.matchLevel === "exact")
+    .sort(compareAttributeEvidence)
+    .map((attribute) => normalizeCurrentValue(attribute.value))
+    .find((value): value is string => Boolean(value));
+  if (exactTurckSafetyRelayCurrent) return exactTurckSafetyRelayCurrent;
   const preferredLabels = [/^no-load current$/i, /^current consumption$/i];
   for (const label of preferredLabels) {
     const value = attributes

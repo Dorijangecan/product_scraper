@@ -1,0 +1,62 @@
+[
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "Q4XTBLAF100-Q8",
+    "caseType": "electrical",
+    "expectedDeviceType": "Photoelectric Sensor",
+    "riskTags": ["cold", "photoelectric", "laser-triangulation", "100mm-range", "exact-image"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/.*/3091290"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Q4XTBLAF100-Q8", "3091290", "100", "655", "0.15", "43.5", "18", "57.5", "IP67", "IP68", "IP69", "Laser class.*1", "PNP/NPN", "-10", "50"],
+    "expectedNormalizedFields": ["dimensions", "protection"],
+    "expectedNormalizedPatterns": {"dimensions": "43.5.*18.*57.5|57.5.*43.5.*18", "protection": "IP67.*IP68.*IP69"}
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "NCLS-30-UN6X-H1141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Level Sensor",
+    "riskTags": ["cold", "capacitive-level", "immersion", "stainless", "exact-image"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/.*/100004249"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["NCLS-30-UN6X-H1141", "100004249", "Level detection", "Capacitive", "94.8", "22 mm", "IP67", "IP69K", "0", "100", "-10", "70", "G 1/2"],
+    "expectedNormalizedFields": ["dimensions", "protection"],
+    "expectedNormalizedPatterns": {"dimensions": "94.8.*22.*22", "protection": "IP67.*IP69K"}
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "ES-FA-11AA",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "safety-relay", "two-hand-control", "terminal-block", "exact-image"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/.*/3002628"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["ES-FA-11AA", "3002628", "118 mm", "22.5 mm", "84 mm", "IP20", "Safety relay", "2 NO", "7 A", "24 VDC ± 15", "0", "50"],
+    "expectedNormalizedFields": ["dimensions", "protection", "voltage", "current"],
+    "expectedNormalizedPatterns": {"dimensions": "118.*22.5.*84", "protection": "IP20", "voltage": "21.*28|24 VDC", "current": "7"}
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "PSU67-1P-1M-2M5-24150-IOL-F",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "power-supply", "ip67", "15a", "io-link", "exact-image"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/.*/100028304"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["PSU67-1P-1M-2M5-24150-IOL-F", "100028304", "24", "28", "15 A", "230 VUC", "183 mm", "180.6 mm", "58.7 mm", "IP67", "4 separate eFuses", "IO-Link", "-25", "70"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "protection"],
+    "expectedNormalizedPatterns": {"voltage": "24.*28", "current": "15", "dimensions": "183.*180.6.*58.7", "protection": "IP67"}
+  },
+  {
+    "manufacturerId": "turck",
+    "catalogNumber": "IMS-AI-UNI/24V",
+    "caseType": "electrical",
+    "expectedDeviceType": "Signal Conditioner",
+    "riskTags": ["cold", "signal-isolator", "single-channel", "24vdc", "exact-image"],
+    "expectedOfficialUrlPatterns": ["turck\\.com/.*/7504009"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["IMS-AI-UNI/24V", "7504009", "Analog signal isolator", "1", "114.5", "6.2", "90", "24 VDC", "IP20", "-20", "60", "UL"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "protection"],
+    "expectedNormalizedPatterns": {"voltage": "16.8.*30|24", "dimensions": "114.5.*6.2.*90", "protection": "IP20"}
+  }
+]

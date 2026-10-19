@@ -99,6 +99,11 @@ describe("device type classifier", () => {
     }
   });
 
+  it("classifies signal isolators as signal conditioners", () => {
+    expect(classifyDeviceType(product([], "Analog signal isolator 1-channel", { manufacturerId: "turck" })).type)
+      .toBe("Signal Conditioner");
+  });
+
   it("separates common industrial hardware from the generic cover/door accessory type", () => {
     const cases = [
       ["Adjustable Leveling Foot", "Leveling Foot"],

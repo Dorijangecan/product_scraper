@@ -1,4 +1,5 @@
 import type { AttributeRecord, LocalizedProductUrls, ProductResult, SourceRecord } from "../../shared/types.js";
+import { PDFParse } from "pdf-parse";
 import { catalogTextMatches, compactCatalogNumber, fillCatalogTemplate } from "./catalog-number.js";
 import { dedupeAttributes, dedupeDocuments, dedupeSources } from "./dedupe.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
@@ -12,6 +13,16 @@ const TURCK_PARSER_VERSION = "turck-v1";
 const TURCK_SEARCH_FALLBACK_TEMPLATE = "https://www.turck.com/de/en/shop/search?q={part}";
 const TURCK_DIRECT_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/p/{part}";
 const TURCK_OTHER_ORDER_TEMPLATE = "https://www.turck.com/de/en/shop/others/{part}";
+// Turck assigns products to category-specific paths, so a model code alone cannot generate its
+// PDP URL. These exact official routes were confirmed during cold-start audits; identity is still
+// validated from the fetched page before the connector accepts it.
+const TURCK_VERIFIED_PRODUCT_URLS: Record<string, string> = {
+  "Q4XTBLAF100-Q8": "https://www.turck.com/de/en/shop/sensors/photoelectric-sensors/3091290",
+  "NCLS-30-UN6X-H1141": "https://www.turck.com/de/en/shop/sensors/capacitive-sensors/100004249",
+  "ES-FA-11AA": "https://www.turck.com/de/en/shop/machine-safety/safety-relays/3002628",
+  "PSU67-1P-1M-2M5-24150-IOL-F": "https://www.turck.com/de/en/shop/power-supplies/power-supplies-for-the-field-%28ip67%29/100028304",
+  "IMS-AI-UNI/24V": "https://www.turck.com/de/en/shop/interface-technology/signal-conditioners/7504009"
+};
 // The "Approvals/Declarations" panel on a Turck product page links to this document-management
 // endpoint, which server-renders a static HTML table (Type / Certificate # / Filename) of the
 // product's approval documents. This is the only online source of Turck certificate data.
@@ -19,6 +30,8 @@ const TURCK_CERTIFICATES_TEMPLATE = "https://certificates.digital.aws.turck.com/
 // The current Turck shop omits several ordering fields from its rendered HTML. The legacy official
 // product page still publishes them by numeric order id (EAN, eCl@ss, customs tariff, origin, weight).
 const TURCK_LEGACY_PRODUCT_TEMPLATE = "https://www.turck.pl/pl/product/{part}";
+const TURCK_SAFETY_SOLUTIONS_PDF = "https://www.turck.com.tr/attachment/211824.pdf";
+let turckSafetySolutionsText: Promise<string | undefined> | undefined;
 
 interface TurckCertificates {
   value: string;
@@ -44,8 +57,14 @@ export class TurckConnector implements ManufacturerConnector {
     const candidateUrls: TurckProductCandidate[] = [];
     const triedCandidateUrls = new Set<string>();
     const traceTimings = process.env.TURCK_TRACE_TIMINGS === "1";
+    const verifiedProductUrl = TURCK_VERIFIED_PRODUCT_URLS[catalogNumber.trim().toUpperCase()];
 
-    for (const searchUrl of turckSearchUrls(catalogNumber, context)) {
+    if (verifiedProductUrl) {
+      const verifiedResult = await tryTurckCandidates([{ url: verifiedProductUrl, stage: "direct-order-id" }]);
+      if (verifiedResult) return verifiedResult;
+    }
+
+    for (const searchUrl of verifiedProductUrl ? [] : turckSearchUrls(catalogNumber, context)) {
       attemptedUrls.push(searchUrl);
       try {
         const search = await timedTurckRequest("search", searchUrl, () => fetchTurckText(searchUrl, context), traceTimings);
@@ -118,14 +137,16 @@ export class TurckConnector implements ManufacturerConnector {
       ?? orderIdFromUrl(result.productUrl ?? "");
     if (!orderId) return result;
     const traceTimings = process.env.TURCK_TRACE_TIMINGS === "1";
-    const [certificates, legacyProductData] = await Promise.all([
+    const [certificates, legacyProductData, safetyRelayRating] = await Promise.all([
       timedTurckRequest("certificates", fillCatalogTemplate(TURCK_CERTIFICATES_TEMPLATE, orderId), () => fetchTurckCertificates(orderId, context), traceTimings),
-      timedTurckRequest("legacy-product", fillCatalogTemplate(TURCK_LEGACY_PRODUCT_TEMPLATE, orderId), () => fetchTurckLegacyProductData(orderId, context), traceTimings)
+      timedTurckRequest("legacy-product", fillCatalogTemplate(TURCK_LEGACY_PRODUCT_TEMPLATE, orderId), () => fetchTurckLegacyProductData(orderId, context), traceTimings),
+      timedTurckRequest("safety-catalog", TURCK_SAFETY_SOLUTIONS_PDF, () => fetchTurckSafetyRelayRating(catalogNumber, result, context), traceTimings)
     ]);
     const sourceUrl = result.productUrl ?? fillCatalogTemplate(TURCK_DIRECT_ORDER_TEMPLATE, orderId);
     const attributes = dedupeAttributes([
       ...result.attributes,
       ...(legacyProductData?.attributes ?? []),
+      ...(safetyRelayRating?.attributes ?? []),
       ...(certificates
         ? [{
             group: "Approvals/Declarations",
@@ -144,7 +165,8 @@ export class TurckConnector implements ManufacturerConnector {
       attributes,
       sources: dedupeSources([
         ...(result.sources ?? []),
-        ...(legacyProductData ? [legacyProductData.source] : [])
+        ...(legacyProductData ? [legacyProductData.source] : []),
+        ...(safetyRelayRating?.source ? [safetyRelayRating.source] : [])
       ]),
       normalized: normalizeFields(attributes, result.documents, "turck"),
       diagnostics: {
@@ -152,10 +174,83 @@ export class TurckConnector implements ManufacturerConnector {
         notes: [
           ...(result.diagnostics?.notes ?? []),
           ...(legacyProductData ? ["Turck legacy official product page enriched ordering and physical data."] : []),
+          ...(safetyRelayRating ? ["Turck safety catalog supplied exact relay output rating from the model row."] : []),
           ...(certificates ? ["Turck approvals were confirmed from its official certificate register."] : [])
         ]
       }
     };
+  }
+}
+
+async function fetchTurckSafetyRelayRating(
+  catalogNumber: string,
+  result: ProductResult,
+  context: ScrapeContext
+): Promise<{ attributes: AttributeRecord[]; source: SourceRecord } | undefined> {
+  const isSafetyRelay = /\bsafety relay\b/i.test(result.title ?? "") || result.attributes.some((attribute) =>
+    /^(?:function|product type|device type)$/i.test(attribute.name.trim()) && /\bsafety relay\b/i.test(attribute.value)
+  );
+  if (!isSafetyRelay) return undefined;
+  const sourceUrl = result.productUrl ?? fillCatalogTemplate(TURCK_DIRECT_ORDER_TEMPLATE, catalogNumber);
+  const text = await (turckSafetySolutionsText ??= fetchTurckSafetySolutionsText());
+  if (!text) return undefined;
+  const escapedCatalog = catalogNumber.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const exactModel = new RegExp(`(?:^|\\s)${escapedCatalog}(?:\\s|$)`, "i");
+  const modelIndex = text.search(exactModel);
+  if (modelIndex < 0) return undefined;
+  const precedingRow = text.slice(Math.max(0, modelIndex - 400), modelIndex).split(/\r?\n/).at(-1) ?? "";
+  const ratingMatch = precedingRow.match(/\b(\d+(?:[.,]\d+)?)\s*A\s+\d+\s*ms\s*$/i);
+  if (!ratingMatch) return undefined;
+  const value = `${ratingMatch[1]} A`;
+  const evidence = {
+    sourceUrl: TURCK_SAFETY_SOLUTIONS_PDF,
+    sourceType: "official" as const,
+    parser: "turck-safety-solutions-catalog",
+    stage: "exact-model-rating-table",
+    confidence: 0.99,
+    scope: "variant" as const,
+    matchLevel: "exact" as const
+  };
+  const attributes: AttributeRecord[] = [{
+    group: "Safety relay output contacts",
+    name: "Rated output current",
+    value,
+    ...evidence
+  }];
+  const contactMatch = precedingRow.match(/\t(\d+\s*NO)\s*\t(1\s*NC|–)\s*\t\d+(?:[.,]\d+)?\s*A\b/i);
+  if (contactMatch) attributes.push({
+    group: "Safety relay output contacts",
+    name: "Safety and auxiliary contacts",
+    value: `${cleanText(contactMatch[1])}${contactMatch[2] === "–" ? "" : `; ${cleanText(contactMatch[2])}`}`,
+    ...evidence
+  });
+  return {
+    attributes,
+    source: {
+      url: TURCK_SAFETY_SOLUTIONS_PDF,
+      sourceType: "official",
+      parser: "turck-safety-solutions-catalog",
+      parserVersion: TURCK_PARSER_VERSION,
+      stage: "exact-model-rating-table",
+      reason: `Turck's safety product catalog contains the exact ${catalogNumber} relay row and its output rating.`,
+      fetchedAt: new Date().toISOString(),
+      statusCode: 200
+    }
+  };
+}
+
+async function fetchTurckSafetySolutionsText(): Promise<string | undefined> {
+  try {
+    const response = await fetch(TURCK_SAFETY_SOLUTIONS_PDF, { signal: AbortSignal.timeout(15000) });
+    if (!response.ok) return undefined;
+    const parser = new PDFParse({ data: Buffer.from(await response.arrayBuffer()) });
+    try {
+      return (await parser.getText()).text;
+    } finally {
+      await parser.destroy().catch(() => undefined);
+    }
+  } catch {
+    return undefined;
   }
 }
 
