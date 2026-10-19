@@ -370,6 +370,20 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
       : await extractPositionedWeightDimensionsSafely(doc.localPath!, catalogNumber, doc.url, attributes, looksLikeMultiVariantFamilyPage(text, catalogNumber), pdfText.nativePositionedItemsByPage);
     attributes.push(...positionedAttributes);
     attributes = discardUnscopedFamilyTableCandidates(attributes, catalogNumber, positionedAttributes);
+    if (manufacturerId === "sce") {
+      const sceAirConditionerFacts = extractSceAirConditionerManualAttributes(catalogNumber, doc, text);
+      if (sceAirConditionerFacts.length) {
+        // SCE's exact air-conditioner manual contains a family table. Generic PDF mining sees
+        // the base mild-steel material first and misses the two-line 50/60 Hz current and airflow
+        // values. Prefer the requested SS/SS6 row and its explicit ratings over unscoped family
+        // candidates from that same manual.
+        attributes = attributes.filter((attribute) => {
+          if (!/^(?:pdf manual|pdf ontology spec miner)$/i.test(attribute.group ?? "")) return true;
+          return !/^(?:housing material|material|ss6?)$/i.test(attribute.name.trim());
+        });
+        attributes.push(...sceAirConditionerFacts);
+      }
+    }
     if (exactSchneiderDatasheet) {
       attributes.push(...extractSchneiderOperatingTemperature(catalogNumber, doc, text));
       attributes.push(...extractSchneiderExactInputVoltages(catalogNumber, doc, text, attributes));
@@ -419,6 +433,47 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
       parseFailure: `${doc.label || doc.url}: ${parseError}`
     };
   }
+}
+
+export function extractSceAirConditionerManualAttributes(
+  catalogNumber: string,
+  document: Pick<DocumentRecord, "url">,
+  text: string
+): AttributeRecord[] {
+  if (!/^SCE-AC5100B\d{3}V(?:SS6|SS)?$/i.test(catalogNumber)) return [];
+  const manualModel = document.url.match(/\/instman\/(sce-ac5100b\d{3}v)\.pdf(?:[?#]|$)/i)?.[1];
+  const productModel = catalogNumber.match(/^(SCE-AC5100B\d{3}V)/i)?.[1];
+  if (!manualModel || !productModel || manualModel.toUpperCase() !== productModel.toUpperCase()) return [];
+  if (!findCatalogTextMatch(text, catalogNumber, { compact: true })) return [];
+
+  const attributes: AttributeRecord[] = [];
+  const add = (name: string, value: string) => attributes.push({
+    group: "SCE Exact Product Manual",
+    name,
+    value: cleanText(value),
+    sourceUrl: document.url,
+    sourceType: "generated",
+    parser: "sce-exact-air-conditioner-manual",
+    confidence: 0.98,
+    matchLevel: "exact"
+  });
+
+  const ratedCurrent = text.match(/\bRated Current\s*@[^\r\n]*[\t ]+([\d.,]+\s*A\s*@\s*50\s*Hz)(?:\s*\r?\n\s*([\d.,]+\s*A\s*@\s*60\s*Hz))?/i);
+  if (ratedCurrent) add("Rated Current", [ratedCurrent[1], ratedCurrent[2]].filter(Boolean).join("; "));
+
+  const ambientAir = text.match(/\bAmbient Air Circuit\s*:\s*([\d.,]+\s*cfm)\b/i)?.[1];
+  const cabinetAir = text.match(/\bCabinet Air Circuit\s*:\s*([\d.,]+\s*cfm)\b/i)?.[1];
+  if (ambientAir || cabinetAir) {
+    add("Air Flow", [ambientAir && `Ambient Air Circuit: ${ambientAir}`, cabinetAir && `Cabinet Air Circuit: ${cabinetAir}`].filter(Boolean).join("; "));
+  }
+
+  const materialVariant = /SS6$/i.test(catalogNumber)
+    ? text.match(/\bSS6\s*:\s*(Stainless Steel\s+AISI\s+316)\b/i)?.[1]
+    : /SS$/i.test(catalogNumber)
+      ? text.match(/\bSS\s*:\s*(Stainless Steel\s+AISI\s+304)\b/i)?.[1]
+      : text.match(/\bHousing Material\s*\t?\s*(Mild Steel,\s*Powder Coated)\b/i)?.[1];
+  if (materialVariant) add("Material", materialVariant);
+  return attributes;
 }
 
 /** Read Eaton's Volume 7 PSG comparison table by its exact SKU column. The PDF text keeps

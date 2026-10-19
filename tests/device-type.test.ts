@@ -683,7 +683,7 @@ describe("device type classifier", () => {
           catalogNumber: "SCE-AC3400B120V"
         })
       ).type
-    ).toBe("Thermal Management");
+    ).toBe("Air Conditioner");
 
     expect(
       classifyDeviceType(
@@ -1008,12 +1008,28 @@ describe("device type classifier", () => {
     expect(classifyDeviceType(result).type).toBe("Filter");
   });
 
-  it("does NOT classify a filter fan as Filter (it belongs to Thermal Management)", () => {
+  it("classifies a filter fan as its own thermal-management device type, not an EMC Filter", () => {
     const result = product(
       [{ group: "General", name: "Product Type", value: "Filter fan", sourceType: "official" }],
       "Filter fan 230 V"
     );
-    expect(classifyDeviceType(result).type).toBe("Thermal Management");
+    expect(classifyDeviceType(result).type).toBe("Filter Fan");
+  });
+
+  it("classifies an air conditioner separately from generic Thermal Management", () => {
+    const result = product(
+      [{ group: "General", name: "Product Type", value: "Conditioner, Air - 5100 BTU/Hr. 120 Volt", sourceType: "official" }],
+      "SCE-AC5100B120VSS6"
+    );
+    expect(classifyDeviceType(result).type).toBe("Air Conditioner");
+  });
+
+  it("recognizes plural subpanels from exact product descriptions", () => {
+    const result = product(
+      [{ group: "Product Specifications", name: "Description", value: "Subpanels For use with 2200 x 1000mm", sourceType: "official" }],
+      "PNA22A"
+    );
+    expect(classifyDeviceType(result).type).toBe("Subpanel");
   });
 
   it("classifies a pressure transmitter as Pressure Sensor", () => {

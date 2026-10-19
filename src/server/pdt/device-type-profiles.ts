@@ -211,10 +211,12 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
     electricalFields: VOLTAGE_ONLY,
     semanticFacts: { signalDevice: true }
   },
-  Luminaire: { sheets: ["Luminaire"], electricalFields: VOLTAGE_ONLY },
+  Luminaire: { sheets: ["Luminaire"], electricalFields: VOLTAGE_AND_CURRENT },
 
   "Thermal Management": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
-  Thermostat: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Air Conditioner": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  "Filter Fan": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  Thermostat: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
 
   Pump: { sheets: ["pump"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Directional Control Valve": { sheets: ["directional control valve"], electricalFields: VOLTAGE_ONLY },

@@ -311,6 +311,28 @@ describe("run manager document downloads", () => {
     expect(documentDownloadProfile({ id: "abb" }, { ...plcResult, normalized: { voltage: "20.4...28.8 V DC", current: "0.2...0.9 A" } }, { saveDocuments: false })).toBe("images-only");
   });
 
+  it("skips SCE manuals in quality mode after the exact product page meets its quality gate", () => {
+    const result = {
+      manufacturerId: "sce",
+      catalogNumber: "SCE-N12FA66-24VDC",
+      status: "found",
+      confidence: 0.96,
+      productUrl: "https://www.saginawcontrol.com/partnumber_info/?n=SCE-N12FA66-24VDC",
+      normalized: { voltage: "24 V DC", current: "0.71 A", dimensions: "9.84 x 9.84 x 4.40 in" },
+      attributes: [],
+      documents: [
+        { type: "image", label: "Product image", url: "https://www.saginawcontrol.com/images/sce-n12fa66-24vdc.png" },
+        { type: "manual", label: "Type 12 Fan / Filter Package", url: "https://www.saginawcontrol.com/instman/type-12-fan-filter-package.pdf" }
+      ],
+      sources: [{ url: "https://www.saginawcontrol.com/partnumber_info/?n=SCE-N12FA66-24VDC", sourceType: "official", parser: "sce-product-page", fetchedAt: new Date(0).toISOString() }],
+      qualityGate: { passed: true, identityConfirmed: true, score: 100, missing: [], reason: "Complete", attempts: [] }
+    } as ProductResult;
+
+    expect(documentDownloadProfile({ id: "sce" }, result, { saveDocuments: false })).toBe("images-only");
+    expect(documentDownloadProfile({ id: "sce" }, result, { saveDocuments: true })).toBe("full");
+    expect(documentDownloadProfile({ id: "sce" }, { ...result, qualityGate: { ...result.qualityGate!, passed: false } }, { saveDocuments: false })).toBe("quality");
+  });
+
   it("allows complete customer documents to short-circuit official lookup for unseen manufacturers", () => {
     const result = customerOnlyResult({
       manufacturerId: "unseen-maker",

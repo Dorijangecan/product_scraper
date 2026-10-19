@@ -99,6 +99,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Pressure Sensor", /\bpressure\s+(?:sensors?|transmitters?|transducers?)\b/i, 900),
   rule("Temperature Sensor", /\b(?:temperature\s+(?:sensors?|probes?|transmitters?|transducers?)|thermocouple|\brtd\b|pt100|pt1000)\b/i, 900),
   rule("Thermostat", /\b(?:room\s+thermostats?|thermostats?)\b/i, 925),
+  // Keep enclosure climate products distinct for type-specific completeness, while routing
+  // them to the same cabinet air-conditioning PDT sheet as the broader thermal category.
+  rule("Air Conditioner", /\b(?:air conditioners?|conditioner,\s*(?:ng\s+)?air)\b/i, 930),
+  rule("Filter Fan", /\bfilter\s+fans?\b/i, 925),
   // A Balluff condition-monitoring product publishes its sensor family together with a
   // "Cable with connector" connection detail.  The explicit family must outrank that
   // accessory wording, otherwise the device is routed as a Connector.
@@ -195,7 +199,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
     765
   ),
   rule("Wireway", /\b(?:wireway|wire duct|cable duct|cable tray|cable channel|cable trunking)\b/i, 760),
-  rule("Subpanel", /\b(?:subpanel|sub-panel|back[-\s]?panel|mounting panel|mounting plate)\b/i, 755),
+  rule("Subpanel", /\b(?:sub[-\s]?panels?|back[-\s]?panels?|mounting panels?|mounting plates?)\b/i, 755),
   rule("Mounting Accessory", /\bmounting plate attachment\b/i, 825),
   rule("Module Carrier", /\b(?:module carrier|carrier frame|backplane|module rack|subrack)\b/i, 753),
   // SCE sells these separately from the enclosure: they support rack-mounted equipment but are

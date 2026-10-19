@@ -1842,6 +1842,13 @@ export function documentDownloadProfile(
 ): DocumentDownloadProfile {
   if (options.saveDocuments === false) {
     if (hasCompleteAbbOfficialProductData(result)) return "images-only";
+    if (
+      manufacturer.id === "sce" &&
+      result.qualityGate?.passed === true &&
+      result.qualityGate.identityConfirmed === true &&
+      /^https:\/\/www\.saginawcontrol\.com\/partnumber_info\//i.test(result.productUrl ?? "") &&
+      result.sources.some((source) => source.sourceType === "official" && source.parser === "sce-product-page")
+    ) return "images-only";
     return "quality";
   }
   // Eaton SKU pages often merge the same specification sheet from several locales. Saving all

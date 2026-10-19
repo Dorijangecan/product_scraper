@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, extractEatonAutovarRatedCurrent, extractEatonSp1NominalDischargeCurrent, extractTurckSafetyClassification, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, extractEatonAutovarRatedCurrent, extractEatonSp1NominalDischargeCurrent, extractSceAirConditionerManualAttributes, extractTurckSafetyClassification, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -64,6 +64,37 @@ describe("extractTurckSafetyClassification", () => {
       ...document,
       url: "https://example.test/EDB_3089707_ger_de.pdf"
     }, "Ident-No. 3089707; Type designation SLLP23-1540P88; Sicherheitslichtvorhang Typ 4; SIL 3")).toEqual([]);
+  });
+});
+
+describe("extractSceAirConditionerManualAttributes", () => {
+  const document = { url: "https://www.saginawcontrol.com/instman/sce-ac5100b120v.pdf" };
+  const text = [
+    "User Manual SCE-AC5100B120V, SCE-AC5100B120VSS & SCE-AC5100B120VSS6",
+    "Max. Air Volume Flow\tAmbient Air Circuit: 385 cfm",
+    "Cabinet Air Circuit: 235 cfm",
+    "Rated Current @ 95°F / 95°F\t7.3 A @ 50Hz",
+    "8.7 A @ 60Hz",
+    "Housing Material Mild Steel, Powder Coated",
+    "SS: Stainless Steel AISI 304",
+    "SS6: Stainless Steel AISI 316"
+  ].join("\n");
+
+  it("uses the exact SS6 material variant and extracts split current and airflow values", () => {
+    const attributes = extractSceAirConditionerManualAttributes("SCE-AC5100B120VSS6", document, text);
+    expect(attributes.map(({ name, value }) => [name, value])).toEqual([
+      ["Rated Current", "7.3 A @ 50Hz; 8.7 A @ 60Hz"],
+      ["Air Flow", "Ambient Air Circuit: 385 cfm; Cabinet Air Circuit: 235 cfm"],
+      ["Material", "Stainless Steel AISI 316"]
+    ]);
+  });
+
+  it("does not apply family manual facts without the exact model or matching manual", () => {
+    expect(extractSceAirConditionerManualAttributes("SCE-AC5100B230VSS6", document, text)).toEqual([]);
+    expect(extractSceAirConditionerManualAttributes("SCE-AC5100B120VSS6", {
+      url: "https://www.saginawcontrol.com/instman/sce-ac5100b230v.pdf"
+    }, text)).toEqual([]);
+    expect(extractSceAirConditionerManualAttributes("SCE-AC5100B120VSS6", document, "SCE-AC5100B230VSS; 8.7 A @ 60Hz")).toEqual([]);
   });
 });
 

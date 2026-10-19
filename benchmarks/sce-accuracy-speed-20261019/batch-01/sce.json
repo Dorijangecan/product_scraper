@@ -1,0 +1,146 @@
+[
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-AC5100B120VSS6",
+    "caseType": "thermal-management",
+    "expectedDeviceType": "Air Conditioner",
+    "riskTags": [
+      "cold",
+      "air-conditioner",
+      "electrical-ratings",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-AC5100B120VSS6"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "5100 BTU/Hr",
+      "120 V",
+      "8.7 A",
+      "R513a Refrigerant",
+      "235 cfm"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current"
+    ]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-N12FA66-24VDC",
+    "caseType": "thermal-management",
+    "expectedDeviceType": "Filter Fan",
+    "riskTags": [
+      "cold",
+      "filter-fan",
+      "airflow-current",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-N12FA66-24VDC"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "86 CFM",
+      "0.71 A",
+      "24V DC",
+      "4611D2003"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current"
+    ]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-TEMNC",
+    "caseType": "thermostat",
+    "expectedDeviceType": "Thermostat",
+    "riskTags": [
+      "cold",
+      "thermostat",
+      "setpoint-and-contact-ratings",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-TEMNC"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "30° to 140° F",
+      "10 amp",
+      "1 amp",
+      "1.25 amp"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current"
+    ]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "PNA22A",
+    "caseType": "enclosure-accessory",
+    "expectedDeviceType": "Subpanel",
+    "riskTags": [
+      "cold",
+      "subpanel",
+      "dimensions-material",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=PNA22A"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "galvanized steel",
+      "81.89",
+      "35.04",
+      "1.28",
+      "95.11"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "weight",
+      "material"
+    ]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-LF18",
+    "caseType": "enclosure-light",
+    "expectedDeviceType": "Luminaire",
+    "riskTags": [
+      "cold",
+      "led-fixture",
+      "electrical-rating-lumens",
+      "exact-image"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "saginawcontrol\\.com/partnumber_info/\\?n=SCE-LF18"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedAttributePatterns": [
+      "100 to 260VAC",
+      "0.105",
+      "850 Lumens",
+      "50/60",
+      "Door activated adjustable switch"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "current"
+    ]
+  }
+]

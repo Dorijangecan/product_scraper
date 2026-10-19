@@ -1407,7 +1407,27 @@ describe("manufacturer parsers", () => {
     }));
   });
 
-  it("scrapes SCE direct product pages when advanced search or fetch fails", async () => {
+  it("normalizes an SCE Current (A) specification as a rated current", () => {
+    const html = `
+      <html><head><title>SCE-N12FA66-24VDC - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>SCE-N12FA66-24VDC</h1>
+        <img src="/images/sce-n12fa66-24vdc.png" alt="SCE-N12FA66-24VDC" />
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: SCE-N12FA66-24VDC</p>
+          <p class="prod-info-body"><strong>Description</strong>: Filter Fan (24VDC)</p>
+          <p class="prod-info-body"><strong>Volts</strong>: 24V DC</p>
+          <p class="prod-info-body"><strong>Current (A)</strong>: 0.71</p>
+        </div>
+      </body></html>
+    `;
+    const result = parseSceProductPage("SCE-N12FA66-24VDC", fetched(html, "https://www.saginawcontrol.com/partnumber_info/?n=SCE-N12FA66-24VDC"));
+
+    expect(result.normalized.current).toBe("0.71 A");
+    expect(result.attributes).toContainEqual(expect.objectContaining({ group: "Product Specifications", name: "Rated Current", value: "0.71 A" }));
+  });
+
+  it("uses the exact SCE product URL and PowerShell after a direct HTTP failure", async () => {
     const seenUrls: string[] = [];
     const detailHtml = `
       <html><head><title>SCE-60EL4812LPPL - Saginaw Control and Engineering</title></head>
@@ -1459,9 +1479,9 @@ describe("manufacturer parsers", () => {
     expect(result.productUrl).toBe("https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
     expect(result.normalized.dimensions).toContain("60.00 x 48.00 x 12.00 in");
     expect(result.attributes.some((attr) => attr.group === "SCE Family Inference")).toBe(false);
-    expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/advanced-part-search/");
     expect(seenUrls).toContain("fetch:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
     expect(seenUrls).toContain("powershell:https://www.saginawcontrol.com/partnumber_info/?n=SCE-60EL4812LPPL");
+    expect(seenUrls.some((url) => url.includes("/download-doc/"))).toBe(false);
   });
 
   it("reports a clean miss and skips discovery when SCE has no web-viewable part", async () => {
@@ -1752,6 +1772,27 @@ describe("manufacturer parsers", () => {
     expect(result.attributes.some((attr) => attr.group === "SCE Electrical Ratings" && attr.name === "Switch Capacity")).toBe(true);
     expect(result.attributes.find((attr) => attr.group === "SCE Electrical Ratings" && attr.name === "Switch Capacity")?.value).toContain("1.25 amp 24VDC");
     expect(result.attributes.some((attr) => attr.group === "SCE Thermal Ratings" && attr.name === "Set Point Range" && attr.value === "30° to 140° F")).toBe(true);
+  });
+
+  it("keeps an SCE manual for the requested voltage variant and drops sibling-voltage manuals", () => {
+    const html = `
+      <html><head><title>SCE-AC5100B120VSS6 - Saginaw Control and Engineering</title></head>
+      <body>
+        <h1>SCE-AC5100B120VSS6</h1>
+        <img src="/images/sce-ac5100b120vss6.png" alt="SCE-AC5100B120VSS6" />
+        <div class="prod-specs">
+          <p class="prod-info-body"><strong>Part Number</strong>: SCE-AC5100B120VSS6</p>
+          <p class="prod-info-body"><strong>Description</strong>: Conditioner, Air - 5100 BTU/Hr. 120 Volt</p>
+        </div>
+        <a href="/instman/sce-ac5100b120v.pdf">Air Conditioners - SCE-AC5100B120V</a>
+        <a href="/instman/sce-ac5100b230v.pdf">Air Conditioners - SCE-AC5100B230V</a>
+      </body></html>
+    `;
+    const result = parseSceProductPage("SCE-AC5100B120VSS6", fetched(html, "https://www.saginawcontrol.com/partnumber_info/?n=SCE-AC5100B120VSS6"));
+
+    expect(result.documents.filter((doc) => doc.type === "manual").map((doc) => doc.url)).toEqual([
+      "https://www.saginawcontrol.com/instman/sce-ac5100b120v.pdf"
+    ]);
   });
 
   it("infers SCE catalog voltage from heat exchanger part numbers when specs omit volts", () => {

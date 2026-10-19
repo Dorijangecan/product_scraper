@@ -17,34 +17,17 @@ export class SCEConnector implements ManufacturerConnector {
 
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
     const partNumber = cleanText(catalogNumber) || catalogNumber.trim();
-    let search: FetchedText | undefined;
     try {
-      const searchBody = new URLSearchParams({
-        PartNumberSearchString: partNumber,
-        radio: "Exact",
-        PartNumberSubmit: "Search"
-      });
-      search = await context.http.fetchText(`${SCE_BASE}/advanced-part-search/`, {
-        method: "POST",
-        body: searchBody,
-        headers: { "content-type": "application/x-www-form-urlencoded" },
-        signal: context.signal
-      });
-    } catch {
-      // SCE's search endpoint is useful but non-essential. Some Windows/proxy setups reject
-      // the POST, while the direct product URL still works.
-    }
-
-    try {
-      const exactSearchUrl = findExactDetailUrl(partNumber, search?.text ?? "");
-      const detailUrl = exactSearchUrl ?? buildSceProductUrl(partNumber);
+      // The partnumber_info endpoint is deterministic and already contains the exact SKU,
+      // specifications, source links, and SKU image. A preceding POST to Advanced Part Search
+      // duplicated data from this page and cost a full network round trip for every item.
+      const detailUrl = buildSceProductUrl(partNumber);
       const detail = await fetchSceGet(context, detailUrl);
       if (detail.statusCode >= 400) {
         // Keep the exact SCE URL we checked for review, but do not turn an HTTP error page or
         // the generic discovery result into a product image (often the SCE logo).
         return {
           ...emptyResult("sce", partNumber, `SCE product page returned HTTP ${detail.statusCode}; product image could not be verified.`),
-          ...(exactSearchUrl ? { productUrl: detail.effectiveUrl } : {}),
           diagnostics: {
             terminal: {
               skipNetworkFallback: true,
@@ -72,7 +55,6 @@ export class SCEConnector implements ManufacturerConnector {
         // miss and skip the fallback — there is nothing to discover.
         return {
           ...emptyResult("sce", partNumber, "SCE has no web-viewable product for this catalog number."),
-          ...(exactSearchUrl ? { productUrl: detail.effectiveUrl } : {}),
           sources: [
             {
               url: detail.effectiveUrl,
@@ -85,10 +67,10 @@ export class SCEConnector implements ManufacturerConnector {
           ]
         };
       }
-      const cad = context.downloadDocuments === false || context.imageOnly
-        ? undefined
-        : await fetchSceGet(context, `${SCE_BASE}/download-doc/?PartNumber=${encodeURIComponent(partNumber)}`).catch(() => undefined);
-      const primary = parseSceProductPage(partNumber, detail, search, cad, context.manufacturer.markerRules);
+      // The PDP itself links to the CAD download endpoint. Keep that exact link, but do not
+      // fetch its redirect page during scraping; it added no product facts and duplicated a
+      // request before the normal document-download stage.
+      const primary = parseSceProductPage(partNumber, detail, undefined, undefined, context.manufacturer.markerRules);
       if (primary.productUrl && !primary.documents.some((document) => document.type === "image")) {
         // The exact SCE page confirms this catalog number but exposes no product image. Treat
         // that as a terminal image miss: broad discovery can otherwise attach the company logo
@@ -107,11 +89,23 @@ export class SCEConnector implements ManufacturerConnector {
           }
         };
       }
+      // A real, exact SCE PDP is authoritative even when its page-level quality gate is still
+      // missing a fact that may be available in one of its linked manuals. The normal document
+      // enrichment stage gets first chance at those exact links; broad discovery afterwards
+      // repeats the same PDP, adds sibling manuals, and risks mixing voltage variants.
+      if (primary.productUrl) {
+        return {
+          ...primary,
+          diagnostics: {
+            ...primary.diagnostics,
+            terminal: {
+              skipNetworkFallback: true,
+              reason: "Exact SCE product page confirmed this catalog number; use its linked documents for any remaining facts instead of broad discovery."
+            }
+          }
+        };
+      }
       if (primary.status !== "failed" && primary.status !== "partial") return primary;
-
-      // An exact product page is authoritative. Do not try broad discovery when that page is
-      // partial; doing so can replace a true missing-image result with a logo or sibling asset.
-      if (primary.productUrl) return primary;
 
       return mergeSceDiscoveryFallback(primary, partNumber, context);
     } catch (error) {
@@ -239,10 +233,11 @@ export function parseSceProductPage(
     const href = $(element).attr("href");
     if (!href) return;
     const absolute = new URL(href, detail.effectiveUrl).toString();
+    const label = cleanText($(element).text()) || absolute.split("/").pop() || "Document";
+    if (!sceDocumentAppliesToProduct(label, absolute, catalogNumber)) return;
     const isFileDownload = /\.(pdf|zip|dwg|dxf|stp|step)(\?|$)/i.test(absolute);
     const isCadDownloadPage = /\/download-doc\/?\?/i.test(absolute) && /(?:part|partnumber)=/i.test(absolute);
     if (!isFileDownload && !isCadDownloadPage) return;
-    const label = cleanText($(element).text()) || absolute.split("/").pop() || "Document";
     documents.push({
       type: isCadDownloadPage ? "cad" : classifyDocument(label, absolute),
       label,
@@ -342,6 +337,19 @@ function findExactDetailUrl(catalogNumber: string, html: string): string | undef
     .filter(Boolean);
   return candidates[0];
 }
+
+function sceDocumentAppliesToProduct(label: string, url: string, catalogNumber: string): boolean {
+  const linkedPartNumbers = `${label} ${url}`.match(/\b(?:SCE|P)-[A-Z0-9][A-Z0-9-]*\b/gi) ?? [];
+  if (!linkedPartNumbers.length) return true;
+  const product = catalogNumber.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+  // SCE's installation list can contain several voltage or refrigerant variants. A manual
+  // whose printed model token is a prefix of the requested SKU (for example the 120 V base
+  // model for an SS6 stainless variant) is relevant; a sibling 230/460 V manual is not.
+  return linkedPartNumbers.some((linked) => {
+    const token = linked.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+    return product.startsWith(token);
+  });
+}
 function parseSearchResultAttributes(catalogNumber: string, fetched: FetchedText): AttributeRecord[] {
   const $ = cheerio.load(fetched.text);
   const attributes: AttributeRecord[] = [];
@@ -366,10 +374,14 @@ function parseProductSpecificationAttributes($: cheerio.CheerioAPI, sourceUrl: s
       clone.find("strong").remove();
       const value = cleanText(clone.text().replace(/^:/, ""));
       if (!label || !value) return undefined;
+      const name = normalizeSceSpecLabel(label);
+      const normalizedValue = name === "Rated Current" && /^\d+(?:[.,]\d+)?$/.test(value)
+        ? `${value} A`
+        : value;
       return {
         group: "Product Specifications",
-        name: normalizeSceSpecLabel(label),
-        value,
+        name,
+        value: normalizedValue,
         sourceUrl,
         sourceType: "official",
         parser: "sce-product-page",
@@ -468,6 +480,7 @@ function cleanLinkedPartDescription(label: string, partNumber: string): string {
 
 function normalizeSceSpecLabel(label: string): string {
   if (/ship weight/i.test(label)) return "Weight";
+  if (/^(?:current\s*\(a\)|amps?)$/i.test(label)) return "Rated Current";
   return label;
 }
 
