@@ -359,6 +359,48 @@ describe("run manager document downloads", () => {
     expect(documentDownloadProfile({ id: "nvent" }, { ...base, catalogNumber: "PCS3" }, { saveDocuments: false })).toBe("quality");
     expect(documentDownloadProfile({ id: "nvent" }, { ...base, qualityGate: { ...base.qualityGate!, passed: false } }, { saveDocuments: false })).toBe("quality");
 
+    const hangerUrl = "https://www.nvent.com/en-us/caddy/products/efs4100150eg";
+    const hanger = {
+      ...base,
+      catalogNumber: "4100150EG",
+      title: '410 Clevis Hanger, Light Duty, 1 1/2" Pipe, 1.9" OD, 3/8" Rod',
+      description: "Recommended for stationary suspension of non-insulated pipe.",
+      productUrl: hangerUrl,
+      normalized: { material: "Steel" },
+      attributes: [
+        ...Array.from({ length: 8 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: hangerUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "4100150EG", sourceUrl: hangerUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Material", value: "Steel", sourceUrl: hangerUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Clevis Hanger", url: `${hangerUrl}/image`, sourceType: "official" }],
+      sources: [{ url: hangerUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "nvent" }, hanger, { saveDocuments: false })).toBe("images-only");
+    expect(documentDownloadProfile({ id: "nvent" }, {
+      ...hanger,
+      documents: [],
+      qualityGate: { ...hanger.qualityGate!, passed: false, missing: ["document:image"] }
+    }, { saveDocuments: false })).toBe("images-only");
+
+    const rodUrl = "https://www.nvent.com/en-us/erico/products/efs611380";
+    const rod = {
+      ...base,
+      catalogNumber: "611380",
+      title: "Copper-Bonded Ground Rod, Pointed, 1/2-inch Diameter - Green",
+      productUrl: rodUrl,
+      normalized: { dimensions: "D 12.8 mm x L 2438.4 mm", material: "Copper-Bonded Steel" },
+      attributes: [
+        ...Array.from({ length: 8 }, (_, index) => ({ name: `Field ${index}`, value: `Value ${index}`, sourceUrl: rodUrl, sourceType: "official", parser: "nvent-direct" })),
+        { name: "Catalog Number", value: "611380", sourceUrl: rodUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Ground Rod Diameter, Actual (Ø)", value: "12.8 mm", sourceUrl: rodUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Length (L)", value: "8'", sourceUrl: rodUrl, sourceType: "official", parser: "nvent-direct" },
+        { name: "Material", value: "Copper-Bonded Steel", sourceUrl: rodUrl, sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [{ type: "image", label: "Ground rod", url: `${rodUrl}/image`, sourceType: "official" }],
+      sources: [{ url: rodUrl, sourceType: "official", parser: "nvent-direct", fetchedAt: new Date(0).toISOString() }]
+    } as ProductResult;
+    expect(documentDownloadProfile({ id: "nvent" }, rod, { saveDocuments: false })).toBe("images-only");
+
     const fanUrl = "https://www.nvent.com/en-us/hoffman/products/enchf0516514";
     const fan = {
       ...base,

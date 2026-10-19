@@ -104,7 +104,11 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Air Conditioner", /\b(?:air conditioners?|conditioner,\s*(?:ng\s+)?air)\b/i, 930),
   rule("Filter Fan", /\bfilter\s+fans?\b/i, 925),
   rule("Heat Exchanger", /\b(?:heat\s+exchangers?|exchangers?,?\s*heat)\b/i, 922),
-  rule("Heater", /\b(?:enclosure\s+heaters?|cabinet\s+heaters?|semiconductor\s+heaters?|heaters?\s*[-,]?\s*\d+\s*W)\b/i, 921),
+  rule("Heater", /\b(?:electric\s+heater(?:s)?|enclosure\s+heater(?:s)?|cabinet\s+heater(?:s)?|semiconductor\s+heater(?:s)?|heater(?:s)?\s*[-,]?\s*\d+\s*W|heater(?:s)?)\b/i, 921),
+  rule("Automatic Transfer Switch", /\b(?:automatic transfer switch(?:es)?|rack automatic transfer switch(?:es)?|ats units?)\b/i, 1_030),
+  rule("Test Adapter", /\btest adapt(?:er|or)s?\b/i, 900),
+  rule("Ground Rod", /\b(?:ground rods?|ground electrodes?)\b/i, 895),
+  rule("Pipe Hanger", /\b(?:pipe hangers?|clevis hangers?|loop hangers?)\b/i, 890),
   rule("Rain Hood", /\b(?:rain\s+hoods?|hoods?,?\s*rain)\b/i, 720),
   rule("Pull-Out Shelf", /\b(?:pull[-\s]?out\s+(?:shelf|shelves)|(?:shelf|shelves),?\s*pull[-\s]?out)\b/i, 715),
   rule("Window Kit", /\b(?:window\s+kits?|kits?,?\s*(?:s\.?s\.?\s+)?window)\b/i, 710),
@@ -993,7 +997,7 @@ function nventProductUrlForTypeCheck(catalogNumber: string): string {
   const sku = catalogNumber.trim().toLowerCase();
   if (/^\d{4,}-\d+$/.test(sku)) return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
   if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
-  if (/^(?:pcs|cat|ec|cablecat|wbt)\w*/i.test(sku)) return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
+  if (/^(?:410\d{4,}(?:[a-z]+)?|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
   return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
 }
 

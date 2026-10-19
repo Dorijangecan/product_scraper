@@ -1862,7 +1862,11 @@ export function documentDownloadProfile(
 }
 
 function hasCompleteNventPassiveProductData(result: ProductResult): boolean {
-  if (result.manufacturerId !== "nvent" || result.qualityGate?.passed !== true || result.qualityGate.identityConfirmed !== true) return false;
+  const onlyMissingImage = result.qualityGate?.passed !== true &&
+    result.qualityGate?.identityConfirmed === true &&
+    (result.qualityGate.missing ?? []).length > 0 &&
+    (result.qualityGate.missing ?? []).every((field) => /^(?:image|document:image)$/i.test(field));
+  if (result.manufacturerId !== "nvent" || (result.qualityGate?.passed !== true && !onlyMissingImage) || result.qualityGate?.identityConfirmed !== true) return false;
   const exactUrl = result.productUrl ?? result.localizedUrls?.en;
   if (!exactUrl || !/^https:\/\/www\.nvent\.com\//i.test(exactUrl)) return false;
   if (!result.sources.some((source) => source.sourceType === "official" && source.parser === "nvent-direct" && source.url === exactUrl)) return false;
@@ -1874,7 +1878,9 @@ function hasCompleteNventPassiveProductData(result: ProductResult): boolean {
     /^(?:catalog\s*#?|catalogue\s*number|catalog\s*number|sku|article\s*number)$/i.test(attribute.name.trim()) &&
     attribute.value.replace(/[^a-z0-9]/gi, "").toUpperCase() === result.catalogNumber.replace(/[^a-z0-9]/gi, "").toUpperCase()
   );
-  if (!identityMatches || !result.documents.some((document) => document.type === "image" && document.sourceType === "official")) return false;
+  if (!identityMatches) return false;
+  const hasExactOfficialImage = result.documents.some((document) => document.type === "image" && document.sourceType === "official");
+  if (!hasExactOfficialImage && !onlyMissingImage) return false;
 
   const requiredFieldsByType: Record<string, string[]> = {
     Cable: ["material"],
@@ -1884,13 +1890,57 @@ function hasCompleteNventPassiveProductData(result: ProductResult): boolean {
     "Power Supply": ["dimensions", "voltage", "current"],
     "Surge Protective Device": ["dimensions", "material", "voltage", "protection"],
     Enclosure: ["dimensions", "material", "protection"],
-    "Thermal Management": ["dimensions", "material"]
+    "Thermal Management": ["dimensions", "material"],
+    "Test Adapter": [],
+    "Ground Rod": ["dimensions", "material"],
+    "Pipe Hanger": ["material"],
+    Heater: ["dimensions", "material", "voltage", "current"],
+    "Automatic Transfer Switch": ["dimensions", "material", "voltage", "current"]
   };
   const requiredFields = requiredFieldsByType[classifyDeviceType(result).type ?? ""];
   if (!requiredFields) return false;
   if (!requiredFields.every((field) => Boolean(result.normalized[field as keyof ProductResult["normalized"]]))) return false;
   const deviceType = classifyDeviceType(result).type;
-  if (deviceType === "Filter Fan") {
+  if (deviceType === "Test Adapter") {
+    const hasExactMechanicalEvidence = officialPageAttributes.some((attribute) =>
+      /^board depth$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^rack height$/i.test(attribute.name.trim()) && /\b\d+(?:\.\d+)?\s*U\b/i.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^(?:connector type|test adaptor type)$/i.test(attribute.name.trim()) && /^(?:type\s*)?C(?:\d+)?$/i.test(attribute.value.trim())
+    );
+    if (!hasExactMechanicalEvidence || result.normalized.current || result.normalized.voltage) return false;
+  } else if (deviceType === "Ground Rod") {
+    const hasExactGroundRodEvidence = officialPageAttributes.some((attribute) =>
+      /^(?:ground rod diameter(?:,\s*actual(?:\s*\(ø\))?)?|diameter)$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^length(?:\s*\(l\))?$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^material$/i.test(attribute.name.trim()) && /copper[- ]bonded steel/i.test(attribute.value)
+    );
+    if (!hasExactGroundRodEvidence || result.normalized.current || result.normalized.voltage) return false;
+  } else if (deviceType === "Pipe Hanger") {
+    const title = `${result.title ?? ""} ${result.description ?? ""}`;
+    const hasExactHangerEvidence = officialPageAttributes.some((attribute) =>
+      /^material$/i.test(attribute.name.trim()) && /steel/i.test(attribute.value)
+    ) && /\b(?:pipe|od)\b/i.test(title) && /\brod\b/i.test(title);
+    if (!hasExactHangerEvidence || result.normalized.current || result.normalized.voltage) return false;
+  } else if (deviceType === "Heater") {
+    const hasExactHeatingEvidence = officialPageAttributes.some((attribute) =>
+      /^heating capacity$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^max current$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    );
+    if (!hasExactHeatingEvidence) return false;
+  } else if (deviceType === "Automatic Transfer Switch") {
+    const hasExactTransferSwitchEvidence = officialPageAttributes.some((attribute) =>
+      /^(?:number of receptacles|receptacle count|outlets)$/i.test(attribute.name.trim()) && /\d/.test(attribute.value) ||
+      /^name$/i.test(attribute.name.trim()) && /\b\d+\s+Rec\b/i.test(attribute.value)
+    ) && officialPageAttributes.some((attribute) =>
+      /^transfer time$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+    );
+    if (!hasExactTransferSwitchEvidence) return false;
+  } else if (deviceType === "Filter Fan") {
     const hasExactPageElectricalEvidence = officialPageAttributes.some((attribute) =>
       /^(?:nominal\s+voltage|rated\s+voltage|voltage)$/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
     ) && officialPageAttributes.some((attribute) =>

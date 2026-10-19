@@ -54,7 +54,7 @@
     "caseType": "electrical",
     "expectedDeviceType": "Power Distribution Unit",
     "riskTags": ["eta-batch-04", "powerplex-mini-module", "vehicle-power-distribution"],
-    "expectedOfficialUrlPatterns": ["e-t-a\\.com/products/discontinued_products/list_recommended_replacements/p/powerplex_mini_module_mm500/"],
+    "expectedOfficialUrlPatterns": ["e-t-a\\.de/produkte/stromverteilungssysteme/intelligente_stromverteilung/powerplex/produktuebersicht/p/powerplex_mini_modul_mm500/"],
     "requiredDocuments": ["datasheet", "image"],
     "expectedNormalizedFields": ["voltage", "current"],
     "expectedNormalizedPatterns": {"voltage": "12.{0,20}24\\s*V", "current": "18\\s*A"},

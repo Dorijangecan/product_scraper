@@ -72,6 +72,27 @@ describe("nVent passive SCHROFF rack chassis normalization", () => {
     ], [], "nvent");
     expect(normalized.material).toBeUndefined();
   });
+
+  it("does not normalize a test adapter's board depth as the product envelope", () => {
+    const normalized = normalizeFields([
+      { name: "Product Type", value: "Test Adapter", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Board Depth", value: "220mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Rack Height", value: "6U", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    expect(normalized.dimensions).toBeUndefined();
+  });
+
+  it("uses a ground rod's exact diameter and length, not the length twice", () => {
+    const normalized = normalizeFields([
+      { name: "category", value: "Copper-Bonded Ground Rod, Pointed", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Ground Rod Diameter, Actual (Ø)", value: "12.8 mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Length (L)", value: "8'", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Length (L)", value: "2.4m", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Plating Thickness", value: "10 mils minimum", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    expect(normalized.dimensions).toMatch(/12\.8.*2438\.4/);
+    expect(normalized.finish).toBeUndefined();
+  });
 });
 
 describe("normalizer", () => {

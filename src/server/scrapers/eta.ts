@@ -37,7 +37,9 @@ const ETA_DIRECT_PRODUCT_ROUTES: EtaDirectProductRoute[] = [
   {
     id: "eta-product-mm500-power-distribution-module",
     pattern: /^MM500$/i,
-    url: () => "https://www.e-t-a.com/products/discontinued_products/list_recommended_replacements/p/powerplex_mini_module_mm500/"
+    // The legacy discontinued-products route now 404s. The active exact-product page lives
+    // in E-T-A's German product overview and retains the English datasheet/technical rows.
+    url: () => "https://www.e-t-a.de/produkte/stromverteilungssysteme/intelligente_stromverteilung/powerplex/produktuebersicht/p/powerplex_mini_modul_mm500/"
   },
   {
     id: "eta-product-2210-s2-breaker",

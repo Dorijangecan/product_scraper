@@ -26,6 +26,17 @@ function product(overrides: Partial<ProductResult>): ProductResult {
 }
 
 describe("required electrical fields", () => {
+  it("does not send passive clevis hangers through the electrical fallback loop", () => {
+    const result = product({
+      manufacturerId: "nvent",
+      catalogNumber: "4100150EG",
+      title: '410 Clevis Hanger, Light Duty, 1 1/2" Pipe, 1.9" OD, 3/8" Rod',
+      description: 'Recommended for the stationary suspension of non-insulated pipe.'
+    });
+
+    expect(requiredElectricalFields(result)).toEqual([]);
+  });
+
   it("uses SCE's exact heat exchanger and heater profiles ahead of the enclosure thermal fallback", () => {
     const heatExchanger = product({
       manufacturerId: "sce",

@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { filterNventProductImages, nventProductUrl } from "../src/server/scrapers/nvent.js";
+import { filterNventProductImages, isNventCloudflareResponse, nventProductUrl } from "../src/server/scrapers/nvent.js";
+
+describe("nVent challenge detection", () => {
+  it.each([
+    [{ statusCode: 403, text: "Access denied" }, true],
+    [{ statusCode: 200, text: "<title>Just a moment...</title>" }, true],
+    [{ statusCode: 200, text: "Exact nVent product page" }, false]
+  ])("recognizes retryable challenge responses", (response, expected) => {
+    expect(isNventCloudflareResponse(response)).toBe(expected);
+  });
+});
 
 describe("nVent brand route resolution", () => {
   it.each([
@@ -11,6 +21,7 @@ describe("nVent brand route resolution", () => {
     ["B2700A2C1WH", "https://www.nvent.com/en-us/erico/products/efsb2700a2c1wh/"],
     ["GPECNED096", "https://www.nvent.com/en-us/erico/products/efsgpecned096/"],
     ["PCS2", "https://www.nvent.com/en-us/caddy/products/efspcs2/"],
+    ["4100150EG", "https://www.nvent.com/en-us/caddy/products/efs4100150eg/"],
     ["DAH4001B", "https://www.nvent.com/en-us/hoffman/products/encdah4001b/"]
   ])("maps %s to its expected official brand path", (catalogNumber, expectedUrl) => {
     expect(nventProductUrl(catalogNumber)).toBe(expectedUrl);
@@ -46,5 +57,17 @@ describe("nVent product image identity", () => {
       sourceUrl: "https://www.nvent.com/en-us/hoffman/products/encdah4001b"
     }]);
     expect(images).toHaveLength(0);
+  });
+
+  it("rejects sibling SKU images when the model code is underscore-delimited", () => {
+    const images = filterNventProductImages("NPATS11003", [{
+      type: "image",
+      label: "NPATS11002_RPAutoTrsfrSwitch_sq.tif",
+      url: "https://www.nvent.com/sites/default/files/dam/npats11002_rpautotrsfrswitch_sq.png.webp",
+      sourceUrl: "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+      sourceType: "official"
+    }]);
+
+    expect(images).toEqual([]);
   });
 });

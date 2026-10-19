@@ -68,6 +68,25 @@ describe("device type classifier", () => {
     }
   });
 
+  it("classifies additional nVent product families from exact PDP categories", () => {
+    const cases = [
+      ["23022-652", "schroff/products/enc23022-652", "Test Adapters", "Test Adaptor Type C", "Test Adapter"],
+      ["611380", "erico/products/efs611380", "Copper-Bonded Ground Rod, Pointed", "Copper-Bonded Ground Rod", "Ground Rod"],
+      ["DAH2001A", "hoffman/products/encdah2001a", "Electric Heaters, DAH", "Electric Heater, 115VAC 200W", "Heater"],
+      ["4100150EG", "caddy/products/efs4100150eg", "410 Clevis Hanger", "410 Clevis Hanger", "Pipe Hanger"],
+      ["NPATS11003", "hoffman/products/encnpats11003", "RackPower Automatic Transfer Switch", "RackPower Automatic Transfer Switch", "Automatic Transfer Switch"]
+    ] as const;
+    for (const [catalogNumber, path, category, title, expected] of cases) {
+      const productUrl = `https://www.nvent.com/en-us/${path}`;
+      const result = classifyDeviceType(product(
+        [{ group: "Structured Data", name: "category", value: category, sourceType: "official", parser: "nvent-direct", sourceUrl: productUrl }],
+        title,
+        { manufacturerId: "nvent", catalogNumber, productUrl }
+      ));
+      expect(result.type).toBe(expected);
+    }
+  });
+
   it("classifies SCE heater, heat exchanger, and enclosure hardware from the vendor's description order", () => {
     const cases = [
       ["Heater - 350W", "Heater", "cabinet.airconditioning"],

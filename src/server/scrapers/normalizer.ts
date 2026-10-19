@@ -237,6 +237,15 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const nventExactRailTerminalBlock = manufacturerId === "nvent" && attributes.some((attribute) =>
     attribute.parser === "nvent-direct" && /^rail four post terminal block\b/i.test(attribute.value) && /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
   );
+  const nventSchroffTestAdapter = manufacturerId === "nvent" &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^product type$/i.test(attribute.name.trim()) && /^test adapter$/i.test(attribute.value.trim())) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^board depth$/i.test(attribute.name.trim())) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^rack height$/i.test(attribute.name.trim()));
+  const nventCopperBondedGroundRod = manufacturerId === "nvent" &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^category$/i.test(attribute.name.trim()) && /\bcopper-bonded ground rod\b/i.test(attribute.value)) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^ground rod diameter, actual/i.test(attribute.name.trim())) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^length\b/i.test(attribute.name.trim()));
+  const nventGroundRodDimensions = nventCopperBondedGroundRod ? nventCopperBondedGroundRodDimensions(attributes) : undefined;
   const currentAttributes = etaVariableE1073Current
     ? []
     : etaEai300NoNormalizedCurrent
@@ -344,7 +353,8 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const preferAxisAssembly =
     Boolean(axisAssembledDimensions) &&
     (!combinedDimensionsValue || (axisDimensionCount >= combinedDimensionCount && weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1)));
-  const dimensions = manufacturerId === "schneider" && isSchneiderPendantStation(attributes) ? undefined : (
+  const dimensions = (manufacturerId === "schneider" && isSchneiderPendantStation(attributes)) || nventSchroffTestAdapter ? undefined : (
+    nventGroundRodDimensions ??
     exactDoepkeDimensions ??
     (manufacturerId === "balluff" ? balluffProbeDimensions(attributes) : undefined) ??
     (manufacturerId === "phoenix" ? phoenixContactSensorDimensions(attributes) : undefined) ??
@@ -401,7 +411,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : manufacturerId === "schmersal"
     ? undefined
     : normalizeFinishValue(bestAttributeValue(attributes.filter((attr) => attr.scope !== "variant-option"), normalizerFieldLabelPatterns("finish")));
-  const safeFinish = manufacturerId === "phoenix" && /\bno\b|\*/i.test(finish ?? "") ? undefined : finish;
+  const safeFinish = (manufacturerId === "phoenix" && /\bno\b|\*/i.test(finish ?? "")) || nventCopperBondedGroundRod ? undefined : finish;
   const wallThicknessAttributes = attributes.filter((attribute) =>
     !/\bbusbar\b|front\s+panel/i.test(`${attribute.group ?? ""} ${attribute.name}`) &&
     !/\bpanel thickness\b/i.test(attribute.name) &&
@@ -2994,6 +3004,26 @@ function normalizeWeightValue(value: string | undefined): string | undefined {
   return cleaned;
 }
 
+function nventCopperBondedGroundRodDimensions(attributes: AttributeRecord[]): string | undefined {
+  const actualDiameterAttributes = attributes.filter((attribute) =>
+    attribute.parser === "nvent-direct" && /^ground rod diameter, actual/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+  );
+  const diameter = (actualDiameterAttributes.find((attribute) => /\bmm\b/i.test(attribute.value)) ?? actualDiameterAttributes[0])?.value;
+  const length = attributes.find((attribute) =>
+    attribute.parser === "nvent-direct" && /^length\b/i.test(attribute.name.trim()) && /\d/.test(attribute.value)
+  )?.value;
+  const toMillimeters = (value: string | undefined) => {
+    const match = value?.match(/([\d.,]+)\s*(mm|cm|m|ft|feet|foot|in|inch|inches|′|')/i);
+    if (!match) return undefined;
+    const rawUnit = match[2].toLowerCase();
+    const unit = /^(?:feet|foot|ft|′|')$/.test(rawUnit) ? "ft" : /^(?:in|inch|inches)$/.test(rawUnit) ? "in" : rawUnit;
+    return convertDimensionTextToMillimeters(match[1], unit);
+  };
+  const diameterMm = toMillimeters(diameter);
+  const lengthMm = toMillimeters(length);
+  return diameterMm && lengthMm ? `D ${diameterMm} mm x L ${lengthMm} mm` : undefined;
+}
+
 function normalizeDimensionValue(value: string | undefined): string | undefined {
   if (!value) return undefined;
   const cleaned = normalizeHtmlSpecValue(value);
@@ -3125,7 +3155,7 @@ function formatDimensionQuantity(rawNumber: string, rawUnit: string | undefined)
 
 interface LabeledDimensionPart {
   label: "H" | "W" | "D" | "L";
-  value: number;
+  value: string;
   unit?: string;
 }
 
@@ -3134,15 +3164,15 @@ function parseLabeledDimensionParts(value: string): LabeledDimensionPart[] {
   const beforeValue = /\b([HWDL])\s*(\d+(?:[.,]\d+)?)\s*(in|inch|inches|"|mm|cm|m|ft|feet|foot)?\b/gi;
   let match: RegExpExecArray | null;
   while ((match = beforeValue.exec(value))) {
-    const number = localizedNumber(match[2]);
-    if (Number.isFinite(number)) parts.push({ label: match[1].toUpperCase() as LabeledDimensionPart["label"], value: number, unit: normalizeDimensionUnit(match[3]) });
+    const number = normalizeNumberSeparators(match[2]);
+    if (/^\d+(?:\.\d+)?$/.test(number)) parts.push({ label: match[1].toUpperCase() as LabeledDimensionPart["label"], value: number, unit: normalizeDimensionUnit(match[3]) });
   }
   if (parts.length >= 2) return parts;
 
   const afterValue = /\b(\d+(?:[.,]\d+)?)(?:\s*(in|inch|inches|"|mm|cm|m|ft|feet|foot))?\s*([HWDL])\b/gi;
   while ((match = afterValue.exec(value))) {
-    const number = localizedNumber(match[1]);
-    if (Number.isFinite(number)) parts.push({ label: match[3].toUpperCase() as LabeledDimensionPart["label"], value: number, unit: normalizeDimensionUnit(match[2]) ?? "in" });
+    const number = normalizeNumberSeparators(match[1]);
+    if (/^\d+(?:\.\d+)?$/.test(number)) parts.push({ label: match[3].toUpperCase() as LabeledDimensionPart["label"], value: number, unit: normalizeDimensionUnit(match[2]) ?? "in" });
   }
   return parts;
 }
@@ -3153,7 +3183,13 @@ function firstDimensionUnit(parts: LabeledDimensionPart[]): string | undefined {
 
 function formatLabeledMillimeters(parts: LabeledDimensionPart[], fallbackUnit: string): string {
   return parts
-    .map((part) => `${part.label} ${convertDimensionTextToMillimeters(String(part.value), part.unit ?? fallbackUnit) ?? formatNumber(convertDimensionToMillimeters(part.value, part.unit ?? fallbackUnit))} mm`)
+    .map((part) => {
+      const unit = part.unit ?? fallbackUnit;
+      const millimeters = convertDimensionTextToMillimeters(part.value, unit);
+      return millimeters
+        ? `${part.label} ${millimeters} mm`
+        : `${part.label} ${part.value} ${unit}`;
+    })
     .join(" x ");
 }
 

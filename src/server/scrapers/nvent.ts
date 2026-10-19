@@ -1,7 +1,8 @@
 import { parseGenericProductPage } from "./generic.js";
-import { emptyResult } from "./normalizer.js";
+import { emptyResult, normalizeFields } from "./normalizer.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import type { DocumentRecord } from "../../shared/types.js";
+import { multiplyDecimalExactly } from "../unit-conversion.js";
 import * as cheerio from "cheerio";
 
 /**
@@ -21,7 +22,9 @@ export function filterNventProductImages(catalogNumber: string, documents: Docum
     // Do not trust a sibling SKU thumbnail merely because it is hosted by
     // nVent. Product-gallery alt text often lists several valid sibling
     // variants; that is acceptable only when it also lists this exact SKU.
-    const skuTokens = (text.match(/\b[A-Z]{1,}[A-Z0-9-]*\d[A-Z0-9-]*\b/gi) ?? [])
+    // Treat underscores as token separators too: nVent's image assets often use
+    // NPATS11002_RPAuto... filenames, where `\b` alone cannot see a boundary after the SKU.
+    const skuTokens = (text.replace(/_/g, " ").match(/\b[A-Z]{1,}[A-Z0-9-]*\d[A-Z0-9-]*\b/gi) ?? [])
       .filter((token) => !/^(?:type|ansi|nema|ip|ul|ce|cad|iso|iec|din)\d*$/i.test(token))
       // nVent's ERICO/CADDY assets use PH + a numeric DAM image ID (for example
       // PH6006.jpg). That is an asset key, not a competing catalog number.
@@ -82,7 +85,10 @@ export function nventProductUrl(catalogNumber: string): string {
   if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) {
     return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
   }
-  if (/^(?:pcs|cat|ec|cablecat|wbt)\w*/i.test(sku)) {
+  // CADDY's 410-series clevis hangers use a numeric-leading item code, unlike
+  // the more familiar CAT/PCS/WBT prefixes. Keep the family route ahead of
+  // the generic Hoffman fallback; exact SKU identity is still checked on-page.
+  if (/^(?:410\d{4,}(?:[a-z]+)?|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) {
     return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
   }
   return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
@@ -93,8 +99,8 @@ function correctNventSchroffChassisDimensions(result: Awaited<ReturnType<typeof 
   const width = result.attributes.find((attribute) => /^usable width$/i.test(attribute.name.trim()))?.value.match(/\d+(?:\.\d+)?\s*mm\b/i)?.[0];
   const depth = result.attributes.find((attribute) => /^depth$/i.test(attribute.name.trim()))?.value.match(/\d+(?:\.\d+)?\s*mm\b/i)?.[0];
   if (!rackHeight || !width || !depth) return;
-  const heightMm = Number(rackHeight) * 44.45;
-  const normalizedHeight = Number.isInteger(heightMm) ? String(heightMm) : heightMm.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+  const normalizedHeight = multiplyDecimalExactly(rackHeight, "44.45");
+  if (!normalizedHeight) return;
   const dimensions = `${rackHeight} U (${normalizedHeight} mm) x ${width} x ${depth}`;
   result.normalized.dimensions = dimensions;
   // A passive rack case has no device-level supply current. The generic text
@@ -140,6 +146,7 @@ export class NventConnector implements ManufacturerConnector {
       let fetched;
       try {
         fetched = await context.http.fetchTextViaPowerShell(url, requestOptions);
+        if (isNventCloudflareResponse(fetched)) throw new Error("nVent Cloudflare challenge response");
       } catch (firstError) {
         if (!isNventCloudflareChallenge(firstError) || context.signal?.aborted) throw firstError;
         // nVent intermittently serves a Cloudflare interstitial after a short sequence of PDP
@@ -148,10 +155,12 @@ export class NventConnector implements ManufacturerConnector {
         const regionalUrl = nventEnglishRegionalRetryUrl(url);
         try {
           fetched = await context.http.fetchTextViaPowerShell(regionalUrl, requestOptions);
+          if (isNventCloudflareResponse(fetched)) throw new Error("nVent Cloudflare challenge response");
         } catch (regionalError) {
           if (!isNventCloudflareChallenge(regionalError) || context.signal?.aborted) throw regionalError;
           await waitForNventRetry(context.signal);
           fetched = await context.http.fetchTextViaPowerShell(url, requestOptions);
+          if (isNventCloudflareResponse(fetched)) throw new Error("nVent Cloudflare challenge response");
         }
       }
       // nVent serves otherwise complete product HTML with a Cloudflare telemetry
@@ -234,6 +243,23 @@ export class NventConnector implements ManufacturerConnector {
         delete result.normalized.voltage;
         delete result.normalized.current;
       }
+      if (/^test adapters?$/i.test(exactCategory)) {
+        // Board depth and rack height describe the test fixture/slot, not an enclosure envelope.
+        // Keep the labeled values in source attributes but leave generic device dimensions blank.
+        delete result.normalized.dimensions;
+      }
+      const isCopperBondedGroundRod = result.attributes.some((attribute) =>
+        attribute.parser === "nvent-direct" && /^category$/i.test(attribute.name.trim()) && /\bcopper-bonded ground rod\b/i.test(attribute.value)
+      );
+      if (isCopperBondedGroundRod) {
+        // The exact page publishes actual diameter and rod length in both imperial and metric
+        // units. Re-run the exact nVent normalizer after the generic miner's title/nearby prose
+        // arbitration so neither plating thickness nor duplicate approximate dimensions can win.
+        const exactDimensions = normalizeFields(result.attributes, result.documents, "nvent").dimensions;
+        if (exactDimensions) result.normalized.dimensions = exactDimensions;
+        else delete result.normalized.dimensions;
+        delete result.normalized.finish;
+      }
       if (/\bsurge protection\b/i.test(exactCategory)) {
         const nominalVoltage = result.attributes.find((attribute) => /^nominal\s+system\s+voltage\s*\(un\)$/i.test(attribute.name.trim()))?.value;
         if (nominalVoltage) result.normalized.voltage = nominalVoltage;
@@ -266,6 +292,11 @@ export class NventConnector implements ManufacturerConnector {
 function isNventCloudflareChallenge(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return /just a moment|cf-chl|challenge-platform|cloudflare/i.test(message);
+}
+
+export function isNventCloudflareResponse(response: { statusCode?: number; text?: string }): boolean {
+  return response.statusCode === 403 || response.statusCode === 429 ||
+    /just a moment|cf-chl|challenge-platform|cloudflare/i.test(response.text ?? "");
 }
 
 function nventEnglishRegionalRetryUrl(url: string): string {
