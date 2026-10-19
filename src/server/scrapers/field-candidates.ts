@@ -33,6 +33,9 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  const nventGroundingClamp = result.manufacturerId === "nvent" && result.attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim()) && /^multi-purpose grounding clamp\b/i.test(attribute.value)
+  );
   const nventSurgeProtector = result.manufacturerId === "nvent" && result.attributes.some((attribute) =>
     attribute.parser === "nvent-direct" &&
     /\bsurge protection\b/i.test(attribute.value) &&
@@ -183,6 +186,10 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   if (result.manufacturerId === "rockwell") {
     applyRockwellNormalizedOverrides(normalized, result.catalogNumber, result.attributes);
   }
+  // The generic candidate resolver can run after document enrichment. Keep descriptive durability
+  // claims such as "will not crack" out of the nVent grounding clamp's finish field at this final
+  // evidence-resolution boundary too.
+  if (nventGroundingClamp) delete normalized.finish;
 
   return {
     ...result,

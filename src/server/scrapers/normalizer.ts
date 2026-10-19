@@ -228,6 +228,16 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const nventPassiveSchroffRack = manufacturerId === "nvent" &&
     attributes.some((attribute) => /^rack height$/i.test(attribute.name.trim())) &&
     attributes.some((attribute) => /^usable width$/i.test(attribute.name.trim()));
+  const nventSchroffFanTray = manufacturerId === "nvent" &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^product type$/i.test(attribute.name.trim()) && /^fan unit$/i.test(attribute.value.trim())) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^input voltage ac$/i.test(attribute.name.trim()));
+  const nventExactGroundingClamp = manufacturerId === "nvent" && attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim()) && /^multi-purpose grounding clamp\b/i.test(attribute.value)
+  );
+  const nventCaddyLoadRatingOnly = manufacturerId === "nvent" &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim()) && /\bconduit clamp\b/i.test(attribute.value)) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^ultimate static load\b/i.test(attribute.name.trim())) &&
+    !attributes.some((attribute) => attribute.parser === "nvent-direct" && /^(?:net\s+)?weight$/i.test(attribute.name.trim()));
   const nventExactSurgeProtector = manufacturerId === "nvent" && attributes.some((attribute) =>
     attribute.parser === "nvent-direct" && /\bsurge protection\b/i.test(attribute.value) && /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
   );
@@ -246,6 +256,14 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     attributes.some((attribute) => attribute.parser === "nvent-direct" && /^ground rod diameter, actual/i.test(attribute.name.trim())) &&
     attributes.some((attribute) => attribute.parser === "nvent-direct" && /^length\b/i.test(attribute.name.trim()));
   const nventGroundRodDimensions = nventCopperBondedGroundRod ? nventCopperBondedGroundRodDimensions(attributes) : undefined;
+  const nventGroundingClampDimensions = nventExactGroundingClamp
+    ? (() => {
+        const axis = (name: RegExp) => attributes.find((attribute) => attribute.parser === "nvent-direct" && name.test(attribute.name.trim()) && /\d+(?:[.,]\d+)?\s*mm\b/i.test(attribute.value))?.value.match(/\d+(?:[.,]\d+)?\s*mm\b/i)?.[0];
+        const length = axis(/^length(?:\s*\(l\))?$/i);
+        const width = axis(/^width(?:\s*\(w\))?$/i);
+        return length && width ? `L ${length} x W ${width}` : undefined;
+      })()
+    : undefined;
   const currentAttributes = etaVariableE1073Current
     ? []
     : etaEai300NoNormalizedCurrent
@@ -362,8 +380,9 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const preferAxisAssembly =
     Boolean(axisAssembledDimensions) &&
     (!combinedDimensionsValue || (axisDimensionCount >= combinedDimensionCount && weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1)));
-  const dimensions = (manufacturerId === "schneider" && isSchneiderPendantStation(attributes)) || nventSchroffTestAdapter ? undefined : (
+  const dimensions = (manufacturerId === "schneider" && isSchneiderPendantStation(attributes)) || nventSchroffTestAdapter || nventSchroffFanTray ? undefined : (
     (manufacturerId === "rittal" ? rittalProductDimensions(attributes) : undefined) ??
+    nventGroundingClampDimensions ??
     nventGroundRodDimensions ??
     exactDoepkeDimensions ??
     (manufacturerId === "balluff" ? balluffProbeDimensions(attributes) : undefined) ??
@@ -380,6 +399,12 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : dimensions;
   const material = nventExactRailTerminalBlock
     ? undefined
+    : nventSchroffFanTray
+    ? attributes.find((attribute) => attribute.parser === "nvent-direct" && /^material$/i.test(attribute.name.trim()) && /^(?:steel|polypropylene)(?:\s*;\s*(?:steel|polypropylene))*$/i.test(attribute.value.trim()))?.value
+    : nventExactGroundingClamp
+    ? attributes.find((attribute) => attribute.parser === "nvent-direct" && /^material$/i.test(attribute.name.trim()))?.value
+    : manufacturerId === "nvent"
+    ? attributes.find((attribute) => attribute.parser === "nvent-direct" && /^material$/i.test(attribute.name.trim()))?.value ?? findMaterialAttr(attributes)
     : manufacturerId === "rittal"
     ? rittalExplicitLabelValue(rittalPdpAttributes, /^basic material$/i, rittalMaterialValue) ??
       rittalExplicitLabelValue(rittalPdpAttributes, /^materials?$/i, rittalMaterialValue)
@@ -422,7 +447,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : manufacturerId === "schmersal"
     ? undefined
     : normalizeFinishValue(bestAttributeValue(attributes.filter((attr) => attr.scope !== "variant-option"), normalizerFieldLabelPatterns("finish")));
-  const safeFinish = (manufacturerId === "phoenix" && /\bno\b|\*/i.test(finish ?? "")) || nventCopperBondedGroundRod ? undefined : finish;
+  const safeFinish = (manufacturerId === "phoenix" && /\bno\b|\*/i.test(finish ?? "")) || nventCopperBondedGroundRod || nventExactGroundingClamp ? undefined : finish;
   const wallThicknessAttributes = attributes.filter((attribute) =>
     !/\bbusbar\b|front\s+panel/i.test(`${attribute.group ?? ""} ${attribute.name}`) &&
     !/\bpanel thickness\b/i.test(attribute.name) &&
@@ -682,7 +707,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
       // complete power-distribution system. Keep those rows in raw evidence, but do not publish
       // a submodule's mass as the normalized weight of the requested system.
       !(isEta18plusSystem && /\b18plus\s+(?:EM|AM|SM)\b/i.test(`${attribute.name} ${attribute.value}`))
-    );
+    ).filter((attribute) => !(nventCaddyLoadRatingOnly && /^ultimate static load\b/i.test(attribute.name.trim())));
   const weight = (manufacturerId === "phoenix" ? phoenixProductNetWeight(weightAttributes) : undefined) ??
     bestNormalizedAttributeValue(weightAttributes, normalizerFieldLabelPatterns("weight"), normalizeWeightValue, "weight") ??
     registryFieldValue(weightAttributes, "weight", normalizeWeightValue) ??
@@ -691,7 +716,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     schneiderDescriptionWeight(weightAttributes);
 
   return {
-    weight: isImplausiblyLowPowerSupplyWeight(attributes, weight) ? undefined : weight,
+    weight: nventCaddyLoadRatingOnly || isImplausiblyLowPowerSupplyWeight(attributes, weight) ? undefined : weight,
     dimensions: safeDimensions,
     material,
     wallThickness,
@@ -2779,6 +2804,19 @@ function mergeNormalizedFields(
   const suppressNventTerminalBlockMaterial = manufacturerId === "nvent" && attributes.some((attribute) =>
     attribute.parser === "nvent-direct" && /^rail four post terminal block\b/i.test(attribute.value) && /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
   );
+  const nventProductMaterial = manufacturerId === "nvent"
+    ? attributes.find((attribute) => attribute.parser === "nvent-direct" && /^material$/i.test(attribute.name.trim()))?.value
+    : undefined;
+  const nventSchroffFanTray = manufacturerId === "nvent" &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^product type$/i.test(attribute.name.trim()) && /^fan unit$/i.test(attribute.value.trim())) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^input voltage ac$/i.test(attribute.name.trim()));
+  const nventCaddyLoadRatingOnly = manufacturerId === "nvent" &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim()) && /\bconduit clamp\b/i.test(attribute.value)) &&
+    attributes.some((attribute) => attribute.parser === "nvent-direct" && /^ultimate static load\b/i.test(attribute.name.trim())) &&
+    !attributes.some((attribute) => attribute.parser === "nvent-direct" && /^(?:net\s+)?weight$/i.test(attribute.name.trim()));
+  const nventGroundingClamp = manufacturerId === "nvent" && attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim()) && /^multi-purpose grounding clamp\b/i.test(attribute.value)
+  );
   const phoenixPreferredVoltage = manufacturerId === "phoenix" ? phoenixContactNormalizedVoltage(attributes) : undefined;
   const phoenixPreferredWeight = manufacturerId === "phoenix" ? phoenixProductNetWeight(attributes) : undefined;
   const phoenixPreferredCurrent = manufacturerId === "phoenix" && isPhoenixSurgeProtector(attributes)
@@ -2793,6 +2831,20 @@ function mergeNormalizedFields(
   if (suppressNventPassiveSchroffCurrent) delete merged.current;
   if (suppressNventSurgeCurrent) delete merged.current;
   if (suppressNventTerminalBlockMaterial) delete merged.material;
+  if (nventCaddyLoadRatingOnly) delete merged.weight;
+  if (nventSchroffFanTray) {
+    delete merged.dimensions;
+    if (nventProductMaterial) merged.material = nventProductMaterial;
+  }
+  if (nventGroundingClamp) {
+    const length = attributes.find((attribute) => attribute.parser === "nvent-direct" && /^length(?:\s*\(l\))?$/i.test(attribute.name.trim()) && /\d+(?:[.,]\d+)?\s*mm\b/i.test(attribute.value))?.value.match(/\d+(?:[.,]\d+)?\s*mm\b/i)?.[0];
+    const width = attributes.find((attribute) => attribute.parser === "nvent-direct" && /^width(?:\s*\(w\))?$/i.test(attribute.name.trim()) && /\d+(?:[.,]\d+)?\s*mm\b/i.test(attribute.value))?.value.match(/\d+(?:[.,]\d+)?\s*mm\b/i)?.[0];
+    if (length && width) merged.dimensions = `L ${length} x W ${width}`;
+    merged.finish = undefined;
+    if (nventProductMaterial) merged.material = nventProductMaterial;
+  } else if (nventProductMaterial && !suppressNventTerminalBlockMaterial) {
+    merged.material = nventProductMaterial;
+  }
   for (const field of Object.keys(computed) as Array<keyof NormalizedProductFields>) {
     if (merged[field]) continue;
     if (suppressDoepkeRurContactCurrent && field === "current") continue;
@@ -2840,6 +2892,20 @@ function mergeNormalizedFields(
     }
   }
 
+  if (nventCaddyLoadRatingOnly) delete merged.weight;
+  if (nventSchroffFanTray) {
+    delete merged.dimensions;
+    if (nventProductMaterial) merged.material = nventProductMaterial;
+  }
+  if (nventGroundingClamp) {
+    const length = attributes.find((attribute) => attribute.parser === "nvent-direct" && /^length(?:\s*\(l\))?$/i.test(attribute.name.trim()))?.value.match(/\d+(?:[.,]\d+)?\s*mm\b/i)?.[0];
+    const width = attributes.find((attribute) => attribute.parser === "nvent-direct" && /^width(?:\s*\(w\))?$/i.test(attribute.name.trim()))?.value.match(/\d+(?:[.,]\d+)?\s*mm\b/i)?.[0];
+    if (length && width) merged.dimensions = `L ${length} x W ${width}`;
+    merged.finish = undefined;
+    if (nventProductMaterial) merged.material = nventProductMaterial;
+  } else if (nventProductMaterial && !suppressNventTerminalBlockMaterial) {
+    merged.material = nventProductMaterial;
+  }
   return Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== undefined && value !== "")) as NormalizedProductFields;
 }
 

@@ -256,7 +256,8 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Wire Marker", /\b(?:wire marker|cable marker|wire label|cable label|cable tag|wire ferrule|terminal marker|terminal label|marking tag|marker card)\b/i, 750),
   rule("Terminal Block", /\b(?:terminal block|power terminal|terminal strip|pluggable terminal|push[-\s]?in terminal|spring[-\s]?clamp terminal|screw terminal block|reihenklemme(?:n)?|klemmenblock|\bklemme(?:n)?\b|bornier|morsetto)\b/i, 740),
   rule("Cable Gland", /\b(?:cable gland|\bgland\b|cord grip|multi[-\s]?entry(?: system)?)\b/i, 735),
-  rule("Mounting Accessory", /\b(?:conduit|pipe)\s+to\s+(?:rod|wire|beam|stud)\s+(?:clip|clamp)\b|\bsnap[-\s]?close\s+conduit\s+to\s+rod\/wire\s+clip\b/i, 825),
+  rule("Connector", /\bgrounding clamp\b/i, 890),
+  rule("Mounting Accessory", /\b(?:conduit|pipe)\s+to\s+(?:rod|wire|beam|stud)\s+(?:clip|clamp)\b|\bsnap[-\s]?close\s+conduit\s+to\s+rod\/wire\s+clip\b|\bpush[-\s]?in\s+conduit\s+clamp\b/i, 825),
   // These Rittal components route/secure cables; they are mounting accessories, not electrical
   // cable products that need voltage/current ratings.
   rule("Mounting Accessory", /\b(?:section for cable entry|cable link)\b/i, 825),
@@ -274,7 +275,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // wording that can arrive in a vendor's related-product payload.
   rule("Pushbutton / Operator", /\b(?:pushbutton|push[-\s]?button|emergency stop|e[-\s]?stop|selector head|pilot device|control station)\b/i, 780),
   rule("Pilot Light", /\b(?:pilot light|indicator light|signal lamp|indicator lamp|led indicator)\b/i, 750),
-  rule("Luminaire", /\b(?:machine light|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light|led system light)\b/i, 745),
+  rule("Luminaire", /\b(?:machine light|led light(?:,\s*\d|\s+strip light|\s+kit)?|led light fixture|fixture,\s*led light|light fixture|luminaire|interior lamp|cabinet light|led system light)\b/i, 745),
 
   // --- Cooling / climate ---
   rule("Thermal Management", /\b(?:thermal management|filter fan|fan package|fan housing|filter kit|fan filter|exhaust filter|filter grille|enclosure fan|cabinet fan|cabinet heater|enclosure heater|enclosure coolers?|vortex coolers?|thermostat|hygrostat|air conditioner|conditioner,\s*(?:ng\s+)?air|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
@@ -287,7 +288,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Plinth Base", /\b(?:plinth bases?|base,\s*(?:ims\s+)?plinth)\b/i, 880),
   rule("Keyboard Housing", /\b(?:keyboard housings?|housing,\s*keyboard)\b/i, 880),
   rule("Control Compartment", /\b(?:control compartments?|compartment,\s*control)\b/i, 880),
-  rule("Fan Assembly", /\b(?:fan housing assembly|assembly,\s*fan housing|fan package)\b/i, 880),
+  rule("Fan Assembly", /\b(?:fan housing assembly|assembly,\s*fan housing|fan package|fan tray|pusher fan|fan unit)\b/i, 880),
 
   // --- Pneumatic / fluid (rare but available in template) ---
   rule("Hydraulic Actuator", /\b(?:hydraulic cylinder|hydraulic actuator|hydraulic ram|hydraulic power unit|hydraulic pump unit|hydraulic unit)\b/i, 738),
@@ -956,6 +957,14 @@ function attributeDeviceTypePriority(attr: AttributeRecord, manufacturerId?: str
     result &&
     attr.parser === "nvent-direct" &&
     isExactNventSkuPage(attr.sourceUrl, result.catalogNumber) &&
+    /^(?:name|title)$/i.test(attr.name.trim()) &&
+    strongestDeviceTypeRulePriority(attr.value) > 0
+  ) return 1_400;
+  if (
+    manufacturerId === "nvent" &&
+    result &&
+    attr.parser === "nvent-direct" &&
+    isExactNventSkuPage(attr.sourceUrl, result.catalogNumber) &&
     /^(?:product type|product category|category|type)$/i.test(attr.name.trim()) &&
     strongestDeviceTypeRulePriority(attr.value) >= 850
   ) return 1_280;
@@ -1026,8 +1035,8 @@ function isExactNventSkuPage(url: string | undefined, catalogNumber: string): bo
 function nventProductUrlForTypeCheck(catalogNumber: string): string {
   const sku = catalogNumber.trim().toLowerCase();
   if (/^\d{4,}-\d+$/.test(sku)) return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
-  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
-  if (/^(?:410\d{4,}(?:[a-z]+)?|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
+  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt|cc\d|mpsc)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
+  if (/^(?:410\d{4,}(?:[a-z]+)?|4z\d+[a-z]*|12p\w*|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
   return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
 }
 

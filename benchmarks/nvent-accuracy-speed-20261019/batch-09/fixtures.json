@@ -1,0 +1,160 @@
+[
+  {
+    "manufacturerId": "nvent",
+    "catalogNumber": "10713-518",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fan Assembly",
+    "riskTags": [
+      "schroff",
+      "pusher-fan",
+      "hyphenated-sku-route"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "nvent\\.com/.*/schroff/products/enc10713-518"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "material"
+    ],
+    "expectedBlankNormalizedFields": [
+      "dimensions",
+      "current"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "230",
+      "material": "Steel.*Polypropylene"
+    },
+    "expectedAttributePatterns": [
+      "300.*330.*m³h|300.*330.*m3/h"
+    ]
+  },
+  {
+    "manufacturerId": "nvent",
+    "catalogNumber": "LEDHL24V48",
+    "caseType": "electrical",
+    "expectedDeviceType": "Luminaire",
+    "riskTags": [
+      "hoffman",
+      "hazardous-location-led-strip-light",
+      "exact-route"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "nvent\\.com/.*/hoffman/products/encledhl24v48"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "protection",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "22.*28",
+      "protection": "IP66",
+      "material": "Aluminum"
+    },
+    "expectedAttributePatterns": [
+      "2,351 lumens",
+      "5,000K"
+    ]
+  },
+  {
+    "manufacturerId": "nvent",
+    "catalogNumber": "DSW01QD",
+    "caseType": "electrical",
+    "expectedDeviceType": "Switch",
+    "riskTags": [
+      "hoffman",
+      "door-switch",
+      "3a-240v"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "nvent\\.com/.*/hoffman/products/encdsw01qd"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "dimensions",
+      "voltage",
+      "current",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "dimensions": "2.03.*1.57.*2.47",
+      "voltage": "240",
+      "current": "3",
+      "material": "Plastic"
+    },
+    "expectedAttributePatterns": [
+      "Switch capacity.*3 A.*240 V"
+    ]
+  },
+  {
+    "manufacturerId": "nvent",
+    "catalogNumber": "12P4I",
+    "caseType": "accessory",
+    "expectedDeviceType": "Mounting Accessory",
+    "riskTags": [
+      "caddy",
+      "push-in-conduit-clamp",
+      "route-prefix-test"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "nvent\\.com/.*/caddy/products/efs12p4i"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "material": "Spring Steel"
+    },
+    "expectedAttributePatterns": [
+      "EMT Conduit Size.*3/4",
+      "Hole Type.*Threaded"
+    ],
+    "expectedBlankNormalizedFields": [
+      "dimensions",
+      "weight"
+    ]
+  },
+  {
+    "manufacturerId": "nvent",
+    "catalogNumber": "MPSC404SS",
+    "caseType": "accessory",
+    "expectedDeviceType": "Connector",
+    "riskTags": [
+      "erico",
+      "multi-purpose-grounding-clamp",
+      "erico-prefix-route"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "nvent\\.com/.*/erico/products/efsmpsc404ss"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "material",
+      "dimensions"
+    ],
+    "expectedBlankNormalizedFields": [
+      "finish"
+    ],
+    "expectedNormalizedPatterns": {
+      "material": "Stainless Steel",
+      "dimensions": "L 65.*W 65"
+    },
+    "expectedAttributePatterns": [
+      "5/8.*3/4",
+      "65 ?mm"
+    ]
+  }
+]

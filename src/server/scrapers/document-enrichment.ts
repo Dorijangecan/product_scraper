@@ -812,6 +812,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
 
   if (!documentAttributes.length) {
     const normalized = { ...result.normalized };
+    if (isNventGroundingClamp(result)) delete normalized.finish;
     clearSiemensContextlessElectricalValues(result, normalized);
     if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(result.attributes)) delete normalized.current;
     const busbarThicknessOnly = result.attributes.some((attribute) => /\bbusbar\b/i.test(`${attribute.group ?? ""} ${attribute.name}`) && /\bthickness\b/i.test(attribute.name)) &&
@@ -839,6 +840,7 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   // set outside the `attributes` array entirely).
   const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
   const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
+  if (isNventGroundingClamp(result)) delete normalized.finish;
   if (result.manufacturerId === "spelsberg") {
     if (!recomputedNormalized.voltage) delete normalized.voltage;
     if (!recomputedNormalized.wallThickness) delete normalized.wallThickness;
@@ -1015,6 +1017,7 @@ export async function enrichResultFromRemoteDocuments(
   // set outside the `attributes` array entirely).
   const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
   const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
+  if (isNventGroundingClamp(result)) delete normalized.finish;
   if (result.manufacturerId === "spelsberg") {
     if (!recomputedNormalized.voltage) delete normalized.voltage;
     if (!recomputedNormalized.wallThickness) delete normalized.wallThickness;
@@ -4344,6 +4347,10 @@ function mergeEnrichedNormalized(
     if (recomputed.material === undefined) delete existing.material;
     if (recomputed.color === undefined) delete existing.color;
   }
+  // The exact nVent grounding-clamp PDP can contain descriptive prose such as "will not crack".
+  // A stale generic finish inferred from that prose must not survive document enrichment when
+  // the evidence-scoped normalizer correctly rejects it.
+  if (isNventGroundingClamp(result) && recomputed.finish === undefined) delete existing.finish;
   if (result.manufacturerId === "siemens") {
     // Mall package dimensions and generic API material/color fragments are not device facts.
     // Clear an earlier generic guess when exact Siemens-labelled measurements are unavailable.
@@ -4371,6 +4378,12 @@ function mergeEnrichedNormalized(
     delete existing.current;
   }
   return { ...existing, ...nonEmptyNormalized(recomputed) };
+}
+
+function isNventGroundingClamp(result: ProductResult): boolean {
+  return result.manufacturerId === "nvent" && result.attributes.some((attribute) =>
+    attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim()) && /^multi-purpose grounding clamp\b/i.test(attribute.value)
+  );
 }
 
 function dedupeAttributes(attributes: AttributeRecord[]): AttributeRecord[] {

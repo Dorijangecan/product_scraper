@@ -1654,6 +1654,36 @@ Operating Temperature XT
     expect(result.attributes).toEqual([]);
   });
 
+  it("does not restore descriptive prose as nVent grounding-clamp finish during document enrichment", async () => {
+    const productResult = product({
+      manufacturerId: "nvent",
+      catalogNumber: "MPSC404SS",
+      title: "Multi-Purpose Grounding Clamp",
+      normalized: { finish: "will not crack" },
+      attributes: [{
+        group: "Product details",
+        name: "Title",
+        value: "Multi-Purpose Grounding Clamp",
+        sourceUrl: "https://www.nvent.com/en-us/erico/products/efsmpsc404ss",
+        sourceType: "official",
+        parser: "nvent-direct",
+        stage: "nvent-direct",
+        confidence: 0.9
+      }],
+      documents: [{
+        type: "datasheet",
+        label: "Unparseable datasheet",
+        url: "https://example.test/mpsc404ss.pdf",
+        localPath: "D:/does-not-exist/mpsc404ss.pdf",
+        downloadStatus: "downloaded"
+      }]
+    });
+
+    const result = await enrichResultFromDownloadedDocuments(productResult);
+
+    expect(result.normalized.finish).toBeUndefined();
+  });
+
   it("processes every document exactly once when there are more than one batch's worth", async () => {
     // Documents are now processed in bounded-concurrency batches (DOWNLOADED_DOCUMENT_BATCH_SIZE)
     // instead of strictly one at a time — real corpus evidence (a Saginaw enclosure catalog with 11

@@ -147,6 +147,21 @@ describe("device type classifier", () => {
     }
   });
 
+  it("classifies exact nVent Schroff fans, Hoffman lights, and CADDY conduit clamps from exact titles", () => {
+    const cases = [
+      ["19\" Pusher Fan, 2 U, Axial, 230 VAC", "Fan Assembly"],
+      ["LED light, 1220 mm.", "Luminaire"],
+      ["Push In Conduit Clamp, 3/4\" EMT", "Mounting Accessory"],
+      ["Multi-Purpose Grounding Clamp, Stainless Steel", "Connector"]
+    ] as const;
+    for (const [title, expected] of cases) {
+      const url = "https://www.nvent.com/en-us/hoffman/products/encsample";
+      expect(classifyDeviceType(product([
+        { name: "name", value: title, sourceType: "official", parser: "nvent-direct", sourceUrl: url }
+      ], title, { manufacturerId: "nvent", catalogNumber: "SAMPLE", productUrl: url })).type).toBe(expected);
+    }
+  });
+
   it("classifies SCE heater, heat exchanger, and enclosure hardware from the vendor's description order", () => {
     const cases = [
       ["Heater - 350W", "Heater", "cabinet.airconditioning"],

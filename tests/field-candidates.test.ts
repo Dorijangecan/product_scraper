@@ -4,6 +4,24 @@ import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import type { ProductResult } from "../src/shared/types.js";
 
 describe("field candidate resolver", () => {
+  it("does not restore nVent grounding-clamp durability prose as a finish", () => {
+    const result = applyFieldCandidateResolution({
+      manufacturerId: "nvent",
+      catalogNumber: "MPSC404SS",
+      status: "found",
+      confidence: 0.96,
+      normalized: { finish: "will not crack" },
+      attributes: [
+        { group: "Product", name: "Title", value: "Multi-Purpose Grounding Clamp", sourceType: "official", parser: "nvent-direct" },
+        { group: "Features", name: "Feature", value: "Copper-bonded coating will not crack", sourceType: "official", parser: "nvent-direct" }
+      ],
+      documents: [],
+      sources: []
+    } satisfies ProductResult);
+
+    expect(result.normalized.finish).toBeUndefined();
+  });
+
   it("does not promote nVent surge discharge current into operating current", () => {
     const result = applyFieldCandidateResolution({
       manufacturerId: "nvent",

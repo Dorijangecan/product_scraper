@@ -90,13 +90,13 @@ export function nventProductUrl(catalogNumber: string): string {
   if (/^en\d+/i.test(sku)) {
     return `https://www.nvent.com/en-us/schroff/products/enc${sku}/`;
   }
-  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt|cc\d)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) {
+  if (/^\d{4,8}$/.test(sku) || /^(?:gpe|ecr|gr|ehl|egba|ph|edt|cc\d|mpsc)\w*/i.test(sku) || /^b2700a2c1wh$/i.test(sku)) {
     return `https://www.nvent.com/en-us/erico/products/efs${sku}/`;
   }
   // CADDY's 410-series clevis hangers use a numeric-leading item code, unlike
   // the more familiar CAT/PCS/WBT prefixes. Keep the family route ahead of
   // the generic Hoffman fallback; exact SKU identity is still checked on-page.
-  if (/^(?:410\d{4,}(?:[a-z]+)?|4z\d+[a-z]*|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) {
+  if (/^(?:410\d{4,}(?:[a-z]+)?|4z\d+[a-z]*|12p\w*|pcs\w*|cat\w*|ec\w*|cablecat\w*|wbt\w*)$/i.test(sku)) {
     return `https://www.nvent.com/en-us/caddy/products/efs${sku}/`;
   }
   return `https://www.nvent.com/en-us/hoffman/products/enc${sku}/`;
@@ -298,10 +298,13 @@ export class NventConnector implements ManufacturerConnector {
       if (/^\d{4,}-\d+$/.test(catalogNumber.trim()) && /\/schroff\/products\//i.test(result.productUrl ?? url)) {
         correctNventSchroffChassisDimensions(result);
       }
-      const exactCategory = result.attributes.find((attribute) =>
-        attribute.sourceType === "official" && attribute.parser === "nvent-direct" &&
-        /^(?:product type|product category|category|type)$/i.test(attribute.name.trim())
+      const exactProductType = result.attributes.find((attribute) =>
+        attribute.sourceType === "official" && attribute.parser === "nvent-direct" && /^product type$/i.test(attribute.name.trim())
       )?.value ?? "";
+      const exactCategory = exactProductType || (result.attributes.find((attribute) =>
+        attribute.sourceType === "official" && attribute.parser === "nvent-direct" &&
+        /^(?:product category|category|type)$/i.test(attribute.name.trim())
+      )?.value ?? "");
       // This exact item is an empty disconnect enclosure; the product page's 115 V field is
       // switch-context metadata, not an electrical rating of the enclosure itself.
       if (/^disconnect wall-mount enclosure\b/i.test(exactCategory)) {
@@ -338,6 +341,33 @@ export class NventConnector implements ManufacturerConnector {
         // material of the terminal block itself. Do not collapse those component materials into
         // one normalized material value.
         delete result.normalized.material;
+      }
+      if (/^fan unit$/i.test(exactCategory) && /\/schroff\/products\//i.test(result.productUrl ?? url)) {
+        // SCHROFF's fan-tray page includes tables for adjacent board depths, voltage options,
+        // replacement fans, and accessory cables. Keep exact PDP facts, and never treat a
+        // neighboring cable's 2.5 m length as the fan tray's overall dimensions.
+        const exactMaterial = result.attributes.find((attribute) =>
+          attribute.parser === "nvent-direct" && /^material$/i.test(attribute.name.trim()) && /^(?:steel|polypropylene)(?:\s*;\s*(?:steel|polypropylene))*$/i.test(attribute.value.trim())
+        )?.value;
+        if (exactMaterial) result.normalized.material = exactMaterial;
+        delete result.normalized.dimensions;
+        delete result.normalized.current;
+      }
+      const exactProductName = result.attributes.find((attribute) =>
+        attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim())
+      )?.value ?? result.title ?? "";
+      if (/\bpush in conduit clamp\b/i.test(exactProductName) && result.attributes.some((attribute) => /^ultimate static load\b/i.test(attribute.name.trim()))) {
+        // CADDY publishes load capacity in pounds/Newtons; that is not the clamp's shipping mass.
+        delete result.normalized.weight;
+        delete result.normalized.dimensions;
+      }
+      if (/^multi-purpose grounding clamp\b/i.test(exactProductName) || /^multi-purpose grounding clamp\b/i.test(result.title ?? "")) {
+        result.attributes.push({ group: "Classification", name: "Product Type", value: "Connector", sourceUrl: result.productUrl ?? url, sourceType: "official", parser: "nvent-direct" });
+        const exactNormalized = normalizeFields(result.attributes, result.documents, "nvent");
+        if (exactNormalized.dimensions) result.normalized.dimensions = exactNormalized.dimensions;
+        else delete result.normalized.dimensions;
+        if (exactNormalized.material) result.normalized.material = exactNormalized.material;
+        delete result.normalized.finish;
       }
       // These SKUs are explicitly accessory products in nVent's official taxonomy. Add a
       // source-backed classification attribute so the generic title word "enclosure" cannot

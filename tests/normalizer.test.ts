@@ -93,6 +93,55 @@ describe("nVent passive SCHROFF rack chassis normalization", () => {
     expect(normalized.dimensions).toMatch(/12\.8.*2438\.4/);
     expect(normalized.finish).toBeUndefined();
   });
+
+  it("keeps SCHROFF fan-tray facts separate from related cable lengths and materials", () => {
+    const normalized = normalizeFields([
+      { name: "Product Type", value: "Fan Unit", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Input Voltage AC", value: "230V", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Material", value: "Steel; Polypropylene", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Depth", value: "160 mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Length", value: "2500mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Material", value: "PVC", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    expect(normalized.voltage).toMatch(/230/);
+    expect(normalized.material).toBe("Steel; Polypropylene");
+    expect(normalized.dimensions).toBeUndefined();
+  });
+
+  it("does not promote grounding-clamp corrosion prose to a finish", () => {
+    const normalized = normalizeFields([
+      { name: "name", value: "Multi-Purpose Grounding Clamp, Stainless Steel", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Material", value: "Stainless Steel 304 (EN 1.4301)", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Finish", value: "will not crack", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    expect(normalized.material).toMatch(/Stainless Steel 304/);
+    expect(normalized.finish).toBeUndefined();
+  });
+
+  it("keeps the nVent product material ahead of enclosure context and static load ratings", () => {
+    const doorSwitch = normalizeFields([
+      { name: "Material", value: "Plastic", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Enclosure Material", value: "Mild Steel; Stainless Steel", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    const conduitClamp = normalizeFields([
+      { name: "name", value: "Push In Conduit Clamp, 3/4\" EMT", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Material", value: "Spring Steel", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Ultimate Static Load 1 (F1)", value: "25lb", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Ultimate Static Load 1 (F1)", value: "110N", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    expect(doorSwitch.material).toBe("Plastic");
+    expect(conduitClamp.material).toBe("Spring Steel");
+    expect(conduitClamp.weight).toBeUndefined();
+  });
+
+  it("retains the labeled length and width axes for nVent grounding clamps", () => {
+    const normalized = normalizeFields([
+      { name: "name", value: "Multi-Purpose Grounding Clamp, Stainless Steel", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Length (L)", value: "65 mm", sourceType: "official" as const, parser: "nvent-direct" },
+      { name: "Width (W)", value: "65 mm", sourceType: "official" as const, parser: "nvent-direct" }
+    ], [], "nvent");
+    expect(normalized.dimensions).toBe("L 65 mm x W 65 mm");
+  });
 });
 
 describe("normalizer", () => {
