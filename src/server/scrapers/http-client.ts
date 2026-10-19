@@ -233,6 +233,8 @@ export class CachedHttpClient {
       cacheTtlMs?: number;
       maxAttempts?: number;
       retryBackoffMs?: number;
+      /** Disable the automatic curl retry when a caller already tried curl for this URL. */
+      curlFallback?: boolean;
       signal?: AbortSignal;
     } = {}
   ): Promise<FetchedText> {
@@ -291,6 +293,10 @@ export class CachedHttpClient {
       this.recordHostReachability(url, true);
     } catch (error) {
       if (method === "GET") {
+        if (options.curlFallback === false) {
+          this.recordHostReachability(url, false);
+          throw error;
+        }
         return this.fetchTextViaCurl(url, {
           headers,
           timeoutMs: options.timeoutMs ?? 30000,
@@ -546,7 +552,7 @@ $contentType = if ($response.Headers['Content-Type']) { [string]$response.Header
     await this.acquireHostSlot(url);
     const cachePath = path.join(this.cacheDir, `${cacheKey}.html`);
     const curl = process.platform === "win32" ? "curl.exe" : "curl";
-    const timeoutSec = Math.max(5, Math.ceil((options.timeoutMs ?? 30000) / 1000));
+    const timeoutSec = curlTimeoutSeconds(options.timeoutMs ?? 30000);
     // Callers that pass maxAttempts:1 (fan out several likely-404 candidate URLs in parallel and
     // want a hard, fast budget per URL) still hit this fallback whenever the primary fetch throws
     // (e.g. the TLS-revocation-check hangs --ssl-no-revoke works around). Without this, curl's own
@@ -1073,6 +1079,11 @@ export function curlBudgetOptions(budgetMs: number | undefined): { timeoutMs?: n
   const retries = seconds >= 44 ? 1 : 0;
   const maxTimeSeconds = retries ? Math.floor((seconds - 2) / 2) : Math.max(8, seconds - 2);
   return { timeoutMs, maxTimeSeconds, retries };
+}
+
+/** Respect short caller timeouts for text requests; curl accepts fractional seconds. */
+export function curlTimeoutSeconds(timeoutMs: number): number {
+  return Math.max(1, timeoutMs / 1000);
 }
 
 // instead streamed straight to disk by the curl fallback in downloadFile().

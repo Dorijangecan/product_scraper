@@ -56,6 +56,42 @@ describe("official discovery scoring", () => {
     expect(powerShellCalls).toBe(0);
   });
 
+  it("keeps one bounded got retry after an ETA connection failure without repeating curl", async () => {
+    let curlCalls = 0;
+    let httpCalls = 0;
+    const eta = getManufacturerConfig("eta")!;
+    const http = {
+      fetchText: async (_url: string, options: { curlFallback?: boolean }) => {
+        httpCalls += 1;
+        expect(options.curlFallback).toBe(false);
+        throw new Error("bounded got-scraping fallback failed");
+      },
+      fetchTextViaCurl: async (_url: string, options: { timeoutMs?: number }) => {
+        curlCalls += 1;
+        expect(options.timeoutMs).toBe(2500);
+        throw new Error("Command failed: curl: (28) Connection timed out after 2500 milliseconds");
+      },
+      fetchTextViaPowerShell: async () => {
+        throw new Error("PowerShell rescue must not run for a known exact ETA route");
+      }
+    };
+    const fallback = new GenericFallbackScraper("eta", http as never, eta);
+
+    const result = await fallback.scrape("MM500", [{
+      id: "eta-product-mm500-power-distribution-module",
+      label: "E-T-A exact MM500 page",
+      enabled: true,
+      sourceType: "official-fallback",
+      directUrlTemplates: ["https://www.e-t-a.de/produkte/stromverteilungssysteme/intelligente_stromverteilung/powerplex/produktuebersicht/p/powerplex_mini_modul_mm500/"],
+      match: { requireCatalogNumber: true },
+      fetchPolicy: { timeoutMs: 5000, maxAttempts: 1 }
+    }]);
+
+    expect(result).toBeUndefined();
+    expect(curlCalls).toBe(1);
+    expect(httpCalls).toBe(1);
+  });
+
   it("shares one discovery result across separate stages of the same catalog item", async () => {
     const discoveryMemo = new Map();
     let fetchCount = 0;

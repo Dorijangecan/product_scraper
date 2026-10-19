@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { curlBudgetOptions, endpointCircuitKey, isRetryableStatus, parseRetryAfterMs } from "../src/server/scrapers/http-client.js";
+import { curlBudgetOptions, curlTimeoutSeconds, endpointCircuitKey, isRetryableStatus, parseRetryAfterMs } from "../src/server/scrapers/http-client.js";
 
 describe("http retry policy", () => {
   it("retries on rate-limit and transient server statuses, not on success/client errors", () => {
@@ -62,6 +62,14 @@ describe("curl download budget", () => {
   it("never asks for longer than the shipped ceiling, however much budget is left", () => {
     const options = curlBudgetOptions(10 * 60_000);
     expect(options.timeoutMs).toBe(130_000);
+  });
+});
+
+describe("curl text request timeout", () => {
+  it("honors short text-fetch budgets instead of silently rounding them up to five seconds", () => {
+    expect(curlTimeoutSeconds(2500)).toBe(2.5);
+    expect(curlTimeoutSeconds(800)).toBe(1);
+    expect(curlTimeoutSeconds(8000)).toBe(8);
   });
 });
 
