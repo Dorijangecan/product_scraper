@@ -37,8 +37,8 @@ const ETA_DIRECT_PRODUCT_ROUTES: EtaDirectProductRoute[] = [
   {
     id: "eta-product-mm500-power-distribution-module",
     pattern: /^MM500$/i,
-    // The legacy discontinued-products route now 404s. The active exact-product page lives
-    // in E-T-A's German product overview and retains the English datasheet/technical rows.
+    // The English overview route is indexed but returns 404. The German exact-product page is live
+    // and publishes the SKU, ratings, image and datasheet.
     url: () => "https://www.e-t-a.de/produkte/stromverteilungssysteme/intelligente_stromverteilung/powerplex/produktuebersicht/p/powerplex_mini_modul_mm500/"
   },
   {
@@ -272,6 +272,7 @@ async function scrapeEtaDirectProductPage(
 
   try {
     const result = await context.fallback.scrape(catalogNumber, [source]);
+    if (process.env.DEBUG_ETA_TIMINGS === "1") console.info(`[eta:timing] ${route.id} connector returned status=${result?.status ?? "undefined"} attrs=${result?.attributes.length ?? 0} docs=${result?.documents.length ?? 0}`);
     // GenericFallbackScraper can return a useful partial before the run-level quality gate is
     // applied. Its required catalog match already proved exact identity for this single source.
     if (!result || result.status === "failed" || !result.productUrl) return undefined;

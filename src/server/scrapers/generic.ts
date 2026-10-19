@@ -96,7 +96,7 @@ export class GenericFallbackScraper {
             extractionPolicy: this.manufacturer?.scrapeRecipe?.extractionPolicy
           });
           if (this.manufacturerId === "eta" && process.env.DEBUG_ETA_TIMINGS === "1") {
-            console.info(`[eta:timing] ${source.id} parse ${Date.now() - etaParseStartedAt}ms html=${fetched.text.length} chars`);
+            console.info(`[eta:timing] ${source.id} parse ${Date.now() - etaParseStartedAt}ms status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length} html=${fetched.text.length} chars`);
           }
           const knownExactEtaProductPage =
             this.manufacturerId === "eta" &&
@@ -146,6 +146,9 @@ export class GenericFallbackScraper {
             }
           }
           if (skipRedundantDetailDiscovery && parsed.status !== "failed") {
+            if (this.manufacturerId === "eta" && process.env.DEBUG_ETA_TIMINGS === "1") {
+              console.info(`[eta:timing] ${source.id} returning exact parsed result`);
+            }
             return withLinkDiagnostics(parsed, discovery);
           }
           if (isUnresolvedSearchResultPage(fetched.effectiveUrl, parsed.title, detailResolved)) continue;
