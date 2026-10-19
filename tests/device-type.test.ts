@@ -49,6 +49,18 @@ describe("device type classifier", () => {
     }
   });
 
+  it("classifies Spelsberg protective and socket housings by their explicit product type", () => {
+    const cases = [
+      ["Abox Pro 060-6²", "Junction Box", "Junction box, protection class IP66/IP67/IP69"],
+      ["STG 004", "Socket Enclosure", "Socket enclosure with 4 pre-wired outlets"],
+      ["GBZ 252-40", "Lightning Protection Enclosure", "Lightning protection enclosure for surge arrester"],
+      ["GST 2315-250", "NH Fuse Enclosure", "NH fuse enclosure on 250 A busbar system"]
+    ] as const;
+    for (const [title, expected, description] of cases) {
+      expect(classifyDeviceType(product([{ name: "Product Type", value: description }], title, { manufacturerId: "spelsberg" })).type).toBe(expected);
+    }
+  });
+
   it("uses the exact nVent PDP category for enclosure climate-control devices", () => {
     const cases = [
       ["ATEMNC", "https://www.nvent.com/en-us/hoffman/products/encatemnc", "Temperature Control Switch", "Thermostat"],

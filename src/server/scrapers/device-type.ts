@@ -213,6 +213,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // ABB MEPY emergency-stop stations are sold as enclosures. The safety legend describes their
   // application, not the component type, so it must not turn the bare enclosure into an operator.
   rule("Enclosure", /\benclosure\b[\s\S]{0,160}\b(?:emergency stop|e[-\s]?stop)\b|\b(?:emergency stop|e[-\s]?stop)\b[\s\S]{0,160}\benclosure\b/i, 790),
+  rule("Lightning Protection Enclosure", /\blightning protection (?:enclosure|housing)\b/i, 850),
+  rule("NH Fuse Enclosure", /\bNH (?:bus[- ]mounting )?fuse (?:enclosure|housing)\b/i, 845),
+  rule("Socket Enclosure", /\bsocket enclosure\b/i, 840),
+  rule("Junction Box", /\bjunction boxes?\b/i, 815),
   // Spelsberg's enclosure catalog distinguishes these by their primary installation function.
   // Keep them ahead of the broad enclosure/terminal-block rules below.
   rule("Meter Housing", /\b(?:meter housing|meter enclosure)\b/i, 835),

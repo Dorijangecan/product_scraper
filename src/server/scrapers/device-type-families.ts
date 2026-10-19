@@ -175,6 +175,10 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["SK"], type: "Thermal Management", notes: "Climate control / filter fans" }
   ],
   spelsberg: [
+    { patterns: ["Abox Pro"], type: "Junction Box", notes: "Spelsberg Abox Pro junction boxes" },
+    { patterns: ["STG"], type: "Socket Enclosure", notes: "Spelsberg STG socket enclosures" },
+    { patterns: ["GBZ"], type: "Lightning Protection Enclosure", notes: "Spelsberg GBZ lightning protection housings" },
+    { patterns: ["GST"], type: "NH Fuse Enclosure", notes: "Spelsberg GST NH fuse enclosures" },
     { patterns: ["GEOS-L"], type: "Empty Enclosure", notes: "Spelsberg GEOS-L outdoor empty enclosures" },
     { patterns: ["ZKi"], type: "Meter Housing", notes: "Spelsberg ZKi meter housings" },
     { patterns: ["IBTLED", "IBTronic"], type: "Installation Housing", notes: "Spelsberg concrete-installation housings" },

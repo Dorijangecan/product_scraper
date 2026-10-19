@@ -1,0 +1,172 @@
+[
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "40642001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Junction Box",
+    "riskTags": [
+      "spelsberg-batch-03",
+      "abox-pro-junction-box"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/40642001(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedBlankNormalizedFields": [
+      "voltage",
+      "current"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material"
+    ],
+    "expectedAttributePatterns": [
+      "40642001",
+      "Abox Pro 060-6²",
+      "IP66/IP67/IP69",
+      "690 V",
+      "41 A",
+      "5",
+      "6 mm²",
+      "127 x 127 x 75"
+    ]
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "73220401",
+    "caseType": "electrical",
+    "expectedDeviceType": "Socket Enclosure",
+    "riskTags": [
+      "spelsberg-batch-03",
+      "prewired-socket-enclosure"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/73220401(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "weight",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "voltage": "230\\s*V",
+      "weight": "0[.]88 kg"
+    },
+    "expectedAttributePatterns": [
+      "73220401",
+      "STG 004",
+      "4 x SCHUKO",
+      "230V",
+      "IP44",
+      "125 x 200 x 122"
+    ]
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "01009501",
+    "caseType": "electrical",
+    "expectedDeviceType": "Lightning Protection Enclosure",
+    "riskTags": [
+      "spelsberg-batch-03",
+      "lightning-protection-housing"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/01009501(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedBlankNormalizedFields": [
+      "current"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "weight",
+      "material"
+    ],
+    "expectedAttributePatterns": [
+      "01009501",
+      "GBZ 252-40",
+      "320 x 320 x 179"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "4[.]2 kg",
+      "voltage": "400\\s*V"
+    }
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "04621501",
+    "caseType": "electrical",
+    "expectedDeviceType": "NH Fuse Enclosure",
+    "riskTags": [
+      "spelsberg-batch-03",
+      "nh-fuse-enclosure"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/04621501(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedBlankNormalizedFields": [
+      "current"
+    ],
+    "expectedNormalizedFields": [
+      "voltage",
+      "weight",
+      "material"
+    ],
+    "expectedAttributePatterns": [
+      "04621501",
+      "GST 2315-250",
+      "250 A",
+      "1 x NH 000",
+      "320 x 320 x 179"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "5[.]5 kg",
+      "voltage": "690\\s*V"
+    }
+  },
+  {
+    "manufacturerId": "spelsberg",
+    "catalogNumber": "67040001",
+    "caseType": "electrical",
+    "expectedDeviceType": "Terminal Block",
+    "riskTags": [
+      "spelsberg-batch-03",
+      "feedthrough-terminal-block"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "spelsberg\\.com/p/67040001(?:$|[?#])"
+    ],
+    "requiredDocuments": [
+      "datasheet",
+      "image"
+    ],
+    "expectedBlankNormalizedFields": [
+      "voltage",
+      "current"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material"
+    ],
+    "expectedAttributePatterns": [
+      "67040001",
+      "RK 4²",
+      "6 x 48 x 47 mm",
+      "0.2-6²/0.2-4²"
+    ]
+  }
+]
