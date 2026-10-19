@@ -29,6 +29,11 @@ describe("device type classifier", () => {
       ["Large Compression Latch 22.5 / 32", "Compression Latch"],
       ["Slam Latch COMPACT", "Slam Latch"],
       ["Industry Standard Quarter Turn Lock", "Quarter Turn Lock"],
+      ["Over-Center Draw Latch 80", "Over-Center Draw Latch"],
+      ["Door Stop with EPDM Damper", "Door Stop"],
+      ["Ball Catch 30", "Ball Catch"],
+      ["Magnetic Catch 20", "Magnetic Catch"],
+      ["Door Latch", "Door Latch"],
       ["Stainless Steel Hinge 60 x 60", "Hinge"],
       ["Handle", "Handle"]
     ] as const;

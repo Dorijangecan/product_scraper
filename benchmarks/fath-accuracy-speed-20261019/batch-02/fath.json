@@ -1,0 +1,62 @@
+[
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "0810099",
+    "caseType": "accessory",
+    "expectedDeviceType": "Over-Center Draw Latch",
+    "riskTags": ["cold", "over-center-draw-latch", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Over-Center-Draw-Latch-80/0810099"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]1128 kg"},
+    "expectedAttributePatterns": ["Non-locking", "Powder coated"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "093110",
+    "caseType": "accessory",
+    "expectedDeviceType": "Door Stop",
+    "riskTags": ["cold", "door-stop", "epdm-damper", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Door-Stop-with-EPDM-Damper-Set/093110"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]026 kg"},
+    "expectedAttributePatterns": ["EPDM", "8 / 10"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "093043",
+    "caseType": "accessory",
+    "expectedDeviceType": "Ball Catch",
+    "riskTags": ["cold", "ball-catch", "50n-holding-force", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Ball-Catch-30/093043"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]045 kg"},
+    "expectedAttributePatterns": ["Strong", "50 N"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "093094",
+    "caseType": "accessory",
+    "expectedDeviceType": "Magnetic Catch",
+    "riskTags": ["cold", "magnetic-catch", "locking-force", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Magnetic-Catch-20-Set/093094"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]009 kg"},
+    "expectedAttributePatterns": ["Set 1", "5 N front / 3 N back"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "093082",
+    "caseType": "accessory",
+    "expectedDeviceType": "Door Latch",
+    "riskTags": ["cold", "door-latch", "slot-8-and-10", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Door-Latch/093082"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]12 kg"},
+    "expectedAttributePatterns": ["8 / 10", "Zinc die-cast"]
+  }
+]
