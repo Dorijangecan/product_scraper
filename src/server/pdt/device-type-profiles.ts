@@ -38,6 +38,22 @@ const CURRENT_ONLY: DeviceTypeElectricalField[] = ["current"];
 const NO_ELECTRICAL_FIELDS: DeviceTypeElectricalField[] = [];
 
 export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
+  "ATS Power Distribution Unit": { sheets: ["energy distribution system"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Automatic Transfer Switch": { sheets: ["energy distribution system"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Capacitor Bank": { sheets: ["energy distribution system"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Control Relay": { sheets: ["contactor a. fuses"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Cooling Unit": { sheets: ["cabinet.airconditioning"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Fire Alarm Power Supply": { sheets: ["power supply devices"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Ground Rod": { sheets: ["int. ext. lightning protection"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Key-operated Actuator": { sheets: ["Switch"], electricalFields: VOLTAGE_ONLY },
+  "Line Reactor": { sheets: ["servo controller"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Pipe Hanger": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  Potentiometer: { sheets: ["electronic sensor"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Pressure Switch": { sheets: ["Switch"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Protective Relay": { sheets: ["contactor a. fuses"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Socket Strip": { sheets: ["energy distribution system"], criticalFactsBySheet: { "energy distribution system": [...ELECTRICAL_RATING_FACTS] }, electricalFields: VOLTAGE_AND_CURRENT },
+  "Test Adapter": { sheets: ["connector"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Access Sensor": { sheets: ["electronic sensor"], electricalFields: NO_ELECTRICAL_FIELDS },
   "E-Bike Charging Station": { sheets: ["connector"], electricalFields: VOLTAGE_ONLY },
   "Fire-Resistant Junction Box": { sheets: ["cabinet"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Socket Outlet Combination": { sheets: ["connector"], electricalFields: VOLTAGE_ONLY },
@@ -155,6 +171,9 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   "Motion Controller": { sheets: ["Motion Controller"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Current Sensor": { sheets: ["el. mesurement devices"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: CURRENT_ONLY },
   "Current Transformer": { sheets: ["el. mesurement devices"], criticalFactsBySheet: { "el. mesurement devices": ["ratedCurrent"] }, electricalFields: CURRENT_ONLY },
+  Hygrostat: { sheets: ["cabinet.airconditioning"], electricalFields: VOLTAGE_ONLY },
+  "Door-operated Switch": { sheets: ["Switch"], electricalFields: VOLTAGE_ONLY },
+  "Lock Insert": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
   Filter: { sheets: ["filters"], electricalFields: NO_ELECTRICAL_FIELDS },
 
   Cable: { sheets: ["cable"], criticalFactsBySheet: { cable: ["ratedVoltage", "ratedCurrent", "material"] }, electricalFields: VOLTAGE_AND_CURRENT },
@@ -245,11 +264,11 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   Luminaire: { sheets: ["Luminaire"], electricalFields: VOLTAGE_AND_CURRENT },
 
   "Thermal Management": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
-  Heater: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
-  "Heat Exchanger": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  Heater: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Heat Exchanger": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
   "Air Conditioner": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
   "Filter Fan": { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
-  Thermostat: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_AND_CURRENT },
+  Thermostat: { sheets: ["cabinet.airconditioning"], finalCompletenessFields: ACTIVE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
 
   Pump: { sheets: ["pump"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Directional Control Valve": { sheets: ["directional control valve"], electricalFields: VOLTAGE_ONLY },

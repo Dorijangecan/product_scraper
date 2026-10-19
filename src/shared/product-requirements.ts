@@ -136,6 +136,13 @@ export function requiredElectricalFields(result: ProductResult, context: Electri
     /^design$/i.test(attr.name.trim()) && /\btemperature probe\b/i.test(attr.value)
   );
   if (passiveResistanceTemperatureProbe) return [];
+  const rittalNtcTemperatureProbe = result.manufacturerId === "rittal" && context.deviceType === "Temperature Sensor" &&
+    result.attributes.some((attribute) => /^supply includes$/i.test(attribute.name.trim()) && /\bNTC sensor\b/i.test(attribute.value));
+  if (rittalNtcTemperatureProbe) return [];
+  // Exact Rittal cooling-system filter mats, lock inserts, and cable glands are passive
+  // mechanical accessories. Their product text names the climate-control equipment, switches,
+  // or cables they fit; those related ratings are not ratings of the requested accessory.
+  if (result.manufacturerId === "rittal" && ["Filter", "Lock Insert", "Cable Gland"].includes(context.deviceType ?? "")) return [];
   // A capacitive Turck sensor's "DC rated operational current" is its switching-output load
   // limit, not supply draw. Require its evidenced voltage but never call that output rating the
   // sensor's consumption current when the datasheet provides no separate draw/no-load row.

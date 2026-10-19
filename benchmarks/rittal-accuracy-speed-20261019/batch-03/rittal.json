@@ -1,0 +1,58 @@
+[
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3118000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Hygrostat",
+    "riskTags": ["rittal-batch-03", "enclosure-hygrostat"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=3118000(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["voltage", "weight", "dimensions", "color"],
+    "expectedAttributePatterns": ["3118000", "50", "100%", "4%", "24 V", "250 V", "0.095 kg", "single-pole change-over"],
+    "expectedNormalizedPatterns": {"weight": "0[.]095 kg", "dimensions": "71\\s*x\\s*71\\s*x\\s*33[.]5", "voltage": "24\\s*V.*250\\s*V", "color": "RAL 7035"}
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "4127210",
+    "caseType": "electrical",
+    "expectedDeviceType": "Door-operated Switch",
+    "riskTags": ["rittal-batch-03", "enclosure-door-operated-switch"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=4127210(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["voltage", "weight", "protection"],
+    "expectedAttributePatterns": ["4127210", "toggle", "without connection cable", "240 V AC/6 A", "125 V AC/8 A", "24 V DC/6 A", "400 V", "IP 40", "0.231 kg"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "3286300",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Filter",
+    "riskTags": ["rittal-batch-03", "cooling-unit-filter-mat"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=3286300(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["dimensions", "material", "weight"],
+    "expectedAttributePatterns": ["3286300", "Open-celled polyurethane", "265 mm", "200 mm", "10 mm", "3 pc", "0.042 kg"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "8611200",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Lock Insert",
+    "riskTags": ["rittal-batch-03", "handle-lock-insert"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=8611200(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight"],
+    "expectedAttributePatterns": ["8611200", "with 2 keys", "26.2 mm", "push-button and security lock insert", "12321", "VX IT", "0.04 kg"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "2411601",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Cable Gland",
+    "riskTags": ["rittal-batch-03", "m12-polyamide-cable-gland"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=2411601(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["material", "weight", "protection"],
+    "expectedAttributePatterns": ["2411601", "Polyamide 6", "CR/NBR", "IP 68", "M12 x 1.5", "3 mm", "6.5 mm", "-30 °C", "100 °C", "50 pc", "0.05 kg"]
+  }
+]

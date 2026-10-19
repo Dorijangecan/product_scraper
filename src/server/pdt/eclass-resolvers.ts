@@ -1774,8 +1774,13 @@ function interfaceDesign(ctx: ResolveContext): string | undefined {
 }
 
 function threadSize(ctx: ResolveContext): string | undefined {
-  const value = attr(ctx, /\b(thread size|connection thread|thread)\b/i);
+  const value = ctx.result?.attributes.find((attribute) => /^(?:thread size|connection thread|thread)$/i.test(attribute.name.trim()))?.value;
   return value?.match(/\bM\d+(?=\D|$)/i)?.[0].toUpperCase() ?? value;
+}
+
+function threadType(ctx: ResolveContext): string | undefined {
+  const value = ctx.result?.attributes.find((attribute) => /^(?:thread type|type of thread)$/i.test(attribute.name.trim()))?.value;
+  return value ? clean(value) : undefined;
 }
 
 function connectorType(ctx: ResolveContext): string | undefined {
@@ -3709,7 +3714,7 @@ const RESOLVERS: Record<string, Resolver> = {
   AAJ095: (ctx) => lengthValue(ctx, /\b(min(?:imum)? clamping range|clamping range)\b/i),
   AAJ094: (ctx) => lengthValue(ctx, /\b(max(?:imum)? clamping range|clamping range)\b/i),
   BAA997: (ctx) => lengthValue(ctx, /\b(thread length)\b/i),
-  AAS481: attrValue(/\b(thread type|type of thread|thread)\b/i),
+  AAS481: threadType,
   AAH509: (ctx) => lengthValue(ctx, /\b(min(?:imum)? sealing range|sealing range)\b/i),
   AAH508: (ctx) => lengthValue(ctx, /\b(max(?:imum)? sealing range|sealing range)\b/i),
   AAS484: attrYesNo(/\b(bend protection)\b/i),

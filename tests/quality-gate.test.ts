@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ManufacturerConfig, ProductResult } from "../src/shared/types.js";
 import { getManufacturerConfig } from "../src/server/config/manufacturers.js";
 import { evaluateQualityGate, finalizeQualityGate } from "../src/server/scrapers/quality-gate.js";
+import { requiredElectricalFields } from "../src/shared/product-requirements.js";
 
 const manufacturer: ManufacturerConfig = {
   id: "test",
@@ -420,6 +421,21 @@ describe("quality gate", () => {
     expect(result.status).toBe("found");
     expect(result.qualityGate?.missing).not.toContain("normalized:voltage");
     expect(result.qualityGate?.missing).not.toContain("normalized:current");
+  });
+
+  it("does not inherit related climate or cable ratings for passive Rittal accessories", () => {
+    for (const [deviceType, title] of [
+      ["Filter", "SK filter mat for cooling units and air/air heat exchangers"],
+      ["Lock Insert", "TS lock insert for handle systems"],
+      ["Cable Gland", "SZ cable gland, polyamide"]
+    ] as const) {
+      expect(requiredElectricalFields(product({
+        manufacturerId: "rittal",
+        title,
+        description: title,
+        attributes: [{ group: "Definition List", name: "Product description", value: title }]
+      }), { deviceType, deviceTypeConfidence: 0.99 })).toEqual([]);
+    }
   });
 
   it("stops requiring a field the user switched off for the run", () => {

@@ -24,7 +24,7 @@ import { bestFact, buildPdtFactIndex, PDT_ONTOLOGY_FACT_KEYS, PDT_ONTOLOGY_QUANT
 import { normalizePdtCellNumber } from "../src/server/pdt/unit-cleanup.js";
 import { PDT_EXCEPTION_RULES, pdtExceptionRule } from "../src/server/pdt/pdt-exceptions.js";
 import { repairFinalCompletenessFromEvidence } from "../src/server/scrapers/final-completeness.js";
-import { localizedPdtDocumentUrlRules } from "../src/server/pdt/rules.js";
+import { localizedPdtDocumentUrlRules, pdtColumnAllowRule } from "../src/server/pdt/rules.js";
 
 const manufacturer = {
   id: "test",
@@ -2231,6 +2231,13 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("BAD898", "BAD898", c)).toBe("PNP");
     expect(resolveProperty("BAD899", "BAD899", c)).toBe("Normally open contact");
     expect(resolveProperty("ABC265", "ABC265", c)).toBe("M12");
+    const cableGland = ctx({ attributes: [
+      { name: "Thread", value: "M12 x 1.5", sourceType: "official" },
+      { name: "Thread length", value: "8 mm", sourceType: "official" },
+      { name: "Width across flats", value: "15 mm", sourceType: "official" }
+    ] });
+    expect(resolveProperty("AAS460", "AAS460", cableGland)).toBe("M12");
+    expect(resolveProperty("AAS481", "AAS481", cableGland)).toBeUndefined();
     expect(resolveProperty("ABC266", "ABC266", c)).toBe("Circular connector");
     expect(resolveProperty("ABC338", "ABC338", c)).toBe("A-coded");
     expect(resolveProperty("AAZ943", "AAZ943", c)).toBe("6");
@@ -2472,6 +2479,31 @@ describe("eclass resolvers", () => {
     const c = ctx({ attributes: [{ name: "Operating temperature", value: "-25...+60 °C" }] });
     expect(resolveProperty("AAC820", "AAC820", c)).toBe("-25");
     expect(resolveProperty("AAC821", "AAC821", c)).toBe("60");
+  });
+});
+
+describe("PDT column safety rules", () => {
+  it("omits a single-current cell for voltage-dependent Rittal door-switch loads and unmatched RAL enums", () => {
+    const rittal = { ...manufacturer, id: "rittal" } as ManufacturerConfig;
+    const rule = (deviceType: string, code: string, normalized: ProductResult["normalized"] = {}) => pdtColumnAllowRule({
+      manufacturer: rittal,
+      item: {
+        id: 1,
+        runId: "test",
+        rowIndex: 0,
+        catalogNumber: "4127210",
+        status: "found",
+        updatedAt: "2026-10-19T00:00:00.000Z",
+        result: { manufacturerId: "rittal", catalogNumber: "4127210", status: "found", confidence: 1, normalized, attributes: [], documents: [], sources: [] }
+      } as RunItemRecord,
+      deviceType,
+      sheetName: deviceType === "Door-operated Switch" ? "Switch" : "cable gland",
+      column: { col: 1, priority: "Optional field", code, propName: code, description: "", unit: "" }
+    });
+
+    expect(rule("Door-operated Switch", "AAB485")?.value).toBe(false);
+    expect(rule("Cable Gland", "BAA351", { color: "RAL 7035" })?.value).toBe(false);
+    expect(rule("Cable Gland", "BAA351", { color: "Stainless steel" })).toBeUndefined();
   });
 });
 

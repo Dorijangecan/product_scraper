@@ -343,6 +343,20 @@ describe("Rittal built-in profile", () => {
     expect(socketStrip.dimensions).toBe("44 x 482.6 x 44 mm");
     expect(socketStrip.material).toBe("Aluminium section, natural anodised; Socket inserts: Polycarbonate");
 
+    const cableGland = normalizeFields([
+      { group: "Definition List", name: "Product description", value: "SZ Cable gland, polyamide, size M12 x 1.5", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Height", value: "22 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Thread", value: "M12 x 1.5", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Thread length", value: "8 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Width across flats", value: "15 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal");
+    expect(cableGland.dimensions).toBeUndefined();
+
+    expect(normalizeFields([
+      { group: "Definition List", name: "Product description", value: "TS Lock insert for handle systems, push-button and lock-insert", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Length", value: "26.2 mm", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal").dimensions).toBeUndefined();
+
     expect(normalizeFields([
       { group: "Definition List", name: "Primary current", value: "400 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" },
       { group: "Definition List", name: "Secondary current", value: "5 A", sourceUrl: productUrl, sourceType: "official", parser: "rittal-order-resolver" }

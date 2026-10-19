@@ -350,6 +350,15 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const combinedDimensionsValue = combinedDimensionsAttr ? normalizeDimensionValue(combinedDimensionsAttr.value) : undefined;
   const axisDimensionCount = axisAttrs.length;
   const combinedDimensionCount = combinedDimensionsValue ? dimensionMeasurementCount(combinedDimensionsValue) : 0;
+  const rittalCableGlandWithSeparateMechanicalMeasures = manufacturerId === "rittal" &&
+    attributes.some((attribute) => attribute.parser === "rittal-order-resolver" && /^product description$/i.test(attribute.name.trim()) && /\bcable gland\b/i.test(attribute.value)) &&
+    attributes.some((attribute) => /^width across flats$/i.test(attribute.name.trim())) &&
+    attributes.some((attribute) => /^thread length$/i.test(attribute.name.trim()));
+  const rittalLockInsertWithOnlyLength = manufacturerId === "rittal" &&
+    attributes.some((attribute) => attribute.parser === "rittal-order-resolver" && /^product description$/i.test(attribute.name.trim()) && /\block insert\b/i.test(attribute.value)) &&
+    attributes.some((attribute) => /^length$/i.test(attribute.name.trim())) &&
+    !attributes.some((attribute) => /^(?:width|height|depth)$/i.test(attribute.name.trim()));
+  const rittalMechanicalAccessoryWithoutEnvelope = rittalCableGlandWithSeparateMechanicalMeasures || rittalLockInsertWithOnlyLength;
   const preferAxisAssembly =
     Boolean(axisAssembledDimensions) &&
     (!combinedDimensionsValue || (axisDimensionCount >= combinedDimensionCount && weakestAxisConfidence >= (combinedDimensionsAttr?.confidence ?? 1)));
@@ -359,13 +368,13 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     exactDoepkeDimensions ??
     (manufacturerId === "balluff" ? balluffProbeDimensions(attributes) : undefined) ??
     (manufacturerId === "phoenix" ? phoenixContactSensorDimensions(attributes) : undefined) ??
-    (preferAxisAssembly ? axisAssembledDimensions : undefined) ??
-    combinedDimensionsValue ??
-    axisAssembledDimensions ??
-    registryFieldValue(attributes, "dimensions", normalizeDimensionValue) ??
-    deriveDimensionsFromText(attributes) ??
-    schneiderDescriptionDimensions(attributes) ??
-    cableLengthDimension);
+    (rittalMechanicalAccessoryWithoutEnvelope ? undefined : (preferAxisAssembly ? axisAssembledDimensions : undefined)) ??
+    (rittalMechanicalAccessoryWithoutEnvelope ? undefined : combinedDimensionsValue) ??
+    (rittalMechanicalAccessoryWithoutEnvelope ? undefined : axisAssembledDimensions) ??
+    (rittalMechanicalAccessoryWithoutEnvelope ? undefined : registryFieldValue(attributes, "dimensions", normalizeDimensionValue)) ??
+    (rittalMechanicalAccessoryWithoutEnvelope ? undefined : deriveDimensionsFromText(attributes)) ??
+    (rittalMechanicalAccessoryWithoutEnvelope ? undefined : schneiderDescriptionDimensions(attributes)) ??
+    (rittalMechanicalAccessoryWithoutEnvelope ? undefined : cableLengthDimension));
   const safeDimensions = manufacturerId === "eta" && etaDimensionMatchesTerminalDesign(attributes, dimensions)
     ? undefined
     : dimensions;
@@ -2882,7 +2891,7 @@ function rittalMaterialValue(value: string): string | undefined {
     .replace(/\bVolume\s*:\s*\d+(?:[.,]\d+)?\s*(?:l|L)\b.*$/i, "")
     .replace(/(Polyamide)(?=Polycarbonate)/gi, "$1; ")
     .replace(/(Polycarbonate)(?=E-Cu\b)/gi, "$1; ")
-    .replace(/([^\s;])(?=(?:enclosure|door|mounting\s+plate|light\s+(?:body|cover|ends)|socket\s+inserts|front)\s*:\s*)/gi, "$1; ")
+    .replace(/([^\s;])(?=(?:enclosure|door|mounting\s+plate|light\s+(?:body|cover|ends)|socket\s+inserts|front|seal)\s*:\s*)/gi, "$1; ")
     .trim();
   return cleaned || undefined;
 }

@@ -1890,7 +1890,12 @@ function hasCompleteRittalOfficialProductData(result: ProductResult): boolean {
     "Temperature Sensor": [/^article no\.?\s*:?$/i, /^supply includes$/i, /^net weight$/i],
     Thermostat: [/^product description$/i, /^technical specifications$/i, /^setting range$/i, /^rated operating voltage$/i, /^net weight$/i],
     "Current Transformer": [/^product description$/i, /^material$/i, /^primary current$/i, /^secondary current$/i, /^accuracy class$/i, /^rated frequency$/i, /^net weight$/i],
-    "Cooling Unit": [/^(?:product description|description)$/i, /^material$/i, /^total cooling output/i, /^rated operating voltage$/i, /^rated current max\.?$/i, /^air throughput/i, /^protection category to IEC/i, /^net weight$/i]
+    "Cooling Unit": [/^(?:product description|description)$/i, /^material$/i, /^total cooling output/i, /^rated operating voltage$/i, /^rated current max\.?$/i, /^air throughput/i, /^protection category to IEC/i, /^net weight$/i],
+    Hygrostat: [/^product description$/i, /^technical specifications$/i, /^setting range$/i, /^rated operating voltage$/i, /^dimensions$/i, /^net weight$/i],
+    "Door-operated Switch": [/^product description$/i, /^design$/i, /^electrical connection$/i, /^rated operating voltage$/i, /^IP protection category to IEC/i, /^net weight$/i],
+    Filter: [/^product description$/i, /^material$/i, /^dimensions$/i, /^net weight$/i],
+    "Lock Insert": [/^product description$/i, /^supply includes$/i, /^length$/i, /^lock$/i, /^net weight$/i],
+    "Cable Gland": [/^product description$/i, /^material$/i, /^IP protection category to IEC/i, /^thread$/i, /^min\. cable diameter$/i, /^max\. cable diameter$/i, /^net weight$/i]
   };
   const hasExactDimensions = exactPdp.some((attribute) =>
     /^product description$/i.test(attribute.name.trim()) && /\b(?:WHD|LHD)\s*:?\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?/i.test(attribute.value)
@@ -1910,7 +1915,7 @@ function hasCompleteRittalOfficialProductData(result: ProductResult): boolean {
     : has(/^air throughput$/i) || has(/^rated current(?: max\.)?$/i) ? "Filter Fan"
     : undefined;
   const required = requiredByType[exactType ?? ""];
-  const exactTypeDoesNotPublishDimensions = exactType === "Temperature Sensor" || exactType === "Current Transformer";
+  const exactTypeDoesNotPublishDimensions = ["Temperature Sensor", "Current Transformer", "Hygrostat", "Door-operated Switch", "Lock Insert", "Cable Gland"].includes(exactType ?? "");
   return Boolean(required?.every(has) && (hasExactDimensions || exactTypeDoesNotPublishDimensions));
 }
 

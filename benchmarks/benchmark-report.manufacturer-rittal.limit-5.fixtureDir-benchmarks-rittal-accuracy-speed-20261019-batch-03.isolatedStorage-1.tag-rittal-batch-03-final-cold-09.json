@@ -1,0 +1,4175 @@
+{
+  "generatedAt": "2026-10-19T14:45:27.528Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514",
+  "filters": {
+    "manufacturer": "rittal",
+    "limit": "5",
+    "fixtureDir": "benchmarks/rittal-accuracy-speed-20261019/batch-03",
+    "isolatedStorage": "1",
+    "tag": "rittal-batch-03-final-cold-09"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "rittal": {
+          "total": 5,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "cooling-unit-filter-mat",
+            "enclosure-door-operated-switch",
+            "enclosure-hygrostat",
+            "handle-lock-insert",
+            "m12-polyamide-cable-gland",
+            "rittal-batch-03"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Hygrostat": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Door-operated Switch": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Filter": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Lock Insert": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Cable Gland": {
+          "total": 1,
+          "manufacturers": [
+            "rittal"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet.airconditioning": {
+          "total": 1,
+          "deviceTypes": [
+            "Hygrostat"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        },
+        "Switch": {
+          "total": 1,
+          "deviceTypes": [
+            "Door-operated Switch"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        },
+        "filters": {
+          "total": 1,
+          "deviceTypes": [
+            "Filter"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        },
+        "cabinet.mechanical": {
+          "total": 1,
+          "deviceTypes": [
+            "Lock Insert"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        },
+        "cable gland": {
+          "total": 1,
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "manufacturers": [
+            "rittal"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "IT LED system light",
+              "deviceType": "Luminaire",
+              "notes": "Rittal IT system lights"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Ceiling Junction Box",
+            "Channel Installation Box",
+            "Empty Enclosure",
+            "Enclosure",
+            "Equipment Installation Box",
+            "Fire-Resistant Junction Box",
+            "Installation Housing",
+            "Junction Box",
+            "Large Conduit Box",
+            "Lightning Protection Enclosure",
+            "Meter Housing",
+            "Terminal Block Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "U 71 DVD",
+              "deviceType": "Ceiling Junction Box",
+              "notes": "Spelsberg ceiling-slab junction boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "KD 1",
+              "deviceType": "Channel Installation Box",
+              "notes": "Spelsberg channel installation boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "KD 2",
+              "deviceType": "Channel Installation Box",
+              "notes": "Spelsberg channel installation boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "GEOS-L",
+              "deviceType": "Empty Enclosure",
+              "notes": "Spelsberg GEOS-L outdoor empty enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "E-Bike Charging Station",
+            "EV Charging Station",
+            "Optical Connector",
+            "Socket Enclosure",
+            "Socket Outlet Combination"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "Current transformer",
+              "deviceType": "Current Transformer",
+              "notes": "Rittal inductive current transformers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Distribution Board",
+            "Loadcenter",
+            "NH Fuse Enclosure",
+            "Power Distribution Unit",
+            "Small Distribution Board"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "GTi 2 VS",
+              "deviceType": "Distribution Board",
+              "notes": "Spelsberg GTi selective-main-switch distribution boards"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "GST",
+              "deviceType": "NH Fuse Enclosure",
+              "notes": "Spelsberg GST NH fuse enclosures"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "MM500",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A PowerPlex Mini Modules for DC load distribution and control"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "PowerPlex Mini Modul",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A PowerPlex Mini Modules for DC load distribution and control"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Pull-wire Emergency Stop Switch",
+            "Safety Hinge Switch",
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS655",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS656",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "TV8S",
+              "deviceType": "Safety Hinge Switch",
+              "notes": "Schmersal TV8S hinge safety switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 5,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "3118000",
+      "caseType": "electrical",
+      "expectedDeviceType": "Hygrostat",
+      "actualDeviceType": "Hygrostat",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "rittal-batch-03",
+        "enclosure-hygrostat"
+      ],
+      "status": "found",
+      "confidence": 0.73,
+      "elapsedMs": 2310,
+      "scrapeElapsedMs": 830,
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\pdt\\rittal-3118000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 26,
+      "pdtBlankCells": 62,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Hygrostat",
+        "description": "Activates the heater and/or fan when a preset relative humidity inside the enclosure is exceeded. This raises the relative humidity above the dew point and prevents condensation on assemblies and electronic components.",
+        "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+        "localizedUrls": {
+          "en": "https://www.rittal.com/com-en/products/show/3118000",
+          "de": "https://www.rittal.com/de-de/products/show/3118000"
+        },
+        "localizedDescriptions": {
+          "en": {
+            "title": "Hygrostat",
+            "description": "Activates the heater and/or fan when a preset relative humidity inside the enclosure is exceeded. This raises the relative humidity above the dew point and prevents condensation on assemblies and electronic components."
+          },
+          "de": {
+            "title": "Hygrostat",
+            "description": "Schaltet die Heizung bzw. den Lüfter beim Überschreiten einer fest einstellbaren relativen Feuchte im Schaltschrank ein. Somit wird die relative Feuchte über den Taupunkt angehoben und eine Kondensation an Baugruppen oder elektronischen Komponenten vermieden."
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Hygrostat",
+          "confidence": 0.99,
+          "evidence": "Family Hygrostat (Exact product-class wording)",
+          "alternatives": [
+            {
+              "type": "Heater",
+              "score": 1661,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Thermal Management",
+              "score": 1660,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 2119
+        },
+        "normalized": {
+          "weight": "0.095 kg",
+          "dimensions": "71 x 71 x 33.5 mm",
+          "color": "RAL 7035",
+          "voltage": "24 V - 250 V, 1~ ; 24 - 48 V (DC)"
+        },
+        "requiredElectricalFields": [
+          "voltage"
+        ],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Colour",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated operating voltage",
+            "value": "24 V - 250 V, 1~ ; 24 - 48 V (DC)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0.095 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0.104 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Declarations",
+            "value": "Declaration of conformity DE, EN ; Declaration of conformity UK EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Hygrostat",
+            "name": "Colour",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Hygrostat",
+            "name": "Rated operating voltage",
+            "value": "24 V - 250 V, 1~ | 24 - 48 V (DC)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Hygrostat",
+            "name": "Net weight",
+            "value": "0.095 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Hygrostat",
+            "name": "Gross weight",
+            "value": "0.104 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SK 3118000",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Benefits",
+            "value": "Time-saving connection technique using a terminal strip with a screw connection from the outside. ; Flexible mounting on a vertical or horizontal 35 mm support rail to EN 50 022, and snap fastening in the enclosure section or on the mounting plate using the supplied adaptor",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "90321080",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177036734",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC004587",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC004587",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27210708",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SK Hygrostat, 24-250 V, 1~, 24-48 V (DC), colour RAL 7035, BHD: 71 x 71 x 33.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Approvals",
+            "value": "UL + C-UL (listed) EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentation",
+            "value": "Instructions DE, EN, ES, FR, IT, NL, SV RU",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Data sheets",
+            "value": "Technical system catalogue CS DE EN ES JA PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "SK Hygrostat, 24-250 V, 1~, 24-48 V (DC), colour RAL 7035, BHD",
+            "value": "71 x 71 x 33.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "71 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Depth",
+            "value": "33.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Operating voltage",
+            "value": "24 V / 250 V / 1~ 24 - 48 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.095 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.104 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "71 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "71 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Depth",
+            "value": "33.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Hygrostat",
+            "name": "Article no.",
+            "value": "SK 3118000",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Hygrostat",
+            "name": "EAN",
+            "value": "4028177036734",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Contact population",
+            "value": "Single-pole change-over contact as a quick-break contact",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Permissible contact load",
+            "value": "AC ~ 5 (0.2) A (inductive load at cos &phi; = 0.6)/DC = max. 20 W",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Setting range",
+            "value": "50 &ndash; 100% relative humidity",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Switching difference",
+            "value": "approx. 4%",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "90321080",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC004587",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC004587",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "Activates the heater and/or fan when a preset relative humidity in the enclosure is exceeded. This reduces the relative humidity and prevents condensation on assemblies and electronic components.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Technical specifications",
+            "value": "Contact population: Single-pole change-over contact as a quick-break contact ; Permissible contact load: AC ~ 5 (0.2) A (inductive load at cos φ = 0.6)/DC = max. 20 W ; Setting range: 50 – 100% relative humidity ; Switching difference: approx. 4%",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Packs of",
+            "value": "1 pc(s).",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Dimensions",
+            "value": "Width: 71 mmHeight: 71 mmDepth: 33.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "3118000_Technical_system_catalogue_CS",
+            "url": "https://www.rittal.com/imf/none/3_13209/3118000_Technical_system_catalogue_CS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3118000_Technical_system_catalogue_DE",
+            "url": "https://www.rittal.com/imf/none/3_6104/3118000_Technical_system_catalogue_DE",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3118000_Technical_system_catalogue_EN",
+            "url": "https://www.rittal.com/imf/none/3_8419/3118000_Technical_system_catalogue_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3118000_Technical_system_catalogue_ES",
+            "url": "https://www.rittal.com/imf/none/3_13783/3118000_Technical_system_catalogue_ES",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3118000_Technical_system_catalogue_JA",
+            "url": "https://www.rittal.com/imf/none/3_8420/3118000_Technical_system_catalogue_JA",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3118000_Technical_system_catalogue_PL",
+            "url": "https://www.rittal.com/imf/none/3_14263/3118000_Technical_system_catalogue_PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3118000_Instructions_DE_EN_ES_FR_IT_NL_SV",
+            "url": "https://www.rittal.com/imf/none/3_43/3118000_Instructions_DE_EN_ES_FR_IT_NL_SV",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "3118000_Instructions_RU",
+            "url": "https://www.rittal.com/imf/none/3_6525/3118000_Instructions_RU",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/2_55120/",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\images\\RIT.3118000.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:15.603Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver-de",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:16.054Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "rittal-order-resolver",
+              "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI204/PRO12217?variantId=3118000",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "rittal-order-resolver",
+              "statusCode": 200,
+              "attributeCount": 44,
+              "documentCount": 9,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "4127210",
+      "caseType": "electrical",
+      "expectedDeviceType": "Door-operated Switch",
+      "actualDeviceType": "Door-operated Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "rittal-batch-03",
+        "enclosure-door-operated-switch"
+      ],
+      "status": "found",
+      "confidence": 0.86,
+      "elapsedMs": 1884,
+      "scrapeElapsedMs": 584,
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\pdt\\rittal-4127210-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 54,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Door-operated switch",
+        "description": "with mounting accessories, with or without connection cable.",
+        "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+        "localizedUrls": {
+          "en": "https://www.rittal.com/com-en/products/show/4127210",
+          "de": "https://www.rittal.com/de-de/products/show/4127210"
+        },
+        "localizedDescriptions": {
+          "en": {
+            "title": "Door-operated switch",
+            "description": "with mounting accessories, with or without connection cable."
+          },
+          "de": {
+            "title": "Türpositionsschalter",
+            "description": "mit Einbauzubehör, mit oder ohne Anschlussleitung."
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Door-operated Switch",
+          "confidence": 0.86,
+          "evidence": "Family Door-operated switch (Exact product-class wording)",
+          "alternatives": [
+            {
+              "type": "Cable",
+              "score": 1525,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Switch",
+              "score": 1515,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 155
+        },
+        "normalized": {
+          "weight": "0.231 kg",
+          "voltage": "400 V",
+          "protection": "IP 40"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Rated operating voltage",
+            "value": "400 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 40",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0.231 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0.235 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Declarations",
+            "value": "Declaration of conformity DE, EN ; Declaration of conformity UK EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "Rated operating voltage",
+            "value": "400 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 40",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "Net weight",
+            "value": "0.231 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "Gross weight",
+            "value": "0.235 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SZ 4127210",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated impulse withstand voltage, phase to phase",
+            "value": "6000 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Rated insulation voltage",
+            "value": "400 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Electrical connection",
+            "value": "240 V AC/6 A125 V AC/8 A24 V AC/6 A24 V DC/6 A",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "85365019",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177581326",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC002626",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC002626",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27189266",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SZ Door-operated switch, with toggle, without connection cable, UL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Approvals",
+            "value": "CQC EN, ZH ; CQC-CCC ZH ; CSA EN ; UL + C-UL (listed) EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentation",
+            "value": "Instructions DE, EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Operating voltage",
+            "value": "400 V",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.231 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.235 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "Article no.",
+            "value": "SZ 4127210",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "Rated impulse withstand voltage, phase to phase",
+            "value": "6000 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "Rated insulation voltage",
+            "value": "400 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "Electrical connection",
+            "value": "240 V AC/6 A125 V AC/8 A24 V AC/6 A24 V DC/6 A",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Door-operated switch",
+            "name": "EAN",
+            "value": "4028177581326",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "85365019",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC002626",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC002626",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated impulse withstand voltage",
+            "value": "6000 V AC",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Design",
+            "value": "with toggle for swing frame, without connection cable",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Function principle",
+            "value": "The toggle is actuated via the tubular door frame of the sheet steel door, or in the case of glazed doors, via an adaptor included with the supply.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Note",
+            "value": "For installation in VX IT only in conjunction with VX mounting bracket for door-operated switch",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Installation options",
+            "value": "for TS enclosures with installed large swing frame ; for standard and courtesy light",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Packs of",
+            "value": "1 pc(s).",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "4127210_Instructions_DE_EN",
+            "url": "https://www.rittal.com/imf/none/3_1291/4127210_Instructions_DE_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/2_36588/",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\images\\RIT.4127210.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:18.051Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver-de",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:18.414Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "rittal-order-resolver",
+              "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240403ZUB003/PRO15576?variantId=4127210",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "rittal-order-resolver",
+              "statusCode": 200,
+              "attributeCount": 40,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "3286300",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Filter",
+      "actualDeviceType": "Filter",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "rittal-batch-03",
+        "cooling-unit-filter-mat"
+      ],
+      "status": "found",
+      "confidence": 0.73,
+      "elapsedMs": 1988,
+      "scrapeElapsedMs": 588,
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\pdt\\rittal-3286300-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 28,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Filter mat for cooling units, climate control/section doors, air/air heat exchangers and chillers",
+        "description": "In dusty environments, we recommend the use of filter mats. This makes the units easier to clean. The filter will need to be replaced at regular intervals, depending on the level of contamination.",
+        "productUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+        "localizedUrls": {
+          "en": "https://www.rittal.com/com-en/products/show/3286300",
+          "de": "https://www.rittal.com/de-de/products/show/3286300"
+        },
+        "localizedDescriptions": {
+          "en": {
+            "title": "Filter mat for cooling units, climate control/section doors, air/air heat exchangers and chillers",
+            "description": "In dusty environments, we recommend the use of filter mats. This makes the units easier to clean. The filter will need to be replaced at regular intervals, depending on the level of contamination."
+          },
+          "de": {
+            "title": "Filtermatte für Kühlgeräte, Klima-/Profiltür, Luft/Luft-Wärmetauscher und Chiller",
+            "description": "Bei erhöhter Staubbelastung wird die Verwendung von Filtermatten empfohlen. Die Reinigung der Geräte wird dadurch vereinfacht. Je nach Verschmutzungsgrad muss der Filter regelmäßig ausgewechselt werden."
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Filter",
+          "confidence": 0.99,
+          "evidence": "Title: Filter mat for cooling units, climate control/section doors, air/air heat exchangers and chillers",
+          "alternatives": [
+            {
+              "type": "Heat Exchanger",
+              "score": 1822,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Thermal Management",
+              "score": 1500,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 1958
+        },
+        "normalized": {
+          "weight": "0.042 kg",
+          "dimensions": "200 x 265 x 10 mm",
+          "material": "Open-celled polyurethane foamed plastic"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Open-celled polyurethane foamed plastic",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0.042 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0.047 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Material",
+            "value": "Open-celled polyurethane foamed plastic",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Net weight",
+            "value": "0.042 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Gross weight",
+            "value": "0.047 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SK 3286300",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Benefits",
+            "value": "Temperature-resistant from -40 °C...+80 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "To fit",
+            "value": "Enclosure type: Cooling units and air/air heat exchangers",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "56039390",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177325326",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC002513",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC002513",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27180706",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SK filter mat, for wall-mounted-cooling unit SK 3302/3303/3361, for Air/air heat exchanger 3126, WHD: 265 x 200 x 10 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Data sheets",
+            "value": "Technical system catalogue CS DE EN ES JA PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Enclosure type",
+            "value": "Cooling units and air/air heat exchangers",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "200 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Depth",
+            "value": "10 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.042 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.047 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "265 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "200 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Depth",
+            "value": "10 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Article no.",
+            "value": "SK 3286300",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Page Evidence",
+            "name": "EAN",
+            "value": "4028177325326",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Type",
+            "value": "Cooling units and air/air heat exchangers",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "56039390",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC002513",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC002513",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "Rittal cooling units are low-maintenance and are supplied without filter mats. Filter mats may be used for extreme conditions.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "To fit Model No.",
+            "value": "3302.1xx ; 3302.200 ; 3303.xx0 ; 3361.... ; 3126.100 ; 3126.115",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Dimensions",
+            "value": "Width: 265 mmHeight: 200 mmDepth: 10 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Packs of",
+            "value": "3 pc(s).",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "3286300_Technical_system_catalogue_CS",
+            "url": "https://www.rittal.com/imf/none/3_13209/3286300_Technical_system_catalogue_CS",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3286300_Technical_system_catalogue_DE",
+            "url": "https://www.rittal.com/imf/none/3_6104/3286300_Technical_system_catalogue_DE",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3286300_Technical_system_catalogue_EN",
+            "url": "https://www.rittal.com/imf/none/3_8419/3286300_Technical_system_catalogue_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3286300_Technical_system_catalogue_ES",
+            "url": "https://www.rittal.com/imf/none/3_13783/3286300_Technical_system_catalogue_ES",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3286300_Technical_system_catalogue_JA",
+            "url": "https://www.rittal.com/imf/none/3_8420/3286300_Technical_system_catalogue_JA",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "3286300_Technical_system_catalogue_PL",
+            "url": "https://www.rittal.com/imf/none/3_14263/3286300_Technical_system_catalogue_PL",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/2_35137/",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\images\\RIT.3286300.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:20.185Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver-de",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:20.546Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "rittal-order-resolver",
+              "url": "https://www.rittal.com/com-en/products/PG20231215KLI101/PG20231215KLI1008/PG20240123KLI201/PRO12276?variantId=3286300",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "rittal-order-resolver",
+              "statusCode": 200,
+              "attributeCount": 36,
+              "documentCount": 7,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "8611200",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Lock Insert",
+      "actualDeviceType": "Lock Insert",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "rittal-batch-03",
+        "handle-lock-insert"
+      ],
+      "status": "found",
+      "confidence": 0.84,
+      "elapsedMs": 1759,
+      "scrapeElapsedMs": 554,
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\pdt\\rittal-8611200-pdt_pdt-audit.json",
+      "pdtWrittenCells": 23,
+      "pdtBlankCells": 65,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Lock and push-button inserts for handle systems",
+        "description": "Lock and push-button inserts with a maximum length of 26.5 mm.",
+        "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+        "localizedUrls": {
+          "en": "https://www.rittal.com/com-en/products/show/8611200",
+          "de": "https://www.rittal.com/de-de/products/show/8611200"
+        },
+        "localizedDescriptions": {
+          "en": {
+            "title": "Lock and push-button inserts for handle systems",
+            "description": "Lock and push-button inserts with a maximum length of 26.5 mm."
+          },
+          "de": {
+            "title": "Sicherheits- und Druckknopf-Einsatz für Griffsysteme",
+            "description": "Verschluss-Einsatz für Griffe, Druckknopf- und Sicherheits-Einsatz, Nr. 12321."
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Lock Insert",
+          "confidence": 0.86,
+          "evidence": "Title: Lock and push-button inserts for handle systems",
+          "alternatives": [
+            {
+              "type": "Handle",
+              "score": 1730,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Pushbutton / Operator",
+              "score": 1680,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 120
+        },
+        "normalized": {
+          "weight": "0.04 kg"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Length",
+            "value": "26.2 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Installation in handle system",
+            "value": "Comfort handle VX for lock inserts ; Comfort handle TS for lock inserts ; Mini-comfort handle for EL 3-part for lock inserts ; Mini-comfort handle AE for lock inserts",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "To fit enclosure type",
+            "value": "VX ; VX IT",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0.04 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0.045 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Lock and push-button inserts for handle systems",
+            "name": "Length",
+            "value": "26.2 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Lock and push-button inserts for handle systems",
+            "name": "Installation in handle system",
+            "value": "Comfort handle VX for lock inserts | Comfort handle TS for lock inserts | Mini-comfort handle for EL 3-part for lock inserts | Mini-comfort handle AE for lock inserts",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Lock and push-button inserts for handle systems",
+            "name": "To fit enclosure type",
+            "value": "VX | VX IT",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Lock and push-button inserts for handle systems",
+            "name": "Net weight",
+            "value": "0.04 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Lock and push-button inserts for handle systems",
+            "name": "Gross weight",
+            "value": "0.045 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "TS 8611200",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "83016000",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177212046",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000743",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27409218",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "TS Lock insert for handle systems, push-button and lock-insert",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.04 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.045 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Lock and push-button inserts with a maximum length of 26.5 mm.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Lock and push-button inserts for handle systems",
+            "name": "Article no.",
+            "value": "TS 8611200",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Lock and push-button inserts for handle systems",
+            "name": "EAN",
+            "value": "4028177212046",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "83016000",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000743",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Supply includes",
+            "value": "with 2 keys",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Note",
+            "value": "For corresponding Rittal handle systems only",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Lock",
+            "value": "Lock insert: Push-button and security lock insertLock no. 12321, no other lock is possible.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Packs of",
+            "value": "1 pc(s).",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          }
+        ],
+        "documents": [
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/2_44659/",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\images\\RIT.8611200.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:22.429Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver-de",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:22.777Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "rittal-order-resolver",
+              "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240411ZUB101/PG20240327ZUB101/PRO59549?variantId=8611200",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "rittal-order-resolver",
+              "statusCode": 200,
+              "attributeCount": 29,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "rittal",
+      "catalogNumber": "2411601",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Cable Gland",
+      "actualDeviceType": "Cable Gland",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "rittal-batch-03",
+        "m12-polyamide-cable-gland"
+      ],
+      "status": "found",
+      "confidence": 0.73,
+      "elapsedMs": 2630,
+      "scrapeElapsedMs": 592,
+      "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\pdt\\rittal-2411601-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 28,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Cable gland, polyamide",
+        "description": "Integrated clamping membranes ensure reliable tightening and strain relief to protect the cables.",
+        "productUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+        "localizedUrls": {
+          "en": "https://www.rittal.com/com-en/products/show/2411601",
+          "de": "https://www.rittal.com/de-de/products/show/2411601"
+        },
+        "localizedDescriptions": {
+          "en": {
+            "title": "Cable gland, polyamide",
+            "description": "Integrated clamping membranes ensure reliable tightening and strain relief to protect the cables."
+          },
+          "de": {
+            "title": "Kabelverschraubung Polyamid",
+            "description": "Integrierte Klemmlamellen sorgen für einen sicheren Anzug und eine kabelschonende Zugentlastung."
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Cable Gland",
+          "confidence": 0.99,
+          "evidence": "Family Cable gland (Exact product-class wording)",
+          "alternatives": [
+            {
+              "type": "Cable",
+              "score": 1515,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 2050
+        },
+        "normalized": {
+          "weight": "0.05 kg",
+          "material": "Polyamide 6; Seal: CR/NBR",
+          "color": "RAL 7035",
+          "protection": "IP 68 (5 bar, 30 min)",
+          "operatingTemperatureMin": "-30",
+          "operatingTemperatureMax": "100"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Material",
+            "value": "Polyamide 6Seal: CR/NBR",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Colour",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 68 (5 bar, 30 min)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Dimensions",
+            "value": "Height: 22 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Thread length",
+            "value": "8 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Operating temperature range",
+            "value": "-30 °C...100 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Width across flats",
+            "value": "15 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Dimensions",
+            "value": "Thread: M12 x 1.5Thread length: 8 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Type rating to UL 50E",
+            "value": "Type 4X",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Net weight",
+            "value": "0.05 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Gross weight",
+            "value": "0.22 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Declarations",
+            "value": "Declaration of conformity DE, EN ; Declaration of conformity UK EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Material",
+            "value": "Polyamide 6Seal: CR/NBR",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Colour",
+            "value": "RAL 7035",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "IP protection category to IEC 60 529",
+            "value": "IP 68 (5 bar, 30 min)",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Thread length",
+            "value": "8 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Operating temperature range",
+            "value": "-30 °C...100 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Width across flats",
+            "value": "15 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Type rating to UL 50E",
+            "value": "Type 4X",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Net weight",
+            "value": "0.05 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Gross weight",
+            "value": "0.22 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Article no.:",
+            "value": "SZ 2411601",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Thread",
+            "value": "M12 x 1.5",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Min. cable diameter",
+            "value": "3 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Max. cable diameter",
+            "value": "6.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "torque",
+            "value": "1.8 Nm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Customs tariff number",
+            "value": "39269097",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "EAN",
+            "value": "4028177810013",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 9",
+            "value": "EC000441",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ETIM 8",
+            "value": "EC000441",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "ECLASS 8.0",
+            "value": "27149109",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Product description",
+            "value": "SZ Cable gland, polyamide, size: M12x1,5, for cables ø 3-6.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Approvals",
+            "value": "CSA + CSAus EN ; UR EN ; UR + C-UR (recognized) EN ; VDE DE",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Documentation",
+            "value": "Info sheet DE, EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Data sheets",
+            "value": "Data sheets DE, EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Height",
+            "value": "22 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "size",
+            "value": "M12x1",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Length",
+            "value": "8 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Size",
+            "value": "M12x1,5, for cables &oslash; 3-6.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Operating temperature",
+            "value": "-30 °C / 100 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature range",
+            "value": "-30 °C / 100 °C",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net weight",
+            "value": "0.05 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross weight",
+            "value": "0.22 kg",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "15 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "22 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Length",
+            "value": "8 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Integrated clamping membranes ensure reliable tightening and strain relief to protect the cables.",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Article no.",
+            "value": "SZ 2411601",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Min. cable diameter",
+            "value": "3 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "Max. cable diameter",
+            "value": "6.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "torque",
+            "value": "1.8 Nm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Cable gland, polyamide",
+            "name": "EAN",
+            "value": "4028177810013",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "is=\"vue",
+            "value": "ProductHeader\"",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Polyamide 6 Seal",
+            "value": "CR/NBR",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "Thread",
+            "value": "M12 x 1.5 Thread length: 8 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "api",
+            "value": "2020.09",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Customs tariff number",
+            "value": "39269097",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 9",
+            "value": "EC000441",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8",
+            "value": "EC000441",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Torque",
+            "value": "1.8 Nm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Diameter",
+            "value": "3 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Diameter",
+            "value": "6.5 mm",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "group": "Definition List",
+            "name": "Benefits",
+            "value": "Because the gland and lock nut are sold together in a single pack, this saves additional ordering and storage. ; Clamping membranes for even tightening and strain relief to protect the cables",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          },
+          {
+            "group": "Definition List",
+            "name": "Packs of",
+            "value": "50 pc(s).",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-exact-definition-list",
+            "confidence": 0.97
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "2411601_Data_sheets_DE_EN",
+            "url": "https://www.rittal.com/imf/none/3_6288/2411601_Data_sheets_DE_EN",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88
+          },
+          {
+            "type": "image",
+            "label": "og:image",
+            "url": "https://www.rittal.com/imf/x1200/78_2314/",
+            "sourceUrl": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "stage": "rittal-order-resolver",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019144514\\images\\RIT.2411601.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:24.454Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.rittal.com/de-de/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+            "sourceType": "official",
+            "parser": "rittal-order-resolver-de",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T14:45:24.807Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "rittal-order-resolver",
+              "url": "https://www.rittal.com/com-en/products/PG20231215ZUB101/PG20240405ZUB003/PG20240405ZUB006/PRO68836?variantId=2411601",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "rittal-order-resolver",
+              "statusCode": 200,
+              "attributeCount": 64,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

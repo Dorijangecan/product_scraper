@@ -348,7 +348,12 @@ export function familyTypeFor(
       { pattern: /\bthermostat\b/i, type: "Thermostat", label: "Thermostat" },
       { pattern: /\bcurrent\s+transformer\b/i, type: "Current Transformer", label: "Current transformer" },
       { pattern: /\bwall[-\s]?mounted\s+cooling\s+unit\b/i, type: "Cooling Unit", label: "Wall-mounted cooling unit" },
-      { pattern: /\bit\s+led\s+system\s+light\b/i, type: "Luminaire", label: "IT LED system light" }
+      { pattern: /\bit\s+led\s+system\s+light\b/i, type: "Luminaire", label: "IT LED system light" },
+      { pattern: /\bhygrostat\b/i, type: "Hygrostat", label: "Hygrostat" },
+      { pattern: /\bdoor[-\s]?operated\s+switch\b/i, type: "Door-operated Switch", label: "Door-operated switch" },
+      { pattern: /\bfilter\s+mat\b/i, type: "Filter", label: "Filter mat" },
+      { pattern: /\block\s+(?:and\s+push-button\s+)?insert\b/i, type: "Lock Insert", label: "Lock insert" },
+      { pattern: /\bcable\s+gland\b/i, type: "Cable Gland", label: "Cable gland" }
     ];
     for (const candidate of candidates) {
       const text = candidate?.trim();

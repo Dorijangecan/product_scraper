@@ -81,6 +81,10 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Motion Controller", /\b(?:motion controller|motion control(?:ler)? module|motion module|integrated motion module|analog servo module|servo module|\d+\s*[- ]?axis servo|axis servo,\s*analog|servo,\s*analog\/enc|cnc controller|servo controller)\b/i, 930),
 
   // --- Sensors (specific kinds first; generic "Sensor" is a fallback) ---
+  rule("Hygrostat", /\bhygrostats?\b/i, 950),
+  rule("Door-operated Switch", /\bdoor[-\s]?operated switches?\b/i, 955),
+  rule("Filter", /\bfilter mats?\b/i, 950),
+  rule("Lock Insert", /\block (?:and push-button )?inserts?\b/i, 950),
   // Doepke Dupline devices publish their exact functional kind in the product description.
   // These narrow rules prevent light, smoke, and water detectors from collapsing into Sensor.
   rule("Smoke Detector", /\b(?:smoke\s+(?:and\s+)?fire\s+detectors?|smoke\s+detectors?|rauchmelder)\b/i, 940),

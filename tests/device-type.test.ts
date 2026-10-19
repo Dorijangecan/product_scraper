@@ -29,7 +29,12 @@ describe("device type classifier", () => {
       ["SK Temperature sensor for Blue e+ cooling units", "Temperature Sensor"],
       ["SK Thermostat, enclosure internal thermostat", "Thermostat"],
       ["SV Current transformer 400 A/5 A", "Current Transformer"],
-      ["Wall-mounted cooling units with Basic controller", "Cooling Unit"]
+      ["Wall-mounted cooling units with Basic controller", "Cooling Unit"],
+      ["SK Hygrostat 24-250 V", "Hygrostat"],
+      ["SZ Door-operated switch, with toggle, without connection cable", "Door-operated Switch"],
+      ["SK Filter mat for cooling units and air/air heat exchangers", "Filter"],
+      ["TS Lock insert for handle systems, push-button and lock-insert", "Lock Insert"],
+      ["SZ Cable gland, polyamide, size M12 x 1.5", "Cable Gland"]
     ] as const;
     for (const [title, expected] of cases) {
       expect(classifyDeviceType(product([], title, { manufacturerId: "rittal" })).type).toBe(expected);

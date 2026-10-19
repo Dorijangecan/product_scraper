@@ -74,6 +74,25 @@ export function additionalPdtSheetsRule(ctx: PdtRuleContext): AppliedPdtRule<str
 }
 
 export function pdtColumnAllowRule(ctx: PdtRuleContext & { sheetName: string; column: PdtColumn }): AppliedPdtRule<boolean> | undefined {
+  if (isManufacturer(ctx, "rittal") && ctx.deviceType === "Door-operated Switch" && ctx.column.code.trim().toUpperCase() === "AAB485") {
+    return {
+      name: "rittal-door-switch-voltage-dependent-current",
+      rationale: "The exact PDP publishes multiple current values paired with different contact voltages; the single rated-permanent-current PDT cell cannot represent those conditions safely.",
+      value: false
+    };
+  }
+  if (
+    isManufacturer(ctx, "rittal") &&
+    ctx.deviceType === "Cable Gland" &&
+    ctx.column.code.trim().toUpperCase() === "BAA351" &&
+    /^RAL\s*\d{4}(?:\s*\/\s*\d{4})?$/i.test(ctx.item.result?.normalized.color?.trim() ?? "")
+  ) {
+    return {
+      name: "rittal-cable-gland-ral-color-outside-pdt-enum",
+      rationale: "Keep the exact RAL color in source attributes and normalized data; this PDT enum has no matching RAL entry, so do not write a misleading substitute.",
+      value: false
+    };
+  }
   if (isManufacturer(ctx, "abb") && /^1SDA/i.test(ctx.item.catalogNumber) && canonicalSheetKey(ctx.sheetName) === canonicalSheetKey("contactor a. fuses")) {
     const allowed = ABB_1SDA_ALLOWED_CONTACTOR_COLUMNS.has(ctx.column.code.trim().toUpperCase());
     return {
