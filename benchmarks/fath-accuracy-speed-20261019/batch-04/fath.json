@@ -1,0 +1,62 @@
+[
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "6TM840ND100S01",
+    "caseType": "accessory",
+    "expectedDeviceType": "Bottle Holder",
+    "riskTags": ["cold", "bottle-holder", "slot-8-and-10", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]1862 kg"},
+    "expectedAttributePatterns": ["360° turnable", "8 / 10", "SS304", "186.2"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "6TM840NV12591S01",
+    "caseType": "accessory",
+    "expectedDeviceType": "Tool Tray",
+    "riskTags": ["cold", "tool-tray", "tilt-adjustment", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]226 kg"},
+    "expectedAttributePatterns": ["tilt-adjustable in 5 ways", "heavy tools", "TPE", "2 pieces"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "6TM840NX2030S01",
+    "caseType": "accessory",
+    "expectedDeviceType": "Broom Holder",
+    "riskTags": ["cold", "broom-holder", "diameter-range", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]113 kg"},
+    "expectedAttributePatterns": ["Ø 20 up to 30 mm", "360° turnable", "TPE", "SS313"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "6TM840NF91S01",
+    "caseType": "accessory",
+    "expectedDeviceType": "Bag Cutter",
+    "riskTags": ["cold", "bag-cutter", "replaceable-blade", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]0982 kg"},
+    "expectedAttributePatterns": ["changeable blade", "360° turnable", "Carbon steel", "8 / 10"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "6TM840FR7510091",
+    "caseType": "accessory",
+    "expectedDeviceType": "Monitor Mount",
+    "riskTags": ["cold", "monitor-mount", "vesa", "exact-image"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]325 kg"},
+    "expectedAttributePatterns": ["VESA MIS-D 75/100", "horizontally and vertically", "360° rotatable", "42"]
+  }
+]

@@ -517,7 +517,11 @@ function isUsableFathSpec(name: string, value: string): boolean {
   // Names that are markdown links (e.g. "[098ABG045](https://...)") come from the Variants table
   // — they describe sibling products, not this one's specs.
   if (/^\[.*\]\(.+\)$/.test(name)) return false;
-  if (value.length > 240) return false;
+  // Material/Surface are often multi-part BOM-style lists on Shopware pages. Their length is
+  // meaningful source data (e.g. PA body + TPE inserts + steel screws), not page noise. The old
+  // uniform 240-char cutoff silently dropped those fields on several workstation accessories.
+  const maxValueLength = /^(?:material|surface)$/i.test(name) ? 1500 : 240;
+  if (value.length > maxValueLength) return false;
   if (/^https?:\/\//i.test(value)) return false;
   return true;
 }
@@ -552,8 +556,18 @@ function extractFathHtmlAttributes(html: string, sourceUrl: string, catalogNumbe
     if (headers[0]?.toLowerCase() !== "part #") return;
     $(table).find("tbody tr").each((__, row) => {
       const cells = $(row).children("td");
-      const part = cleanText(cells.eq(0).text());
-      if (compactCatalogNumber(part) !== compactCatalogNumber(catalogNumber)) return;
+      const partCell = cells.eq(0);
+      const target = compactCatalogNumber(catalogNumber);
+      const linkedExactPart = partCell.find("a[href]").toArray().some((anchor) => {
+        const href = $(anchor).attr("href") ?? "";
+        const lastSegment = href.split(/[/?#]/).filter(Boolean).pop() ?? "";
+        return compactCatalogNumber(lastSegment) === target;
+      });
+      // Shopware may append a translated status badge (for example "New") inside the same
+      // first cell as the exact linked SKU. Prefer the link's canonical SKU; retain the
+      // normalized visible-cell equality fallback for older pages without a link.
+      const visiblePart = cleanText(partCell.text()).replace(/\b(?:new|neu)\b/gi, "").trim();
+      if (!linkedExactPart && compactCatalogNumber(visiblePart) !== target) return;
       for (let index = 1; index < headers.length; index += 1) {
         add("FATH selected variant", headers[index], cells.eq(index).text());
       }
@@ -570,7 +584,10 @@ function extractFathHtmlAttributes(html: string, sourceUrl: string, catalogNumbe
       valueParts = [];
     };
     for (const node of description.contents().toArray()) {
-      if (node.type === "tag" && node.name === "b") {
+      // Shopware templates use both <b> and <strong> for the same bold field labels.
+      // Some newer workstation accessory PDPs switched to <strong>, which previously
+      // left Material unparsed and caused the quality gate to retry a complete exact PDP.
+      if (node.type === "tag" && (node.name === "b" || node.name === "strong")) {
         if (label) flush();
         label = cleanText($(node).text()).replace(/:+$/, "");
       } else if (label && node.type === "text") {

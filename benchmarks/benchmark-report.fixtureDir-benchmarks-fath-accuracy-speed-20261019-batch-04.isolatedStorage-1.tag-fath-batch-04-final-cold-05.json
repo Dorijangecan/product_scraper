@@ -1,0 +1,2380 @@
+{
+  "generatedAt": "2026-10-19T06:07:35.197Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725",
+  "filters": {
+    "fixtureDir": "benchmarks/fath-accuracy-speed-20261019/batch-04",
+    "isolatedStorage": "1",
+    "tag": "fath-batch-04-final-cold-05"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": false,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "fath": {
+          "total": 5,
+          "caseTypes": [
+            "accessory"
+          ],
+          "riskTags": [
+            "bag-cutter",
+            "bottle-holder",
+            "broom-holder",
+            "cold",
+            "diameter-range",
+            "exact-image",
+            "monitor-mount",
+            "replaceable-blade",
+            "slot-8-and-10",
+            "tilt-adjustment",
+            "tool-tray",
+            "vesa"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Bottle Holder": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Tool Tray": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Broom Holder": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Bag Cutter": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Monitor Mount": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet.mechanical": {
+          "total": 5,
+          "deviceTypes": [
+            "Bag Cutter",
+            "Bottle Holder",
+            "Broom Holder",
+            "Monitor Mount",
+            "Tool Tray"
+          ],
+          "manufacturers": [
+            "fath"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": true,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "6TM840ND100S01",
+      "caseType": "accessory",
+      "expectedDeviceType": "Bottle Holder",
+      "actualDeviceType": "Bottle Holder",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "bottle-holder",
+        "slot-8-and-10",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.74,
+      "elapsedMs": 1931,
+      "scrapeElapsedMs": 774,
+      "productUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\pdt\\fath-6TM840ND100S01-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Bottle Holder FX for Profiles 40 / 45, Slot 8 / 10",
+        "description": "Description: Ready to use bottle holder, 360° turnable, for aluminum profiles; To organize workstations",
+        "productUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=6TM840ND100S01",
+          "de": "https://www.fath24.com/de/search?search=6TM840ND100S01"
+        },
+        "deviceTypeClassification": {
+          "type": "Bottle Holder",
+          "confidence": 0.94,
+          "evidence": "Title: Bottle Holder FX for Profiles 40 / 45, Slot 8 / 10",
+          "scoreMargin": 1460
+        },
+        "normalized": {
+          "weight": "186.2 g (0.1862 kg)",
+          "material": "Holder standard version: Plastic PA, glass ball reinforced Wire: Stainless steel SS304 Spring: Spring steel SS313 Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+          "color": "Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "1 piece",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "Pre-assembled",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "186.2 g",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "147043",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Slot N (mm)",
+            "value": "8 / 10",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Holder standard version: Plastic PA, glass ball reinforced Wire: Stainless steel SS304 Spring: Spring steel SS313 Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Screw: Zinc plated Nut: Zinc plated",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Holder: Black, gray Centering piece: Black",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip",
+            "value": "For round tubes D28 / D30 see 6TM8D283D100S01",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Specials",
+            "value": "Other colors on request",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01"
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "type": "image",
+            "label": "FATH product image 6tm840nd100s01_p_3d.jpg",
+            "url": "https://www.fath24.com/media/2b/79/85/1792372256/6tm840nd100s01_p_3d.jpg?ts=1792372256",
+            "sourceUrl": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\images\\FATH.6TM840ND100S01.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:27.321Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:27.321Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Bottle-Holder-FX-for-Profiles-40-45-Slot-8-10/6TM840ND100S01",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 12,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "6TM840NV12591S01",
+      "caseType": "accessory",
+      "expectedDeviceType": "Tool Tray",
+      "actualDeviceType": "Tool Tray",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "tool-tray",
+        "tilt-adjustment",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.74,
+      "elapsedMs": 1215,
+      "scrapeElapsedMs": 384,
+      "productUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\pdt\\fath-6TM840NV12591S01-pdt_pdt-audit.json",
+      "pdtWrittenCells": 16,
+      "pdtBlankCells": 23,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Tool Tray PARABOL FX for Profiles 40 / 45, Slot 8 / 10 (Set)",
+        "description": "Description: Ready to use tool tray, 360° turnable, tilt-adjustable in 5 ways, for aluminum profiles; Suitable for heavy tools or nutrunners; tool friendly surface; To organize workstations",
+        "productUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=6TM840NV12591S01",
+          "de": "https://www.fath24.com/de/search?search=6TM840NV12591S01"
+        },
+        "deviceTypeClassification": {
+          "type": "Tool Tray",
+          "confidence": 0.94,
+          "evidence": "Title: Tool Tray PARABOL FX for Profiles 40 / 45, Slot 8 / 10 (Set)",
+          "scoreMargin": 1460
+        },
+        "normalized": {
+          "weight": "226.0 g (0.226 kg)",
+          "material": "Tool tray standard version: Plastic PA, glass ball reinforced Tool tray ESD electrostatical discharging version: Plastic PA, glass ball reinforced with carbon Tray inserts standard version: Plastic TPE, ≈ 70 Shore A Tray inlay ESD electrostatical discharging version: Plastic TPE, ≈ 80 Shore A, with carbon Spring: Spring steel SS313 Washer: Steel Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+          "color": "Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "2 pieces",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "pre-assembled, profile 40 and up",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "226.0 g",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "149204",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "ESD",
+            "value": "-",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Slot N (mm)",
+            "value": "8 / 10",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Tool tray standard version: Plastic PA, glass ball reinforced Tool tray ESD electrostatical discharging version: Plastic PA, glass ball reinforced with carbon Tray inserts standard version: Plastic TPE, ≈ 70 Shore A Tray inlay ESD electrostatical discharging version: Plastic TPE, ≈ 80 Shore A, with carbon Spring: Spring steel SS313 Washer: Steel Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Screw: Zinc plated Nut: Zinc plated",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Holder: Black Centering piece: Black",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip",
+            "value": "For round tubes D28 / D30 see 6TM8D283V12591ED1-",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Specials",
+            "value": "Other colors on request",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01"
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "type": "image",
+            "label": "FATH product image 6tm840nv12591s01_p_3d.jpg",
+            "url": "https://www.fath24.com/media/37/6a/fb/1792372257/6tm840nv12591s01_p_3d.jpg?ts=1792372257",
+            "sourceUrl": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\images\\FATH.6TM840NV12591S01.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:29.240Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:29.240Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Tool-Tray-PARABOL-FX-for-Profiles-40-45-Slot-8-10-Set/6TM840NV12591S01",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 13,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "6TM840NX2030S01",
+      "caseType": "accessory",
+      "expectedDeviceType": "Broom Holder",
+      "actualDeviceType": "Broom Holder",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "broom-holder",
+        "diameter-range",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.74,
+      "elapsedMs": 1235,
+      "scrapeElapsedMs": 416,
+      "productUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\pdt\\fath-6TM840NX2030S01-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Broom Holder FLEX FX 20 - 30 for Profiles 40 / 45, Slot 8 / 10",
+        "description": "Description: Ready to use broom holder to hang up tools with Ø 20 up to 30 mm diameter, 360° turnable, for aluminum profiles; To organize workstations",
+        "productUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=6TM840NX2030S01",
+          "de": "https://www.fath24.com/de/search?search=6TM840NX2030S01"
+        },
+        "deviceTypeClassification": {
+          "type": "Broom Holder",
+          "confidence": 0.94,
+          "evidence": "Title: Broom Holder FLEX FX 20 - 30 for Profiles 40 / 45, Slot 8 / 10",
+          "scoreMargin": 1460
+        },
+        "normalized": {
+          "weight": "113.0 g (0.113 kg)",
+          "material": "Broom holder: Plastic PA, glass ball reinforced Retaining strap FLEX: Plastic TPE Bushings: Steel Screws for retaining strap: Steel Spring: Spring steel SS313 Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+          "color": "Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "1 piece",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "pre-assembled, profile 40 and up",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "113.0 g",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "149757",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Slot N (mm)",
+            "value": "8 / 10",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Broom holder: Plastic PA, glass ball reinforced Retaining strap FLEX: Plastic TPE Bushings: Steel Screws for retaining strap: Steel Spring: Spring steel SS313 Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Screw: Zinc plated Nut: Zinc plated",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Holder: Black Retaining strap: Black Centering piece: Black",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip",
+            "value": "For round tubes D28 / D30 see 6TM8D283X2030S01",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Specials",
+            "value": "Other colors on request",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01"
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "type": "image",
+            "label": "FATH product image 6tm840nx2030s01_p_3d.jpg",
+            "url": "https://www.fath24.com/media/c3/05/4b/1792372257/6tm840nx2030s01_p_3d.jpg?ts=1792372257",
+            "sourceUrl": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\images\\FATH.6TM840NX2030S01.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:30.758Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:30.758Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Broom-Holder-FLEX-FX-20-30-for-Profiles-40-45-Slot-8-10/6TM840NX2030S01",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 12,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "6TM840NF91S01",
+      "caseType": "accessory",
+      "expectedDeviceType": "Bag Cutter",
+      "actualDeviceType": "Bag Cutter",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "bag-cutter",
+        "replaceable-blade",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.74,
+      "elapsedMs": 1256,
+      "scrapeElapsedMs": 363,
+      "productUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\pdt\\fath-6TM840NF91S01-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Bag Cutter FX for Profiles 40 / 45, Slot 8 / 10",
+        "description": "Description: Ready to use bag cutter, changeable blade, 360° turnable, for aluminum profiles To organize work stations",
+        "productUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=6TM840NF91S01",
+          "de": "https://www.fath24.com/de/search?search=6TM840NF91S01"
+        },
+        "deviceTypeClassification": {
+          "type": "Bag Cutter",
+          "confidence": 0.94,
+          "evidence": "Title: Bag Cutter FX for Profiles 40 / 45, Slot 8 / 10",
+          "scoreMargin": 1460
+        },
+        "normalized": {
+          "weight": "98.2 g (0.0982 kg)",
+          "material": "Bag cutter standard version: Plastic PA, glass ball reinforced Bag cutter ESD electrostatical discharging version: Plastic PA, glass ball reinforced with carbon Trapezoidal blade: Carbon steel Spring: Spring steel SS313 Countersunk screw: Brass Sleeve nut: Brass Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+          "color": "Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "1 piece",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "pre-assembled, profile 40 and up",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "98.2 g",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "145901",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "ESD",
+            "value": "-",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Slot N (mm)",
+            "value": "8 / 10",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Bag cutter standard version: Plastic PA, glass ball reinforced Bag cutter ESD electrostatical discharging version: Plastic PA, glass ball reinforced with carbon Trapezoidal blade: Carbon steel Spring: Spring steel SS313 Countersunk screw: Brass Sleeve nut: Brass Screw: Steel Nut: Steel Centering piece: Plastic PA, glass fiber reinforced",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Counter sunk screw: Nickel plated Sleeve nut: Nickel plated Screw: Zinc plated Nut: Zinc plated",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Bag cutter: Black, gray Centering piece: Black",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip",
+            "value": "For round tubes D28 / D30 see 6TM8D283F91ESDS01",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip 2",
+            "value": "Compatible Trapezoidal Blade for Bag Cutter FX see 061TF91S01",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Specials",
+            "value": "Other colors on request",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01"
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "type": "image",
+            "label": "FATH product image 6tm840nf91s01_p_3d.jpg",
+            "url": "https://www.fath24.com/media/9e/61/60/1792372258/6tm840nf91s01_p_3d.jpg?ts=1792372258",
+            "sourceUrl": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\images\\FATH.6TM840NF91S01.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:32.183Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:32.183Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Bag-Cutter-FX-for-Profiles-40-45-Slot-8-10/6TM840NF91S01",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 14,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "6TM840FR7510091",
+      "caseType": "accessory",
+      "expectedDeviceType": "Monitor Mount",
+      "actualDeviceType": "Monitor Mount",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "monitor-mount",
+        "vesa",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.76,
+      "elapsedMs": 1268,
+      "scrapeElapsedMs": 345,
+      "productUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\pdt\\fath-6TM840FR7510091-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Monitor Mount FX for Profiles 40 / 45, Slot 8 / 10",
+        "description": "Description: To fix flat screens to aluminum profile structures, VESA MIS-D 75/100 compatible, can be adjusted horizontally and vertically for optimum visibility, 360° rotatable",
+        "productUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=6TM840FR7510091",
+          "de": "https://www.fath24.com/de/search?search=6TM840FR7510091"
+        },
+        "deviceTypeClassification": {
+          "type": "Monitor Mount",
+          "confidence": 0.94,
+          "evidence": "Title: Monitor Mount FX for Profiles 40 / 45, Slot 8 / 10",
+          "scoreMargin": 1460
+        },
+        "normalized": {
+          "weight": "325.0 g (0.325 kg)",
+          "material": "Monitor holder: Plastic PA, glass fiber reinforced Holder FX: Plastic PA, glass fiber reinforced Rotating adapter: Steel, plastic PA glass fiber reinforced Spring: Spring steel SS313 Screw: Steel Nut: Steel Washers: Steel Centering piece: Die-cast zinc",
+          "color": "Monitor holder: Black Holder FX: Black Rotating adapter: Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "1 piece",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "Swivelling and rotating",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "325.0 g",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "167239",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Fmax (N)",
+            "value": "42",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Slot N (mm)",
+            "value": "8 / 10",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Monitor holder: Plastic PA, glass fiber reinforced Holder FX: Plastic PA, glass fiber reinforced Rotating adapter: Steel, plastic PA glass fiber reinforced Spring: Spring steel SS313 Screw: Steel Nut: Steel Washers: Steel Centering piece: Die-cast zinc",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Screw: Zinc plated Nut: Zinc plated Washers: Zinc plated",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Monitor holder: Black Holder FX: Black Rotating adapter: Black",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091"
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "type": "image",
+            "label": "FATH product image 6tm840fr7510091_p_3d.jpg",
+            "url": "https://www.fath24.com/media/1c/e3/07/1792372235/6tm840fr7510091_p_3d.jpg?ts=1792372235",
+            "sourceUrl": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019060725\\images\\FATH.6TM840FR7510091.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:33.686Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T06:07:33.686Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Monitor-Mount-FX-for-Profiles-40-45-Slot-8-10/6TM840FR7510091",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 10,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
