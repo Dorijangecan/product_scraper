@@ -1459,6 +1459,21 @@ describe("normalizer", () => {
     expect(normalized.color).toBe("ANSI-61 gray (optional sub-panels white)");
   });
 
+  it("preserves both material parts of SCE leveling pads", () => {
+    const normalized = normalizeFields([
+      {
+        group: "Application",
+        name: "Application",
+        value: "Pads are zinc plated with a plastic base.",
+        sourceType: "official",
+        sourceUrl: "https://www.saginawcontrol.com/partnumber_info/?n=SCE-LPD2"
+      },
+      { group: "SCE Legacy Markers", name: "Material", value: "zinc", sourceType: "official" }
+    ], [], "sce");
+
+    expect(normalized.material).toBe("zinc-plated with plastic base");
+  });
+
   it("keeps SCE stainless material grades from construction text", () => {
     const normalized = normalizeFields(
       [

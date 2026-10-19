@@ -1,0 +1,60 @@
+[
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-466019DC",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Enclosure",
+    "riskTags": ["cold", "dual-access-console", "steel-enclosure", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-466019DC"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["46.25", "59.88", "18.50", "240.00 lbs", "0.075 In. carbon steel", "25 degree sloped top", "NEMA Type 3R, 12 and Type 13", "IP 55"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "240", "material": "carbon steel"}
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-SAFC",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Suspension System Component",
+    "riskTags": ["cold", "hmi-fixed-coupling", "aluminum", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-SAFC"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["1.85", "5.08", "3.00 lbs", "fixed position mounting base", "Cast aluminum", "RAL 7035"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "3", "material": "aluminum"}
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-ELJHINGE",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Hinge",
+    "riskTags": ["cold", "elj-hinge", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-ELJHINGE"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Hinge, ELJ \\(1pc\\)", "2.00", "0.75", "0.04 lbs", "Standard hinge components"],
+    "expectedNormalizedFields": ["dimensions", "weight"]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-LPD2",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Leveling Foot",
+    "riskTags": ["cold", "leveling-pads-four-pack", "zinc-plated", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-LPD2"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Pads, Leveling \\(4 Per Packege\\)", "6.00", "4.00", "3.00", "1.00 lbs", "zinc plated", "plastic base"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "1", "material": "zinc-plated with plastic base"}
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-EXDLK",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Mechanical Interlock Kit",
+    "riskTags": ["cold", "mechanical-interlock-kit", "left-disconnect", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-EXDLK"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Interlock Kit for Enclosures with Disc Kit on Left", "22.00", "6.00", "7.80 lbs", "Interlocks both the main and external disconnect enclosure"],
+    "expectedNormalizedFields": ["dimensions", "weight"]
+  }
+]

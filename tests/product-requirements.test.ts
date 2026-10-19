@@ -60,6 +60,24 @@ describe("required electrical fields", () => {
     })).toEqual([]);
   });
 
+  it("requires ratings for an SCE fan assembly while keeping passive SCE workstation parts passive", () => {
+    const fanAssembly = product({
+      manufacturerId: "sce",
+      catalogNumber: "SCE-FA66",
+      attributes: [{ group: "SCE Product Data", name: "Product Type", value: "Assembly, Fan Housing (6in.)" }]
+    });
+    const passiveGlandPlate = product({
+      manufacturerId: "sce",
+      catalogNumber: "SCE-GP08",
+      attributes: [{ group: "SCE Product Data", name: "Product Type", value: "IMS Gland Plate" }]
+    });
+    const fanProfile = { deviceType: "Fan Assembly", deviceTypeConfidence: 0.98, deviceTypeElectricalFields: ["voltage", "current"] as ("voltage" | "current")[] };
+    const passiveProfile = { deviceType: "Gland Plate", deviceTypeConfidence: 0.98, deviceTypeElectricalFields: [] as ("voltage" | "current")[] };
+
+    expect(requiredElectricalFields(fanAssembly, fanProfile)).toEqual(["voltage", "current"]);
+    expect(requiredElectricalFields(passiveGlandPlate, passiveProfile)).toEqual([]);
+  });
+
   it("keeps a plain enclosure passive even when its page links an HMI manual and lists lit accessories", () => {
     // Real Saginaw shape: a steel box whose page links "HMI Enclosure Reinforcement Installation",
     // mines washdown-pressure prose out of a shared manual PDF, and lists lights/fans as optional

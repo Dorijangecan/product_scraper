@@ -347,7 +347,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
     : manufacturerId === "schmersal"
     ? exactSchmersalPdpFieldValue(attributes, /^(?:housing|body|enclosure) material$/i, normalizeHtmlSpecValue) ?? findMaterialAttr(attributes)
     : manufacturerId === "sce"
-    ? sceWindowKitMaterial(attributes) ?? findMaterialAttr(attributes) ??
+    ? sceWindowKitMaterial(attributes) ?? sceLevelingPadMaterial(attributes) ?? findMaterialAttr(attributes) ??
       registryFieldValue(attributes, "material", materialValueFromText) ?? deriveMaterialFromAttributes(attributes) ??
       ontologyFieldValue(attributes, "material", materialValueFromText)
     : manufacturerId === "balluff"
@@ -794,6 +794,14 @@ function balluffHousingMaterial(attributes: AttributeRecord[]): string | undefin
 
 function isBalluffOfficialSourceUrl(sourceUrl: string | undefined): boolean {
   return typeof sourceUrl === "string" && /^https?:\/\/(?:www\.)?balluff\.com\//i.test(sourceUrl);
+}
+
+function sceLevelingPadMaterial(attributes: AttributeRecord[]): string | undefined {
+  const application = attributes
+    .filter((attribute) => attribute.sourceType === "official" && /^application$/i.test(attribute.name.trim()))
+    .map((attribute) => cleanText(attribute.value))
+    .find((value) => /pads? are zinc[- ]plated with (?:a )?plastic base/i.test(value));
+  return application ? "zinc-plated with plastic base" : undefined;
 }
 
 function balluffProbeDimensions(attributes: AttributeRecord[]): string | undefined {

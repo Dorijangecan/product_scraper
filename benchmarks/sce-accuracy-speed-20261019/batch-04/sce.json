@@ -1,0 +1,61 @@
+[
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-GP08",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Gland Plate",
+    "riskTags": ["cold", "ims-gland-plate", "cable-entry", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-GP08"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["IMS Gland Plate", "10.00", "11.00", "0.25", "2.00 lbs", "easy removal of the plate", "cable entry cutouts", "seamless oil and water resistant gasket", "RAL 7035"],
+    "expectedNormalizedFields": ["dimensions", "weight"]
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-P010605",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Plinth Base",
+    "riskTags": ["cold", "ims-plinth-base", "floor-cable-entry", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-P010605"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Base, IMS Plinth \\(Bolt Together\\)", "3.94", "23.62", "18.00", "26.00 lbs", "space for cables to enter from below", "Plinth bases are stackable", "Black textured powder coated"],
+    "expectedNormalizedFields": ["dimensions", "weight", "color"],
+    "expectedNormalizedPatterns": {"weight": "26", "color": "black"}
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-KBH",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Keyboard Housing",
+    "riskTags": ["cold", "keyboard-housing", "workstation-accessory", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-KBH"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Housing, Keyboard", "7.00", "21.91", "22.38", "35.00 lbs", "protection from dust, dirt, oil and water", "Keyboard shelf with slides", "Powder coated white"],
+    "expectedNormalizedFields": ["dimensions", "weight"],
+    "expectedNormalizedPatterns": {"weight": "35"}
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-WSCC",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Control Compartment",
+    "riskTags": ["cold", "workstation-control-compartment", "carbon-steel-variant", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-WSCC"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Compartment, Control", "8.00", "24.25", "14.50", "23.00 lbs", "pushbuttons or control panels", "20° slope", "heavy gauge carbon steel", "Type 304 stainless steel"],
+    "expectedNormalizedFields": ["dimensions", "weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "23", "material": "carbon steel"}
+  },
+  {
+    "manufacturerId": "sce",
+    "catalogNumber": "SCE-FA66",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fan Assembly",
+    "riskTags": ["cold", "six-inch-fan-housing", "exact-model-manual", "airflow-ratings", "exact-image"],
+    "expectedOfficialUrlPatterns": ["saginawcontrol\\.com/partnumber_info/\\?n=SCE-FA66"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["Assembly, Fan Housing \\(6in\\.\\)", "7.61", "8.88", "3.75", "4.00 lbs", "CFM 185", "Volt 115", "washable aluminum filter", "steel air plenum", "stainless steel grille", "185 CFM", "31 W", "0\\.25 A", "0\\.43 A"],
+    "expectedNormalizedFields": ["dimensions", "weight", "voltage", "current"],
+    "expectedNormalizedPatterns": {"weight": "4", "voltage": "115", "current": "0\\.25"}
+  }
+]

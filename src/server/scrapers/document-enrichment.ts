@@ -328,6 +328,26 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
     };
   }
   try {
+    if (manufacturerId === "sce" && /^SCE-FA(?:44|66|1010)(?:-230|-24VDC)?$/i.test(catalogNumber) &&
+        /\/instman\/fan(?:-|%20| )and(?:-|%20| )grille(?:-|%20| )kit\.pdf(?:[?#]|$)/i.test(doc.url)) {
+      const targetedText = await readSceFanPackageManualText(doc.localPath!);
+      const targetedAttributes = extractSceFanPackageManualAttributes(catalogNumber, doc, targetedText);
+      if (targetedAttributes.length) {
+        return {
+          doc: { ...doc, parseStatus: "parsed", parseError: undefined },
+          attributes: targetedAttributes,
+          source: { url: doc.url, sourceType: "generated", parser: "sce-exact-fan-package-manual", stage: "enrich-documents", reason: doc.type, fetchedAt: new Date().toISOString() },
+          processing: documentProcessingRecord(
+            doc,
+            "downloaded-document-enrichment",
+            "parsed",
+            `Parsed the exact ${catalogNumber} fan-package row without general family-table/OCR mining.`,
+            undefined,
+            { elapsedMs: Date.now() - started }
+          )
+        };
+      }
+    }
     const exactTurckDatasheetReference = isExactTurckDatasheetReference(doc, manufacturerId);
     const pdfText = await readPdfText(doc.localPath!, exactTurckDatasheetReference ? undefined : catalogNumber, doc.url);
     const { text, tables } = pdfText;
@@ -382,6 +402,17 @@ async function processOneDownloadedDocument(doc: DocumentRecord, catalogNumber: 
           return !/^(?:housing material|material|ss6?)$/i.test(attribute.name.trim());
         });
         attributes.push(...sceAirConditionerFacts);
+      }
+      const sceFanPackageFacts = extractSceFanPackageManualAttributes(catalogNumber, doc, text);
+      if (sceFanPackageFacts.length) {
+        // SCE's exact fan-package table has changed layout between PDF revisions, and generic
+        // positioned-table mining can shift the air-flow/power/current columns. The model row is
+        // explicit, so replace only that document's generic table candidates with header-aware facts.
+        attributes = attributes.filter((attribute) =>
+          attribute.sourceUrl !== doc.url ||
+          !/^(?:pdf catalog description row|pdf matched rows|pdf manual|pdf positioned table|pdf ontology spec miner)$/i.test(attribute.group ?? "")
+        );
+        attributes.push(...sceFanPackageFacts);
       }
     }
     if (exactSchneiderDatasheet) {
@@ -473,6 +504,67 @@ export function extractSceAirConditionerManualAttributes(
       ? text.match(/\bSS\s*:\s*(Stainless Steel\s+AISI\s+304)\b/i)?.[1]
       : text.match(/\bHousing Material\s*\t?\s*(Mild Steel,\s*Powder Coated)\b/i)?.[1];
   if (materialVariant) add("Material", materialVariant);
+  return attributes;
+}
+
+export function extractSceFanPackageManualAttributes(
+  catalogNumber: string,
+  document: Pick<DocumentRecord, "url">,
+  text: string
+): AttributeRecord[] {
+  if (!/^SCE-FA(?:44|66|1010)(?:-230|-24VDC)?$/i.test(catalogNumber)) return [];
+  let url: URL;
+  try {
+    url = new URL(document.url);
+  } catch {
+    return [];
+  }
+  if (!/^(?:www\.)?saginawcontrol\.com$/i.test(url.hostname) ||
+      !/^\/instman\/fan(?:[-%20 ]+)and(?:[-%20 ]+)grille(?:[-%20 ]+)kit\.pdf$/i.test(decodeURIComponent(url.pathname))) return [];
+
+  const skuPattern = new RegExp(`(?:^|[^A-Z0-9])${escapeRegExp(catalogNumber)}(?=$|[^A-Z0-9])`, "i");
+  if (!skuPattern.test(text)) return [];
+  const match = text.match(new RegExp(`(?:^|\\n)\\s*${escapeRegExp(catalogNumber)}\\s+([^\\r\\n]+)`, "i"));
+  if (!match) return [];
+  const values = match[1].trim().split(/\s+/);
+  // Both published SCE table layouts put CFM, watts, voltage, frequency, then rated current
+  // in the same order. Older editions add a locked-current column; newer editions may add a
+  // service-temperature and weight pair after the motor RPM.
+  const airflow = values[0];
+  const watts = values[1];
+  const splitVoltageUnit = /^\d+(?:\.\d+)?$/.test(values[2] ?? "") && /^V(?:DC)?$/i.test(values[3] ?? "");
+  const voltage = splitVoltageUnit ? `${values[2]}${values[3]}` : values[2];
+  const frequency = values[splitVoltageUnit ? 4 : 3];
+  const ratedCurrent = values[splitVoltageUnit ? 5 : 4];
+  if (!/^\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?$/.test(airflow) ||
+      !/^\d+(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?$/.test(watts) ||
+      !/^\d+(?:\.?\d*)\s*V(?:DC)?$/i.test(voltage) ||
+      !/^(?:\d+(?:\/\d+)?|[-–])$/i.test(frequency) ||
+      !/^\d+(?:\.\d+)?$/.test(ratedCurrent)) return [];
+
+  const attributes: AttributeRecord[] = [];
+  const add = (name: string, value: string) => attributes.push({
+    group: "SCE Exact Fan Package Manual",
+    name,
+    value: cleanText(value),
+    sourceUrl: document.url,
+    sourceType: "generated",
+    parser: "sce-exact-fan-package-manual",
+    confidence: 0.98,
+    matchLevel: "exact"
+  });
+  add("Air Flow", `${airflow} CFM${frequency === "50/60" ? " (50/60 Hz)" : ""}`);
+  add("Power", `${watts} W${frequency === "50/60" ? " (50/60 Hz)" : " at ${frequency} Hz"}`);
+  add("Voltage", voltage.replace(/(\d)(V)/i, "$1 V"));
+  add("Frequency", `${frequency} Hz`);
+  add("Rated Current", `${ratedCurrent} A`);
+
+  const headerStart = Math.max(0, text.toUpperCase().indexOf(catalogNumber.toUpperCase()) - 500);
+  const headerContext = text.slice(headerStart, text.toUpperCase().indexOf(catalogNumber.toUpperCase()));
+  const lockedCurrentHeader = /locked\s*cur(?:rent)?/i.test(headerContext);
+  const lockedCurrentIndex = splitVoltageUnit ? 6 : 5;
+  const lockedCurrent = lockedCurrentHeader && /^\d+(?:\.\d+)?$/.test(values[lockedCurrentIndex] ?? "") ? values[lockedCurrentIndex] : undefined;
+  if (lockedCurrent) add("Locked Rotor Current", `${lockedCurrent} A`);
   return attributes;
 }
 
@@ -1911,6 +2003,16 @@ function mergePdfTextContexts(parts: Array<string | undefined>, maxChars: number
     }
   }
   return lines.join("\n").slice(0, maxChars);
+}
+
+async function readSceFanPackageManualText(filePath: string): Promise<string> {
+  const data = await fs.readFile(filePath);
+  const parser = new PDFParse({ data });
+  try {
+    return (await parser.getText()).text;
+  } finally {
+    await parser.destroy().catch(() => undefined);
+  }
 }
 
 async function readPdfText(filePath: string, catalogNumber?: string, cacheIdentity?: string): Promise<PdfDocumentText> {

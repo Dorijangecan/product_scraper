@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import type { ProductResult } from "../src/shared/types.js";
-import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, extractEatonAutovarRatedCurrent, extractEatonSp1NominalDischargeCurrent, extractSceAirConditionerManualAttributes, extractTurckSafetyClassification, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
+import { documentAttributesAreSubstantive, enrichResultFromDownloadedDocuments, enrichResultFromRemoteDocuments, extractDocumentTextAttributes, extractEatonAutovarRatedCurrent, extractEatonSp1NominalDischargeCurrent, extractSceAirConditionerManualAttributes, extractSceFanPackageManualAttributes, extractTurckSafetyClassification, isCleanSingleSpecValue, isMeasurementLikeToken, isStandardReferenceToken, looksLikeMultiVariantFamilyPage, shouldSkipEnvironmentalDeclarationSpecMining } from "../src/server/scrapers/document-enrichment.js";
 import { normalizeFields } from "../src/server/scrapers/normalizer.js";
 import { normalizeTechnicalAttributes } from "../src/server/scrapers/technical-attributes.js";
 import {
@@ -95,6 +95,30 @@ describe("extractSceAirConditionerManualAttributes", () => {
       url: "https://www.saginawcontrol.com/instman/sce-ac5100b230v.pdf"
     }, text)).toEqual([]);
     expect(extractSceAirConditionerManualAttributes("SCE-AC5100B120VSS6", document, "SCE-AC5100B230VSS; 8.7 A @ 60Hz")).toEqual([]);
+  });
+});
+
+describe("extractSceFanPackageManualAttributes", () => {
+  const document = { url: "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf" };
+
+  it("uses the exact SCE fan row and distinguishes rated from locked-rotor current", () => {
+    const text = `Fan Packages\nCatalog Number CFM 60 Hz Watts Voltage Hz Rated Cur. A Locked Cur. A Motor RPM\nSCE-FA66 185 31 115V 60 0.25 0.43 3,400 58\nSCE-FA66-230 185 29 230V 60 0.12 0.19 3,400 58`;
+    const attributes = extractSceFanPackageManualAttributes("SCE-FA66", document, text);
+
+    expect(attributes).toContainEqual(expect.objectContaining({ name: "Air Flow", value: "185 CFM" }));
+    expect(attributes).toContainEqual(expect.objectContaining({ name: "Rated Current", value: "0.25 A" }));
+    expect(attributes).toContainEqual(expect.objectContaining({ name: "Locked Rotor Current", value: "0.43 A" }));
+    expect(attributes.some((attribute) => attribute.value === "0.12 A")).toBe(false);
+  });
+
+  it("supports the older 50/60 Hz line-current table and rejects non-exact models", () => {
+    const text = `Catalog Number CFM 50/60 Hz Watts Voltage Hz Line Amps\nSCE-FA66 135/158 47/41 115 V 50/60 0.25 2700/3000 140 (60) 51/55 dB 5.30 (2.40)`;
+    const attributes = extractSceFanPackageManualAttributes("SCE-FA66", document, text);
+
+    expect(attributes).toContainEqual(expect.objectContaining({ name: "Air Flow", value: "135/158 CFM (50/60 Hz)" }));
+    expect(attributes).toContainEqual(expect.objectContaining({ name: "Rated Current", value: "0.25 A" }));
+    expect(extractSceFanPackageManualAttributes("SCE-FA66-230", document, text)).toEqual([]);
+    expect(extractSceFanPackageManualAttributes("SCE-FA66", { url: "https://example.test/fan-and-grille-kit.pdf" }, text)).toEqual([]);
   });
 });
 

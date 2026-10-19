@@ -242,6 +242,15 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Thermal Management", /\b(?:thermal management|filter fan|fan package|fan housing|filter kit|fan filter|exhaust filter|filter grille|enclosure fan|cabinet fan|cabinet heater|enclosure heater|thermostat|hygrostat|air conditioner|conditioner,\s*(?:ng\s+)?air|heat exchanger|dehumidifier|cooling unit|chiller)\b/i, 760),
   rule("Filter", /\b(?:line filter|emc filter|emi filter|mains filter|harmonic filter|sine filter|du\/dt filter|output filter|input filter)\b/i, 740),
 
+  // SCE-style console products are complete electrical enclosures. Door count/access wording in
+  // their descriptions must not demote them to the generic door accessory category.
+  rule("Enclosure", /\b(?:console,?\s+(?:dual|single)\s+access|operator console enclosure|control console enclosure)\b/i, 890),
+  rule("Gland Plate", /\bgland plates?\b/i, 880),
+  rule("Plinth Base", /\b(?:plinth bases?|base,\s*(?:ims\s+)?plinth)\b/i, 880),
+  rule("Keyboard Housing", /\b(?:keyboard housings?|housing,\s*keyboard)\b/i, 880),
+  rule("Control Compartment", /\b(?:control compartments?|compartment,\s*control)\b/i, 880),
+  rule("Fan Assembly", /\b(?:fan housing assembly|assembly,\s*fan housing|fan package)\b/i, 880),
+
   // --- Pneumatic / fluid (rare but available in template) ---
   rule("Hydraulic Actuator", /\b(?:hydraulic cylinder|hydraulic actuator|hydraulic ram|hydraulic power unit|hydraulic pump unit|hydraulic unit)\b/i, 738),
   rule("Pump", /\b(?:centrifugal pump|gear pump|piston pump|hydraulic pump|metering pump|vacuum pump)\b/i, 730),
@@ -265,11 +274,13 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Filter", /\b(?:filter|filtre|filtro)\b/i, 615),
 
   // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
+  rule("Mechanical Interlock Kit", /\b(?:mechanical interlock kit|interlock kit for enclosures)\b/i, 890),
   rule("Lock / Interlock", /\b(?:safety lock|padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 825),
   // Shaft-handle operators are mechanical accessories, not the electrical switch body they actuate.
   rule("Cover / Door Accessory", /\b(?:flex(?:ible)?\s+)?shaft\s+handle\s+operator\b/i, 870),
   // Give common industrial hardware its functional type before the cover/door accessory catch-all.
-  rule("Leveling Foot", /\b(?:adjustable\s+)?level(?:ing|ling)\s+(?:foot|feet)\b/i, 850),
+  rule("Leveling Foot", /\b(?:adjustable\s+)?level(?:ing|ling)\s+(?:foot|feet|pads?)\b|\bpads?,\s*level(?:ing|ling)\b/i, 850),
+  rule("Suspension System Component", /\b(?:fixed coupling|angle coupling|swivel coupling|suspension system component)\b/i, 850),
   rule("Slam Latch", /\bslam\s+latch(?:es)?\b/i, 850),
   rule("Compression Latch", /\bcompression\s+latch(?:es)?\b/i, 850),
   rule("Quarter Turn Lock", /\bquarter[-\s]+turn\s+locks?\b/i, 850),

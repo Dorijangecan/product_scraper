@@ -42,6 +42,30 @@ describe("device type classifier", () => {
     }
   });
 
+  it("keeps SCE console enclosures and mechanical hardware in their functional PDT families", () => {
+    const cases = [
+      ["Console, Dual Access Overlapping Two Door", "Enclosure", "cabinet"],
+      ["Fixed Coupling", "Suspension System Component", "cabinet.mechanical"],
+      ["Hinge, ELJ (1pc)", "Hinge", "cabinet.mechanical"],
+      ["Pads, Leveling (4 Per Packege)", "Leveling Foot", "cabinet.mechanical"],
+      ["Interlock Kit for Enclosures with Disc Kit on Left", "Mechanical Interlock Kit", "cabinet.mechanical"],
+      ["IMS Gland Plate", "Gland Plate", "cabinet.mechanical"],
+      ["Base, IMS Plinth (Bolt Together)", "Plinth Base", "cabinet.mechanical"],
+      ["Housing, Keyboard", "Keyboard Housing", "cabinet.mechanical"],
+      ["Compartment, Control", "Control Compartment", "cabinet.mechanical"],
+      ["Assembly, Fan Housing (6in.)", "Fan Assembly", "cabinet.airconditioning"]
+    ] as const;
+    for (const [description, expected, sheet] of cases) {
+      const result = classifyDeviceType(product(
+        [{ group: "SCE Product Data", name: "Product Type", value: description, sourceType: "official" }],
+        description,
+        { manufacturerId: "sce" }
+      ));
+      expect(result.type).toBe(expected);
+      expect(deviceSheetsFor(result.type)).toContain(sheet);
+    }
+  });
+
   it("separates common industrial hardware from the generic cover/door accessory type", () => {
     const cases = [
       ["Adjustable Leveling Foot", "Leveling Foot"],
