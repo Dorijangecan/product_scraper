@@ -258,7 +258,14 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // --- Lower-specificity catch-alls (priority < 700 so they only win when nothing else matches) ---
   rule("Lock / Interlock", /\b(?:safety lock|padlock|key[-\s]?lock|interlock|locking device|key switch)\b/i, 825),
   // Shaft-handle operators are mechanical accessories, not the electrical switch body they actuate.
-  rule("Cover / Door Accessory", /\b(?:flex(?:ible)?\s+)?shaft\s+handle\s+operator\b/i, 825),
+  rule("Cover / Door Accessory", /\b(?:flex(?:ible)?\s+)?shaft\s+handle\s+operator\b/i, 870),
+  // Give common industrial hardware its functional type before the cover/door accessory catch-all.
+  rule("Leveling Foot", /\b(?:adjustable\s+)?level(?:ing|ling)\s+(?:foot|feet)\b/i, 850),
+  rule("Slam Latch", /\bslam\s+latch(?:es)?\b/i, 850),
+  rule("Compression Latch", /\bcompression\s+latch(?:es)?\b/i, 850),
+  rule("Quarter Turn Lock", /\bquarter[-\s]+turn\s+locks?\b/i, 850),
+  rule("Hinge", /\bhinges?\b/i, 840),
+  rule("Handle", /\b(?:machine|system|strip|folding|flush\s+pocket|u[-\s]?shaped)?\s*handles?\b/i, 830),
   rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|mounting flange|punched section|adapter plate|anti[-\s]?slip plate|level(?:ing|ling) feet?|pivot feet?|bell feet?|positioning tool|assembly tool|din rail|\brail\b|\bbracket\b)\b/i, 610),
   rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit|spray[-\s]?water hood|hose[-\s]?proof hood)\b/i, 600),
   rule("Accessory", /\b(?:accessory|spare part|replacement part|cleaner|\bkit\b)\b/i, 560)

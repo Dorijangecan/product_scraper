@@ -52,6 +52,12 @@ export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
   Wireway: { sheets: ["cable ducts mounting rails"], finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   "Mounting Accessory": { sheets: ["cable ducts mounting rails"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Cover / Door Accessory": { sheets: ["cabinet.mechanical"], finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
+  "Leveling Foot": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Compression Latch": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Slam Latch": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Quarter Turn Lock": { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  Hinge: { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
+  Handle: { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
   "Lock / Interlock": { sheets: ["Switch"], electricalFields: NO_ELECTRICAL_FIELDS },
   Accessory: { sheets: ["cabinet.mechanical"], electricalFields: NO_ELECTRICAL_FIELDS },
 

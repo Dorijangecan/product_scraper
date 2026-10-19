@@ -40,3 +40,19 @@ Acquisition median is 2,201 ms and mean is 2,149 ms. Three of five items were be
 - Focused tests passed: 4 selected classifier, ABB normalization, and PDT resolver tests.
 - `npx tsc --noEmit` passed.
 - The unrelated full normalizer-suite failures remain the existing physical-value precision expectations recorded in prior batch notes; the new ABB-focused cases pass.
+
+## Optimized-profile cold repeat
+
+Report: `../../benchmark-report.fixtureDir-benchmarks-abb-accuracy-speed-20261014-batch-03.isolatedStorage-1.tag-abb-batch03-repeat-cold-01.json`
+
+This repeat used the production fast path. All five products again passed exact identity, official URL, expected type, normalized values, source-attribute assertions, and PDT audit; there were zero wrong products or unproven PDT writes. All five exact PDP images downloaded. The ABB datasheet/manual links remain attached to their results, while the optimized `images-only` download profile intentionally does not save the PDFs. Consequently, the benchmark's `requiredDocumentsMatched` field is 0/5 for this run because that gate specifically requires a downloaded local file; it is not evidence that the official document links disappeared.
+
+| Catalog number | Core scrape ms |
+| --- | ---: |
+| `1SAM350000R1005` | 1,614 |
+| `1SAP250600R0001` | 651 |
+| `2CSG111080R1141` | 596 |
+| `1SEP201428R0001` | 599 |
+| `1SBL136201R2100` | 727 |
+
+All five core scrapes were below 2.5 seconds; mean was 837 ms and maximum was 1,614 ms. The zero downloaded-document score should be compared only with a full-document-profile run, not treated as an accuracy regression in this optimized-profile repeat.

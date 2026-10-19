@@ -1,0 +1,2414 @@
+{
+  "generatedAt": "2026-10-19T05:42:25.767Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217",
+  "filters": {
+    "fixtureDir": "benchmarks/fath-accuracy-speed-20261019/batch-01/variant-audit",
+    "isolatedStorage": "1",
+    "tag": "fath-batch-01-variant-audit-cold-01"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 40,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": false,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "fath": {
+          "total": 5,
+          "caseTypes": [
+            "accessory"
+          ],
+          "riskTags": [
+            "cold",
+            "compression-latch",
+            "handle",
+            "hinge",
+            "leveling-foot",
+            "sibling-image-audit",
+            "slam-latch"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Compression Latch": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Leveling Foot": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Handle": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Slam Latch": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        },
+        "Hinge": {
+          "total": 1,
+          "manufacturers": [
+            "fath"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet.mechanical": {
+          "total": 5,
+          "deviceTypes": [
+            "Compression Latch",
+            "Handle",
+            "Hinge",
+            "Leveling Foot",
+            "Slam Latch"
+          ],
+          "manufacturers": [
+            "fath"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": true,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "0810495",
+      "caseType": "accessory",
+      "expectedDeviceType": "Compression Latch",
+      "actualDeviceType": "Compression Latch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "compression-latch",
+        "sibling-image-audit"
+      ],
+      "status": "found",
+      "confidence": 0.76,
+      "elapsedMs": 1842,
+      "scrapeElapsedMs": 805,
+      "productUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217\\pdt\\fath-0810495-pdt_pdt-audit.json",
+      "pdtWrittenCells": 14,
+      "pdtBlankCells": 25,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Large Compression Latch 22.5 / 32, ZN Black",
+        "description": "Description: For easy, secure and compressive latching and locking of doors and flaps; Wide range of inserts, cams and accessories",
+        "productUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=0810495",
+          "de": "https://www.fath24.com/de/search?search=0810495"
+        },
+        "deviceTypeClassification": {
+          "type": "Compression Latch",
+          "confidence": 0.94,
+          "evidence": "Title: Large Compression Latch 22.5 / 32, ZN Black",
+          "alternatives": [
+            {
+              "type": "Cover / Door Accessory",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 250
+        },
+        "normalized": {
+          "weight": "86.5 g (0.0865 kg)",
+          "material": "Insert: Zinc die-cast Shaft: Steel Retaining spring: Stainless steel SS316 Housing: Zinc die-cast Seals: Rubber NBR Washer: Steel Nut: Zinc die-cast Screw: Steel",
+          "color": "Insert: Black Housing: Black Seals: Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "10 pieces",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "86.5 g",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Door Version",
+            "value": "Right, left",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "135242",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Insert type",
+            "value": "Female hexagon 8.0 mm",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Insert: Zinc die-cast Shaft: Steel Retaining spring: Stainless steel SS316 Housing: Zinc die-cast Seals: Rubber NBR Washer: Steel Nut: Zinc die-cast Screw: Steel",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Insert: Powder coated Shaft: Zinc plated Housing: Powder coated Washer: Zinc plated Nut: Zinc plated Screw: Zinc plated",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Insert: Black Housing: Black Seals: Black",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip",
+            "value": "Compatible Cams see 0810247 et sq. Accessories see 0890032 et sq.",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "North America, Central America, Caribbean, South America, China, United Kingdom, Ireland, Netherlands, Estonia, Latvia, Lithuania,Poland, Czechia, Slovakia, Hungary, Slovenia, Croatia, Serbia, Romania, Bulgaria",
+            "sourceUrl": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495"
+          }
+        ],
+        "documents": [],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:18.079Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:18.079Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Large-Compression-Latch-22.5-32-ZN-Black/0810495",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 10,
+              "documentCount": 0,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "098H501008",
+      "caseType": "accessory",
+      "expectedDeviceType": "Leveling Foot",
+      "actualDeviceType": "Leveling Foot",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "leveling-foot",
+        "sibling-image-audit"
+      ],
+      "status": "found",
+      "confidence": 0.76,
+      "elapsedMs": 1224,
+      "scrapeElapsedMs": 497,
+      "productUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217\\pdt\\fath-098H501008-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Adjustable Leveling Foot",
+        "description": "Description: Leveling foot for fastening to aluminum profiles, height adjustable without tool",
+        "productUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=098H501008",
+          "de": "https://www.fath24.com/de/search?search=098H501008"
+        },
+        "deviceTypeClassification": {
+          "type": "Leveling Foot",
+          "confidence": 0.94,
+          "evidence": "Title: Adjustable Leveling Foot",
+          "scoreMargin": 1460
+        },
+        "normalized": {
+          "weight": "83.0 g (0.083 kg)",
+          "material": "Housing: Plastic PA, glass fiber reinforced Mechanism: Zinc plated steel",
+          "finish": "Zinc plated steel",
+          "color": "Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "10 pieces",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "Plastic PA",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "83.0 g",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "104833",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "H (mm)",
+            "value": "45-65",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "B (mm)",
+            "value": "50",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "M",
+            "value": "M8",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Ød (mm)",
+            "value": "6.5",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "b (mm)",
+            "value": "28.0",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Slot N (mm)",
+            "value": "10",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Housing: Plastic PA, glass fiber reinforced Mechanism: Zinc plated steel",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Specials",
+            "value": "ESD electrostatical discharging, other sizes, other colors on request",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008"
+          }
+        ],
+        "documents": [],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:19.926Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:19.926Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Adjustable-Leveling-Foot/098H501008",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 14,
+              "documentCount": 0,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "092012",
+      "caseType": "accessory",
+      "expectedDeviceType": "Handle",
+      "actualDeviceType": "Handle",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "handle",
+        "sibling-image-audit"
+      ],
+      "status": "found",
+      "confidence": 0.74,
+      "elapsedMs": 1358,
+      "scrapeElapsedMs": 431,
+      "productUrl": "https://www.fath24.com/en/Handle/092012",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217\\pdt\\fath-092012-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Handle",
+        "description": "Description: To mount on doors, flaps and aluminum profiles",
+        "productUrl": "https://www.fath24.com/en/Handle/092012",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=092012",
+          "de": "https://www.fath24.com/de/search?search=092012"
+        },
+        "deviceTypeClassification": {
+          "type": "Handle",
+          "confidence": 0.94,
+          "evidence": "Title: Handle",
+          "alternatives": [
+            {
+              "type": "Cover / Door Accessory",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 230
+        },
+        "normalized": {
+          "weight": "30.0 g (0.03 kg)",
+          "material": "Plastic PA, glass fiber reinforced",
+          "color": "Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "10 pieces",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "Plastic PA, 120 and 160 mm",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "30.0 g",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "110360",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Version",
+            "value": "120.0",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "H (mm)",
+            "value": "48.0",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "A (mm)",
+            "value": "120.0",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "B (mm)",
+            "value": "16.0",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "SW",
+            "value": "8.5",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "ØD (mm)",
+            "value": "5.3",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "for Screw",
+            "value": "M5",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "a (mm)",
+            "value": "134.0",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Plastic PA, glass fiber reinforced",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Black, yellow, red, blue, gray",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Fastening",
+            "value": "From the front with hexagon cap screws or socket head screws, or from the back using M8 hexagon nuts and bolts",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Specials",
+            "value": "Other colors on request",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012"
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "type": "image",
+            "label": "FATH product image 092012_p_3d.jpg",
+            "url": "https://www.fath24.com/media/d6/de/d0/1792372206/092012_p_3d.jpg?ts=1792372206",
+            "sourceUrl": "https://www.fath24.com/en/Handle/092012",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217\\images\\FATH.092012.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Handle/092012",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:21.406Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Handle/092012",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:21.406Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Handle/092012",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 18,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "0957432",
+      "caseType": "accessory",
+      "expectedDeviceType": "Slam Latch",
+      "actualDeviceType": "Slam Latch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "slam-latch",
+        "sibling-image-audit"
+      ],
+      "status": "found",
+      "confidence": 0.74,
+      "elapsedMs": 1142,
+      "scrapeElapsedMs": 476,
+      "productUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217\\pdt\\fath-0957432-pdt_pdt-audit.json",
+      "pdtWrittenCells": 16,
+      "pdtBlankCells": 23,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Slam Latch COMPACT",
+        "description": "Description: For an easy and secure latching and locking of doors and flaps, no mechanical preparation needed for the assembly; safe against disassembling in the locked position",
+        "productUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=0957432",
+          "de": "https://www.fath24.com/de/search?search=0957432"
+        },
+        "deviceTypeClassification": {
+          "type": "Slam Latch",
+          "confidence": 0.94,
+          "evidence": "Title: Slam Latch COMPACT",
+          "alternatives": [
+            {
+              "type": "Cover / Door Accessory",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 250
+        },
+        "normalized": {
+          "weight": "220.0 g (0.22 kg)",
+          "material": "Aluminum die-cast",
+          "color": "Black"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "1 piece",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "Aluminum die-cast",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "220.0 g",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "132605",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Surface",
+            "value": "Powder coated",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "Lock",
+            "value": "Double-bit lock**",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Aluminum die-cast",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Powder coated",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Color",
+            "value": "Black, alu colour",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Fastening",
+            "value": "From the front, using M6 socket head or pan head screws",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip",
+            "value": "*Universal: One key fits all slam latches Unique: Each slam latch has a different key; **With double-bitted key Compatible Emergency Opener for Slam Latch see 0957409 et sq.",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Tip 2",
+            "value": "Compatible Replacement Cover Cap (Set) see 0957408RS01",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432"
+          }
+        ],
+        "documents": [],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:23.071Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:23.071Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Slam-Latch-COMPACT/0957432",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 14,
+              "documentCount": 0,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "fath",
+      "catalogNumber": "09576060E",
+      "caseType": "accessory",
+      "expectedDeviceType": "Hinge",
+      "actualDeviceType": "Hinge",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "hinge",
+        "sibling-image-audit"
+      ],
+      "status": "found",
+      "confidence": 0.76,
+      "elapsedMs": 1170,
+      "scrapeElapsedMs": 348,
+      "productUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217\\pdt\\fath-09576060E-pdt_pdt-audit.json",
+      "pdtWrittenCells": 15,
+      "pdtBlankCells": 24,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Stainless Steel Hinge 60 x 60",
+        "description": "Description: Hinge for heavy usage",
+        "productUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E",
+        "localizedUrls": {
+          "en": "https://www.fath24.com/en/search?search=09576060E",
+          "de": "https://www.fath24.com/de/search?search=09576060E"
+        },
+        "deviceTypeClassification": {
+          "type": "Hinge",
+          "confidence": 0.94,
+          "evidence": "Title: Stainless Steel Hinge 60 x 60",
+          "alternatives": [
+            {
+              "type": "Cover / Door Accessory",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 240
+        },
+        "normalized": {
+          "weight": "222.00 g (0.222 kg)",
+          "material": "Wings: Stainless steel SS316 Pin: Stainless steel SS316"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Pack Quantity",
+            "value": "10 pieces",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Model",
+            "value": "Non-detachable",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "Weight (g)",
+            "value": "222.00 g",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH product properties",
+            "name": "ERP Number",
+            "value": "101646",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "FAmax (N)",
+            "value": "1200",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH selected variant",
+            "name": "FRmax (N)",
+            "value": "2000",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Material",
+            "value": "Wings: Stainless steel SS316 Pin: Stainless steel SS316",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Surface",
+            "value": "Plain",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Fastening",
+            "value": "From the front, using countersunk screws",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "group": "FATH specifications",
+            "name": "Delivery Countries",
+            "value": "Worldwide",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "stage": "reader",
+            "confidence": 0.78,
+            "type": "image",
+            "label": "FATH product image 09576060e_p_3d.jpg",
+            "url": "https://www.fath24.com/media/12/27/a3/1792371936/09576060e_p_3d.jpg?ts=1792371936",
+            "sourceUrl": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019054217\\images\\FATH.09576060E.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E",
+            "sourceType": "official-fallback",
+            "parser": "fath-search",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:24.373Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E",
+            "sourceType": "official-fallback",
+            "parser": "fath-product-page",
+            "parserVersion": "fath-v1",
+            "fetchedAt": "2026-10-19T05:42:24.373Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "fath-search",
+              "url": "https://www.fath24.com/en/Stainless-Steel-Hinge-60-x-60/09576060E",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "fath-search",
+              "statusCode": 200,
+              "attributeCount": 10,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

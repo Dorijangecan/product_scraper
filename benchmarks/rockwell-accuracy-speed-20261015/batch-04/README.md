@@ -38,3 +38,17 @@ Final accepted cold report: `../../benchmark-report.fixtureDir-benchmarks-rockwe
 - `npx tsc --noEmit` passed.
 - Final product gates: exact found 5/5; official URL 5/5; required documents 5/5; expected device type 5/5; expected normalized values 5/5; expected source attributes 5/5; PDT audit 5/5. Wrong products 0; unproven PDT writes 0; unexplained required-field issues 0.
 - The benchmark's broader PDT sheet coverage is 3/41 and therefore `Coverage accepted: no`; the five-product quality result is `Quality accepted: yes`. These are separate gates.
+
+## Exact-image source audit
+
+The 0/5 exact-image count is caused by Rockwell's gallery returning a sibling or family image on each requested PDP. The connector correctly rejects these candidates instead of treating a PDP's image as proof that the image depicts its exact order code:
+
+| Requested model | Official PDP gallery candidate | Why it is not an exact image |
+|---|---|---|
+| `1734-IB8` | `1734-IB4_1000x1000.jpg` | The asset names the 4-point sibling, not the requested 8-point module. |
+| `700-HK36Z24` | `700-HK32A12_1000x1000.jpg` | The asset names a different coil/contact variant. |
+| `440G-LZS21UPLH` | `440G-LZ_1000x1000.jpg` | The asset identifies only the guard-lock family, not the suffix/configuration. |
+| `1492-SPM2D250` | `1492-SPM2_1000x1000.jpg` | The asset identifies only the protector family, not the 25 A D-curve order code. |
+| `800FM-KL34` | `800FM-KM31R_1000x1000.jpg` | The asset names a different key-selector operator variant. |
+
+No exact-code image URL was established from the official product pages during this audit. These are source-availability limits, not parser omissions; keep the image fields empty until Rockwell provides an exact model asset or a visibly verifiable exact-model image. Do not lower the sibling/family rejection gate to raise coverage.

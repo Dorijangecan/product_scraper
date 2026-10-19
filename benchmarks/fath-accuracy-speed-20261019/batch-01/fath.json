@@ -1,0 +1,141 @@
+[
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "0810488",
+    "caseType": "accessory",
+    "expectedDeviceType": "Compression Latch",
+    "riskTags": [
+      "cold",
+      "compression-latch",
+      "variant-row-audit"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "https://www\\.fath24\\.com/en/Large-Compression-Latch-22\\.5-32-ZN-Black/0810488"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]0865 kg"
+    },
+    "expectedAttributePatterns": [
+      "Tubular"
+    ]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "098H300606",
+    "caseType": "accessory",
+    "expectedDeviceType": "Leveling Foot",
+    "riskTags": [
+      "cold",
+      "leveling-foot",
+      "variant-row-audit"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "https://www\\.fath24\\.com/en/Adjustable-Leveling-Foot/098H300606"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]038 kg"
+    },
+    "expectedAttributePatterns": [
+      "35-50",
+      "M6"
+    ]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "0810159",
+    "caseType": "accessory",
+    "expectedDeviceType": "Quarter Turn Lock",
+    "riskTags": [
+      "cold",
+      "quarter-turn-lock",
+      "variant-row-audit"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "https://www\\.fath24\\.com/en/Industry-Standard-Quarter-Turn-Lock-22\\.5-18-SS/0810159"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]0957 kg"
+    },
+    "expectedAttributePatterns": [
+      "Double bit 3.0 mm",
+      "IP65 / NEMA 4"
+    ]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "092012",
+    "caseType": "accessory",
+    "expectedDeviceType": "Handle",
+    "riskTags": [
+      "cold",
+      "handle",
+      "variant-row-audit"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "https://www\\.fath24\\.com/en/Handle/092012"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]03 kg"
+    },
+    "expectedAttributePatterns": [
+      "Version 120.0",
+      "for Screw M5"
+    ]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "09576060E",
+    "caseType": "accessory",
+    "expectedDeviceType": "Hinge",
+    "riskTags": [
+      "cold",
+      "hinge",
+      "variant-row-audit"
+    ],
+    "expectedOfficialUrlPatterns": [
+      "https://www\\.fath24\\.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"
+    ],
+    "requiredDocuments": [
+      "image"
+    ],
+    "expectedNormalizedFields": [
+      "weight",
+      "material"
+    ],
+    "expectedNormalizedPatterns": {
+      "weight": "0[.]222 kg"
+    },
+    "expectedAttributePatterns": [
+      "1200",
+      "2000"
+    ]
+  }
+]

@@ -10,10 +10,10 @@ import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./di
 // FATH24 (Shopware-based) catalog numbers look like 098ABG045 / 098ABG045S01 / 093BA1001D80M12.
 // Direct product URLs are slug-prefixed (e.g. /en/Anti-slip-Plate-for-Bell-Feet/098ABG045), so we
 // can't construct them without first finding the slug. The reliable entry point is the search
-// page, which lists product links containing the exact catalog token; the same page also embeds
-// the product image (".../media/.../<lower-sku>_p_3d.jpg"). Once we resolve the canonical detail
-// URL we fetch the product page via the Jina reader (the Shopware DOM is too JS-heavy for static
-// cheerio to find specs on every variant).
+// page. For exact SKUs, Shopware often redirects search to the canonical PDP and returns its
+// product data server-side. Parse that HTML directly and reuse it instead of paying for two
+// serial Jina reader requests. If search returns a listing, resolve the exact SKU link and fetch
+// its PDP once.
 const FATH_BASE = "https://www.fath24.com";
 const FATH_SEARCH_TEMPLATE = (catalogNumber: string) =>
   `${FATH_BASE}/en/search?search=${encodeURIComponent(catalogNumber)}`;
@@ -31,15 +31,15 @@ export class FathConnector implements ManufacturerConnector {
 
     let searchPage: FetchedText | undefined;
     try {
-      searchPage = await fetchFathPage(context, searchUrl, { reader: true, timeoutMs: 25000 });
+      searchPage = await fetchFathPage(context, searchUrl, { reader: false, timeoutMs: 15000 });
       attemptedUrls.push(searchPage.effectiveUrl);
     } catch (error) {
       notes.push(`FATH search fetch failed: ${error instanceof Error ? error.message : String(error)}`);
     }
     if (!searchPage) {
-      // Direct fetch fallback in case the Jina reader is unavailable.
+      // Jina is a last-resort transport fallback. Official Shopware HTML is the fast path.
       try {
-        searchPage = await fetchFathPage(context, searchUrl, { reader: false, timeoutMs: 20000 });
+        searchPage = await fetchFathPage(context, searchUrl, { reader: true, timeoutMs: 25000 });
         attemptedUrls.push(searchPage.effectiveUrl);
       } catch (error) {
         notes.push(`FATH direct search fetch failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -57,19 +57,27 @@ export class FathConnector implements ManufacturerConnector {
       return withFathDiscoveryFallback(fallback ?? emptyResult("fath", catalogNumber, "FATH search returned no matching product."), catalogNumber, context, attemptedUrls, notes);
     }
 
-    let detailPage: FetchedText | undefined;
-    try {
-      detailPage = await fetchFathPage(context, detailUrl, { reader: true, timeoutMs: 25000 });
-      attemptedUrls.push(detailPage.effectiveUrl);
-    } catch (error) {
-      notes.push(`FATH detail reader fetch failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
+    // Exact searches commonly redirect to the PDP. Reuse that page instead of requesting it a
+    // second time; this also retains the manufacturer's per-variant table for exact-SKU parsing.
+    let detailPage: FetchedText | undefined = isFathExactProductPage(searchPage.text, catalogNumber)
+      ? searchPage
+      : undefined;
     if (!detailPage) {
       try {
         detailPage = await fetchFathPage(context, detailUrl, { reader: false, timeoutMs: 20000 });
         attemptedUrls.push(detailPage.effectiveUrl);
       } catch (error) {
         notes.push(`FATH detail direct fetch failed: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    if (!detailPage || (/<(?:html|head|body)\b/i.test(detailPage.text)
+      ? extractFathHtmlAttributes(detailPage.text, detailPage.effectiveUrl, catalogNumber).length === 0
+      : extractFathAttributes(detailPage.text, detailPage.effectiveUrl).length === 0)) {
+      try {
+        detailPage = await fetchFathPage(context, detailUrl, { reader: true, timeoutMs: 25000 });
+        attemptedUrls.push(detailPage.effectiveUrl);
+      } catch (error) {
+        notes.push(`FATH detail reader fetch failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     if (!detailPage) {
@@ -132,6 +140,16 @@ export function findFathDetailUrl(text: string, catalogNumber: string): string |
   })[0];
 }
 
+function isFathExactProductPage(text: string, catalogNumber: string): boolean {
+  const target = catalogNumber.trim().toLowerCase();
+  if (!target || !/<(?:html|head|body)\b/i.test(text)) return false;
+  const $ = cheerio.load(text);
+  const canonical = $("link[rel='canonical']").attr("href") ?? $("meta[property='og:url']").attr("content") ?? "";
+  const title = $("meta[property='og:title']").attr("content") ?? $("title").text();
+  const lastSegment = canonical.split(/[/?#]/).filter(Boolean).pop()?.toLowerCase();
+  return lastSegment === target && catalogTextMatches(title, catalogNumber);
+}
+
 function parseFathProductPage(
   catalogNumber: string,
   detail: FetchedText,
@@ -144,15 +162,23 @@ function parseFathProductPage(
     return emptyResult("fath", catalogNumber, "FATH detail page did not contain the catalog number.");
   }
 
-  const title = readFathTitle(detailText, catalogNumber);
-  const description = readFathDescription(detailText);
-  const attributes = collapseFathEclassRows(extractFathAttributes(detailText, detail.effectiveUrl));
+  const isHtml = /<(?:html|head|body)\b/i.test(detailText);
+  const $ = isHtml ? cheerio.load(detailText) : undefined;
+  const title = $
+    ? cleanText($("h1").first().text() || $("meta[property='og:title']").attr("content") || readFathTitle(detailText, catalogNumber))
+    : readFathTitle(detailText, catalogNumber);
+  const description = $
+    ? cleanText($(".fath-product-description-main").first().text() || $("meta[name='description']").attr("content") || "") || undefined
+    : readFathDescription(detailText);
+  const attributes = collapseFathEclassRows(isHtml
+    ? extractFathHtmlAttributes(detailText, productUrl, catalogNumber)
+    : extractFathAttributes(detailText, productUrl));
   const documents: DocumentRecord[] = [];
 
-  const productImages = collectFathProductImages(detailText, search.text, catalogNumber, detail.effectiveUrl);
+  const productImages = collectFathProductImages(detailText, search.text, catalogNumber, productUrl);
   for (const image of productImages) documents.push(image);
 
-  for (const doc of collectFathDocuments(detailText, detail.effectiveUrl)) documents.push(doc);
+  for (const doc of collectFathDocuments(detailText, productUrl)) documents.push(doc);
 
   const stamped = (attribute: AttributeRecord) => ({
     sourceType: "official-fallback" as const,
@@ -184,7 +210,7 @@ function parseFathProductPage(
       statusCode: search.statusCode
     },
     {
-      url: detail.effectiveUrl,
+      url: productUrl,
       sourceType: "official-fallback",
       parser: "fath-product-page",
       parserVersion: "fath-v1",
@@ -294,12 +320,9 @@ function collectFathProductImages(
   // Pass 2: try strict matching first (image SKU prefix equals or is a known variant of ours).
   const strict = candidates.filter((candidate) => accept.score(candidate.compactPrefix) >= 0);
 
-  // Pass 3: if strict yields nothing, fall back to the page's *main* product image group.
-  // FATH reuses a single image set across an entire variant family — e.g. "6SBEU04I.264_p_*.jpg"
-  // covers the IE/FR/GB/Eco variants too — so when our strict matcher rejects them all we trust
-  // the page itself: pick the prefix that has the most "_p_<view>" companions, since the main
-  // product always carries the full 3d+2d+app+co set while related-products cards have just one.
-  const chosen = strict.length > 0 ? strict : pickFathMainProductImages(candidates);
+  // Do not choose a sibling just because its gallery group has the most views. Page position
+  // and image count do not prove that the asset depicts the requested article.
+  const chosen = strict;
   if (chosen.length === 0) {
     // Last-ditch search-page lookup so we still produce an image-only result when the detail
     // page is unavailable.
@@ -350,34 +373,6 @@ function collectFathImageCandidates(text: string): FathImageCandidate[] {
     candidates.push({ url, fileName, prefix, compactPrefix: compactCatalogNumber(prefix) });
   }
   return candidates;
-}
-
-/**
- * Picks the prefix group that most likely represents this page's main product. FATH lists the
- * primary product first with its full 3d/2d/app/co set, so the prefix with the most companions
- * wins; ties are broken by first-appearance order (i.e. the prefix the page renders first).
- */
-function pickFathMainProductImages(candidates: FathImageCandidate[]): FathImageCandidate[] {
-  if (candidates.length === 0) return [];
-  const order: string[] = [];
-  const groups = new Map<string, FathImageCandidate[]>();
-  for (const candidate of candidates) {
-    const key = candidate.compactPrefix;
-    if (!key) continue;
-    const existing = groups.get(key);
-    if (existing) {
-      existing.push(candidate);
-    } else {
-      groups.set(key, [candidate]);
-      order.push(key);
-    }
-  }
-  if (order.length === 0) return [];
-  // Sort prefixes by member count desc, then by first-seen position (preserve order tiebreaker).
-  const ranked = order
-    .map((key, index) => ({ key, count: groups.get(key)?.length ?? 0, index }))
-    .sort((left, right) => right.count - left.count || left.index - right.index);
-  return groups.get(ranked[0].key) ?? [];
 }
 
 function viewOrderRank(url: string): number {
@@ -431,9 +426,24 @@ function buildFathSkuMatcher(catalogNumber: string): FathSkuMatcher | undefined 
 function collectFathDocuments(text: string, sourceUrl: string): DocumentRecord[] {
   const out: DocumentRecord[] = [];
   const seen = new Set<string>();
-  for (const match of text.matchAll(/\[([^\]]+)\]\((https?:\/\/[^)\s]+\.(?:pdf|zip|dwg|dxf|stp|step))[^)]*\)/gi)) {
-    const label = cleanText(match[1]);
-    const url = match[2];
+  const candidates: Array<{ label: string; url: string }> = [];
+  if (/<(?:html|head|body)\b/i.test(text)) {
+    const $ = cheerio.load(text);
+    $("a[href]").each((_, anchor) => {
+      const url = $(anchor).attr("href") ?? "";
+      if (/\.(?:pdf|zip|dwg|dxf|stp|step)(?:[?#]|$)/i.test(url)) {
+        candidates.push({ label: cleanText($(anchor).text()), url });
+      }
+    });
+  } else {
+    for (const match of text.matchAll(/\[([^\]]+)\]\((https?:\/\/[^)\s]+\.(?:pdf|zip|dwg|dxf|stp|step))[^)]*\)/gi)) {
+      candidates.push({ label: cleanText(match[1]), url: match[2] });
+    }
+  }
+  for (const candidate of candidates) {
+    const label = candidate.label;
+    const url = candidate.url;
+    if (!/^https?:\/\/(?:www\.)?fath24\.com\//i.test(url)) continue;
     if (seen.has(url)) continue;
     seen.add(url);
     // FATH's footer links to its legal docs (Terms of Delivery, Purchasing Conditions, RoHS).
@@ -458,7 +468,7 @@ function extractFathAttributes(text: string, sourceUrl: string): AttributeRecord
   let inVariantsTable = false;
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i].trim();
-    const boldLabel = line.match(/^\*\*([^*]+):\*\*$/);
+    const boldLabel = line.match(/^\*\*([^*]+?)\s*:\*\*$/);
     if (boldLabel) {
       const name = cleanText(boldLabel[1]);
       const block: string[] = [];
@@ -510,6 +520,68 @@ function isUsableFathSpec(name: string, value: string): boolean {
   if (value.length > 240) return false;
   if (/^https?:\/\//i.test(value)) return false;
   return true;
+}
+
+/** Extract Shopware's server-rendered product data and only the requested variant's table row. */
+function extractFathHtmlAttributes(html: string, sourceUrl: string, catalogNumber: string): AttributeRecord[] {
+  const $ = cheerio.load(html);
+  const attributes: AttributeRecord[] = [];
+  const add = (group: string, name: string, value: string) => {
+    const cleanName = cleanText(name).replace(/:+$/, "");
+    let cleanValue = cleanText(value);
+    // FATH encodes the unit in the property label rather than the numeric cell. Carry that
+    // explicit unit into the value so the shared mass normalizer can convert grams to kilograms.
+    if (/^weight\s*\(g\)$/i.test(cleanName) && /^\d+(?:[.,]\d+)?$/.test(cleanValue)) {
+      cleanValue = `${cleanValue} g`;
+    }
+    if (isUsableFathSpec(cleanName, cleanValue)) attributes.push({ group, name: cleanName, value: cleanValue, sourceUrl });
+  };
+
+  $(".properties-row").each((_, row) => {
+    const name = $(row).find(".properties-label").first().text();
+    const value = $(row).find(".properties-value").first().text();
+    add("FATH product properties", name, value);
+  });
+  $("table.fath-product-global-tags tr").each((_, row) => {
+    add("FATH product tags", $(row).find("th").first().text(), $(row).find("td").first().text());
+  });
+
+  // Comparison tables contain siblings. Read only the row whose Part # link equals this SKU.
+  $("table").each((_, table) => {
+    const headers = $(table).find("thead th").map((__, cell) => cleanText($(cell).text())).get();
+    if (headers[0]?.toLowerCase() !== "part #") return;
+    $(table).find("tbody tr").each((__, row) => {
+      const cells = $(row).children("td");
+      const part = cleanText(cells.eq(0).text());
+      if (compactCatalogNumber(part) !== compactCatalogNumber(catalogNumber)) return;
+      for (let index = 1; index < headers.length; index += 1) {
+        add("FATH selected variant", headers[index], cells.eq(index).text());
+      }
+    });
+  });
+
+  const description = $(".fath-product-description-text").first();
+  if (description.length) {
+    let label = "";
+    let valueParts: string[] = [];
+    const flush = () => {
+      add("FATH specifications", label, valueParts.join(" "));
+      label = "";
+      valueParts = [];
+    };
+    for (const node of description.contents().toArray()) {
+      if (node.type === "tag" && node.name === "b") {
+        if (label) flush();
+        label = cleanText($(node).text()).replace(/:+$/, "");
+      } else if (label && node.type === "text") {
+        valueParts.push(node.data ?? "");
+      } else if (label && node.type === "tag" && node.name !== "br") {
+        valueParts.push($(node).text());
+      }
+    }
+    if (label) flush();
+  }
+  return attributes.slice(0, 80);
 }
 
 /**

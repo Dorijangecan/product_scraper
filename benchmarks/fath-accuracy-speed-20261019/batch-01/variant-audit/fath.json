@@ -1,0 +1,62 @@
+[
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "0810495",
+    "caseType": "accessory",
+    "expectedDeviceType": "Compression Latch",
+    "riskTags": ["cold", "compression-latch", "sibling-image-audit"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Large-Compression-Latch-22[.]5-32-ZN-Black/0810495"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]0865 kg"},
+    "expectedAttributePatterns": ["Female hexagon 8[.]0 mm"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "098H501008",
+    "caseType": "accessory",
+    "expectedDeviceType": "Leveling Foot",
+    "riskTags": ["cold", "leveling-foot", "sibling-image-audit"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Adjustable-Leveling-Foot/098H501008"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]083 kg"},
+    "expectedAttributePatterns": ["45-65", "M8"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "092012",
+    "caseType": "accessory",
+    "expectedDeviceType": "Handle",
+    "riskTags": ["cold", "handle", "sibling-image-audit"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Handle/092012"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]03 kg"},
+    "expectedAttributePatterns": ["Version 120", "for Screw M5"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "0957432",
+    "caseType": "accessory",
+    "expectedDeviceType": "Slam Latch",
+    "riskTags": ["cold", "slam-latch", "sibling-image-audit"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Slam-Latch-COMPACT/0957432"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]22 kg"},
+    "expectedAttributePatterns": ["Lock Double-bit lock", "Surface Powder coated"]
+  },
+  {
+    "manufacturerId": "fath",
+    "catalogNumber": "09576060E",
+    "caseType": "accessory",
+    "expectedDeviceType": "Hinge",
+    "riskTags": ["cold", "hinge", "sibling-image-audit"],
+    "expectedOfficialUrlPatterns": ["fath24\\.com/en/Stainless-Steel-Hinge-60-x-60/09576060E"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedNormalizedPatterns": {"weight": "0[.]222 kg"},
+    "expectedAttributePatterns": ["1200", "2000"]
+  }
+]

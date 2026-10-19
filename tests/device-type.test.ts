@@ -23,6 +23,22 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("separates common industrial hardware from the generic cover/door accessory type", () => {
+    const cases = [
+      ["Adjustable Leveling Foot", "Leveling Foot"],
+      ["Large Compression Latch 22.5 / 32", "Compression Latch"],
+      ["Slam Latch COMPACT", "Slam Latch"],
+      ["Industry Standard Quarter Turn Lock", "Quarter Turn Lock"],
+      ["Stainless Steel Hinge 60 x 60", "Hinge"],
+      ["Handle", "Handle"]
+    ] as const;
+    for (const [title, expected] of cases) {
+      const result = classifyDeviceType(product([], title, { manufacturerId: "fath" }));
+      expect(result.type).toBe(expected);
+      expect(deviceSheetsFor(result.type)).toContain("cabinet.mechanical");
+    }
+  });
+
   it("classifies an E-T-A Monitoring & Reporting Unit separately from the metered equipment", () => {
     const result = classifyDeviceType(product(
       [{ group: "Technical Data", name: "Product type", value: "Monitoring & Reporting Unit", sourceType: "official", matchLevel: "exact" }],
