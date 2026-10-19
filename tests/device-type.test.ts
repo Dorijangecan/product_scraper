@@ -23,6 +23,32 @@ function product(
 }
 
 describe("device type classifier", () => {
+  it("classifies distinct Spelsberg charging and distribution products by their primary function", () => {
+    const cases = [
+      ["E-Bike charging station TG BCS 3 LED", "E-Bike Charging Station"],
+      ["WKE 2 junction box, E30-E90 electrical functional integrity", "Fire-Resistant Junction Box"],
+      ["Socket outlet combination STV 1208-S", "Socket Outlet Combination"],
+      ["AK 12 small distribution boards", "Small Distribution Board"],
+      ["Wallbox Polar DLM Bundle", "EV Charging Station"]
+    ] as const;
+    for (const [title, expected] of cases) {
+      expect(classifyDeviceType(product([], title, { manufacturerId: "spelsberg" })).type).toBe(expected);
+    }
+  });
+
+  it("classifies distinct Spelsberg enclosure and installation product families", () => {
+    const cases = [
+      ["GEOS-L 4050-22-to/sw", "Empty Enclosure", "Empty enclosure, IP66/IP67/IP69"],
+      ["ZKi 100", "Meter Housing", "Meter housing for tri-phase counter"],
+      ["IBTLED 1-O", "Installation Housing", "Installation housing for prefabricated construction"],
+      ["RKi 4/100-100x4²", "Terminal Block Enclosure", "Terminal block enclosure, IP54/IP66"],
+      ["KD 1 70/47 F2 gn", "Channel Installation Box", "Channel installation box, rated insulation voltage 400V AC"]
+    ] as const;
+    for (const [title, expected, description] of cases) {
+      expect(classifyDeviceType(product([{ name: "Product Type", value: description }], title, { manufacturerId: "spelsberg" })).type).toBe(expected);
+    }
+  });
+
   it("uses the exact nVent PDP category for enclosure climate-control devices", () => {
     const cases = [
       ["ATEMNC", "https://www.nvent.com/en-us/hoffman/products/encatemnc", "Temperature Control Switch", "Thermostat"],

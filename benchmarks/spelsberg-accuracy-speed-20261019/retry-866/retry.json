@@ -1,0 +1,33 @@
+{
+  "manufacturerId": "spelsberg",
+  "catalogNumber": "86650201",
+  "caseType": "electrical",
+  "expectedDeviceType": "Fire-Resistant Junction Box",
+  "riskTags": [
+    "spelsberg-batch-01",
+    "fire-resistant-junction-box"
+  ],
+  "expectedOfficialUrlPatterns": [
+    "spelsberg\\.com/p/86650201(?:$|[?#])"
+  ],
+  "requiredDocuments": [
+    "datasheet",
+    "image"
+  ],
+  "expectedBlankNormalizedFields": [
+    "voltage",
+    "current"
+  ],
+  "expectedAttributePatterns": [
+    "86650201",
+    "WKE 2",
+    "IP66",
+    "450 V",
+    "E30.{0,10}E90",
+    "5",
+    "0.5",
+    "4 mm²",
+    "100 mm",
+    "0.43 kg"
+  ]
+}

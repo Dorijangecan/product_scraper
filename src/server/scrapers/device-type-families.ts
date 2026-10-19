@@ -175,6 +175,16 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["SK"], type: "Thermal Management", notes: "Climate control / filter fans" }
   ],
   spelsberg: [
+    { patterns: ["GEOS-L"], type: "Empty Enclosure", notes: "Spelsberg GEOS-L outdoor empty enclosures" },
+    { patterns: ["ZKi"], type: "Meter Housing", notes: "Spelsberg ZKi meter housings" },
+    { patterns: ["IBTLED", "IBTronic"], type: "Installation Housing", notes: "Spelsberg concrete-installation housings" },
+    { patterns: ["RKi", "RK-PV", "AKi-R"], type: "Terminal Block Enclosure", notes: "Spelsberg series terminal enclosures" },
+    { patterns: ["KD 1", "KD 2", "KD 3"], type: "Channel Installation Box", notes: "Spelsberg channel installation boxes" },
+    { patterns: ["TG BCS"], type: "E-Bike Charging Station", notes: "Spelsberg BCS three-socket e-bike charging station" },
+    { patterns: ["WKE 2", "WKE 4", "WKE 6"], type: "Fire-Resistant Junction Box", notes: "Spelsberg WKE cable junction boxes with electrical functional integrity" },
+    { patterns: ["STV"], type: "Socket Outlet Combination", notes: "Spelsberg pre-wired socket outlet combinations" },
+    { patterns: ["AK 12", "AK 14"], type: "Small Distribution Board", notes: "Spelsberg AK compact small distribution boards" },
+    { patterns: ["Wallbox Polar", "Wallbox Smart Pro"], type: "EV Charging Station", notes: "Spelsberg wall-mounted EV charging stations" },
     { patterns: ["ABOX", "AK", "TK", "WKE", "GTI"], type: "Enclosure", notes: "Spelsberg junction boxes / enclosures" },
     { patterns: ["73361401"], type: "Enclosure", notes: "Spelsberg AK 14 Plus small distribution board" },
     { patterns: ["89602001"], type: "Mounting Accessory", notes: "Spelsberg MABF 100-1 mast/pipe fixing set" },

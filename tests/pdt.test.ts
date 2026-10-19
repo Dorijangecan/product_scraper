@@ -2843,6 +2843,7 @@ describe("enum encoding", () => {
     expect(encodeEnumLabel("material of housing 1 - Plastic (PBT) 2 - Plastic (ABS) 3 - Plastic ...", "ABS")).toBe("Plastic (ABS)");
     expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Thermoplast, GF")).toBe("Thermoplast");
     expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Polycarbonate")).toBe("Thermoplast");
+    expect(encodeEnumLabel("material 1 - Real glas 2 - Thermoplast 3 - Polyvinylalkohol (PVA) ...", "Polystyrene")).toBe("Thermoplast");
     expect(encodeEnumLabel(material, "9AKK108466A1425")).toBeUndefined();
   });
 

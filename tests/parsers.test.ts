@@ -3843,6 +3843,72 @@ Article Number: 6ES7193-6BP00-0DA0
     expect(result.normalized.material).toContain("Polyamide");
   });
 
+  it("keeps Spelsberg exact-product datasheet and image, and uses base-unit material over accessory material", async () => {
+    const context = {
+      manufacturer: {
+        id: "spelsberg", canonicalName: "Spelsberg", shortName: "SPE", rateLimitMs: 0,
+        officialBaseUrls: ["https://www.spelsberg.com"], localizedUrlTemplates: [], fallbackSources: []
+      },
+      http: {
+        fetchText: async (_url: string, init?: { method?: string }) => init?.method === "POST"
+          ? fetched(JSON.stringify({ hits: [{
+              artnr: "20003401", name: "TG BCS 3 LED", produktart: "E-Bike charging station",
+              url: "/e-bike-charging-stations/with-schuko-sockets/20003401/", image: "/media/20003401.jpg",
+              MATERIAL: "Stainless steel V2A", abmessungen: "202 x 152 x 110 mm"
+            }] }), "https://algolia.example/query")
+          : fetched(`<html><body><h1>TG BCS 3 LED</h1>
+              <article class="productview__item"><span id="description"></span><div class="artikeltext"><p>with LED lighting</p><p>equipped with:</p><ul><li>3 x SCHUKO plug socket (on front), 230V</li></ul></div></article>
+              <p>Accessory weather cover, Material: Stainless steel V2A</p>
+              <table><tr><th>Base unit material</th><td>Polycarbonate</td></tr></table>
+              <a href="/p/20003401.pdf">Data Sheet (20003401.pdf)</a>
+              <a href="/media/accessory.jpg">Accessory image</a>
+              <a href="/p/20003001.pdf">Sibling data sheet</a></body></html>`, _url)
+      },
+      runDir: "", documentsDir: "", downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+    const result = await new SpelsbergConnector().scrape("20003401", context);
+    expect(result.normalized.material).toBe("Polycarbonate");
+    expect(result.normalized.voltage).toBe("230 V");
+    expect(result.documents.filter((document) => document.type === "datasheet").map((document) => document.url)).toEqual([
+      "https://www.spelsberg.com/p/20003401.pdf"
+    ]);
+    expect(result.documents.filter((document) => document.type === "image").map((document) => document.url)).toEqual([
+      "https://www.spelsberg.com/media/20003401.jpg"
+    ]);
+  });
+
+  it("uses a complete exact Spelsberg product-finder record without a slower second PDP request", async () => {
+    let requests = 0;
+    const context = {
+      manufacturer: {
+        id: "spelsberg", canonicalName: "Spelsberg", shortName: "SPE", rateLimitMs: 0,
+        officialBaseUrls: ["https://www.spelsberg.com"], localizedUrlTemplates: [], fallbackSources: []
+      },
+      http: {
+        fetchText: async (_url: string, init?: { method?: string }) => {
+          requests++;
+          if (init?.method !== "POST") throw new Error("complete structured hit should not fetch a second product page");
+          return fetched(JSON.stringify({ hits: [{
+            artnr: "20003401", name: "TG BCS 3 LED", produktart: "E-Bike charging station",
+            url: "//www.spelsberg.com/p/20003401", image: "_pim_images/20003401/product.jpg",
+            abmessungen: "202 x 152 x 110 mm", SCHUTZART: "IP44", GEW: "0.811",
+            MATERIAL: ["Polycarbonate", "Polycarbonate", "Polyurethane"],
+            ANZSCHUKO230VF: "3", BEMISOLATIONSSPANAC: 400
+          }] }), "https://algolia.example/query");
+        }
+      },
+      runDir: "", documentsDir: "", downloadDocument: async (doc: Parameters<ScrapeContext["downloadDocument"]>[0]) => doc,
+      fallback: { scrape: async () => undefined }
+    } as unknown as ScrapeContext;
+    const result = await new SpelsbergConnector().scrape("20003401", context);
+    expect(requests).toBe(1);
+    expect(result.productUrl).toBe("https://www.spelsberg.com/p/20003401");
+    expect(result.normalized.voltage).toBe("230 V");
+    expect(result.normalized.material).toBe("Polycarbonate");
+    expect(result.documents.map((document) => document.type)).toEqual(["datasheet", "image"]);
+  });
+
   it("does not treat image dimensions metadata as product dimensions or images", () => {
     const html = `
       <html><head>
@@ -4323,6 +4389,7 @@ Article Number: 6ES7193-6BP00-0DA0
       ])
     );
     expect(result.normalized.voltage).toBe("18...30 V DC");
+    console.log("SPELSBERG-DEBUG", result.catalogNumber, result.normalized, result.attributes.filter((a) => /equipped|SCHUKO/i.test(`${a.name} ${a.value}`)));
     expect(result.normalized.material).toBe("Polycarbonate");
     expect(result.normalized.weight).toBe("850 g (0.85 kg)");
     expect(result.normalized.protection).toBe("IP65");

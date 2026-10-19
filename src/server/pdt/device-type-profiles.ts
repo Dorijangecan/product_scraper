@@ -38,6 +38,16 @@ const CURRENT_ONLY: DeviceTypeElectricalField[] = ["current"];
 const NO_ELECTRICAL_FIELDS: DeviceTypeElectricalField[] = [];
 
 export const DEVICE_TYPE_PROFILES: Record<string, DeviceTypePdtProfile> = {
+  "E-Bike Charging Station": { sheets: ["connector"], electricalFields: VOLTAGE_ONLY },
+  "Fire-Resistant Junction Box": { sheets: ["cabinet"], electricalFields: NO_ELECTRICAL_FIELDS },
+  "Socket Outlet Combination": { sheets: ["connector"], electricalFields: VOLTAGE_ONLY },
+  "Small Distribution Board": { sheets: ["energy distribution system"], electricalFields: VOLTAGE_ONLY },
+  "EV Charging Station": { sheets: ["connector"], electricalFields: VOLTAGE_AND_CURRENT },
+  "Empty Enclosure": { sheets: ["cabinet", "cabinet.mechanical"], eclassBySheet: { "material master data": ENCLOSURE_ECLASS, cabinet: ENCLOSURE_ECLASS, "cabinet.mechanical": ENCLOSURE_ECLASS }, criticalFactsBySheet: { "Material Master Data": ["weight", "material", "protection"], cabinet: ["protection"] }, finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
+  "Meter Housing": { sheets: ["cabinet", "cabinet.mechanical"], eclassBySheet: { "material master data": ENCLOSURE_ECLASS, cabinet: ENCLOSURE_ECLASS, "cabinet.mechanical": ENCLOSURE_ECLASS }, criticalFactsBySheet: { "Material Master Data": ["weight", "material", "protection"], cabinet: ["protection"] }, finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: VOLTAGE_ONLY },
+  "Installation Housing": { sheets: ["cabinet", "cabinet.mechanical"], eclassBySheet: { "material master data": ENCLOSURE_ECLASS, cabinet: ENCLOSURE_ECLASS, "cabinet.mechanical": ENCLOSURE_ECLASS }, criticalFactsBySheet: { "Material Master Data": ["weight", "material", "protection"], cabinet: ["protection"] }, finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
+  "Terminal Block Enclosure": { sheets: ["cabinet", "cabinet.mechanical"], eclassBySheet: { "material master data": ENCLOSURE_ECLASS, cabinet: ENCLOSURE_ECLASS, "cabinet.mechanical": ENCLOSURE_ECLASS }, criticalFactsBySheet: { "Material Master Data": ["weight", "material", "protection"], cabinet: ["protection"] }, finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
+  "Channel Installation Box": { sheets: ["cabinet", "cabinet.mechanical"], eclassBySheet: { "material master data": ENCLOSURE_ECLASS, cabinet: ENCLOSURE_ECLASS, "cabinet.mechanical": ENCLOSURE_ECLASS }, criticalFactsBySheet: { "Material Master Data": ["weight", "material", "protection"], cabinet: ["protection"] }, finalCompletenessFields: ENCLOSURE_FINAL_FIELDS, electricalFields: NO_ELECTRICAL_FIELDS },
   Enclosure: {
     sheets: ["cabinet", "cabinet.mechanical"],
     eclassBySheet: { "material master data": ENCLOSURE_ECLASS, cabinet: ENCLOSURE_ECLASS, "cabinet.mechanical": ENCLOSURE_ECLASS },

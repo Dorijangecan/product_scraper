@@ -202,10 +202,24 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Battery", /\b(?:battery module|battery pack|lithium battery|lead[-\s]?acid battery|\bnimh battery\b|\bnicd battery\b|energy storage module|traction battery|\bbattery\b)\b/i, 1080),
 
   // --- Enclosures & mounting ---
+  // Spelsberg publishes these as named product classes on exact product pages; keep their
+  // primary function ahead of accessory/cable mentions elsewhere on those pages.
+  rule("EV Charging Station", /\b(?:wallbox|electric vehicle charging station|ev charging station)\b/i, 1_050),
+  rule("E-Bike Charging Station", /\be[-\s]?bike charging stations?\b/i, 1_050),
+  rule("Socket Outlet Combination", /\bsocket outlet combinations?\b/i, 1_040),
+  rule("Small Distribution Board", /\bsmall distribution boards?\b/i, 1_035),
+  rule("Fire-Resistant Junction Box", /\b(?:junction|connection) box\b[\s\S]{0,180}\b(?:E\s*30|fire[-\s]?resistant|functional integrity)\b|\b(?:E\s*30|fire[-\s]?resistant|functional integrity)\b[\s\S]{0,180}\b(?:junction|connection) box\b/i, 1_030),
   rule("Loadcenter", /\b(?:loadcenter|load center|panelboard|distribution board|consumer unit|switchgear assembly)\b/i, 770),
   // ABB MEPY emergency-stop stations are sold as enclosures. The safety legend describes their
   // application, not the component type, so it must not turn the bare enclosure into an operator.
   rule("Enclosure", /\benclosure\b[\s\S]{0,160}\b(?:emergency stop|e[-\s]?stop)\b|\b(?:emergency stop|e[-\s]?stop)\b[\s\S]{0,160}\benclosure\b/i, 790),
+  // Spelsberg's enclosure catalog distinguishes these by their primary installation function.
+  // Keep them ahead of the broad enclosure/terminal-block rules below.
+  rule("Meter Housing", /\b(?:meter housing|meter enclosure)\b/i, 835),
+  rule("Terminal Block Enclosure", /\b(?:terminal block enclosure|terminal enclosure)\b/i, 830),
+  rule("Installation Housing", /\b(?:installation housing|built[- ]in installation box)\b/i, 825),
+  rule("Channel Installation Box", /\b(?:channel installation box|channel installation socket|channel socket wall)\b/i, 820),
+  rule("Empty Enclosure", /\bempty enclosure\b/i, 815),
   rule(
     "Rack Cabinet",
     /\b(?:server rack|network rack|\brack cabinet\b|(?:communication\s+and\s+server|server|network)\s+cabinet|cabinet\b(?=[\s\S]{0,180}\b(?:servers?|network|rack[-\s]?mount|rack\s+(?:unit|spacing|angle)s?|\d+\s*u\b))|(?:rack[-\s]?mount|rack\s+(?:unit|spacing)s?|\d+\s*u\b)[\s\S]{0,180}\bcabinet\b)\b/i,

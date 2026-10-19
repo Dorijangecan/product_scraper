@@ -839,6 +839,18 @@ export async function enrichResultFromDownloadedDocuments(result: ProductResult)
   // set outside the `attributes` array entirely).
   const recomputedNormalized = normalizeEnrichedFields(result.manufacturerId, attributes, documents, `${result.title} ${result.description}`);
   const normalized = mergeEnrichedNormalized(result, recomputedNormalized);
+  if (result.manufacturerId === "spelsberg") {
+    const baseMaterial = attributes.find((attribute) => /^base unit material$/i.test(attribute.name.trim()))?.value.trim();
+    const exactDimensions = attributes.find((attribute) =>
+      /^dimensions?$/i.test(attribute.name.trim()) &&
+      /^\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*x\s*\d+(?:[.,]\d+)?\s*mm$/i.test(attribute.value.trim()) &&
+      (!result.productUrl || attribute.sourceUrl === result.productUrl)
+    )?.value.trim();
+    // Spelsberg PDPs append accessory cards after the requested device. Re-run the exact product
+    // facts after PDF enrichment so accessory material/dimensions cannot replace its base data.
+    if (baseMaterial) normalized.material = baseMaterial;
+    if (exactDimensions) normalized.dimensions = exactDimensions;
+  }
   clearSiemensContextlessElectricalValues(result, normalized);
   if (result.manufacturerId === "schneider" && isSchneiderSafetyLightCurtain(attributes) && !recomputedNormalized.current) delete normalized.current;
   if (result.manufacturerId === "rittal" && !recomputedNormalized.current) delete normalized.current;

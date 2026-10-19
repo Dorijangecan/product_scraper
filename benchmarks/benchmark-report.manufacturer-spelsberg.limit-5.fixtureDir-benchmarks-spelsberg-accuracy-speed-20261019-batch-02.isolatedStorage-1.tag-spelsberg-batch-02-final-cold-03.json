@@ -1,0 +1,4133 @@
+{
+  "generatedAt": "2026-10-19T13:30:49.339Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002",
+  "filters": {
+    "manufacturer": "spelsberg",
+    "limit": "5",
+    "fixtureDir": "benchmarks/spelsberg-accuracy-speed-20261019/batch-02",
+    "isolatedStorage": "1",
+    "tag": "spelsberg-batch-02-final-cold-03"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 5,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "spelsberg": {
+          "total": 5,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "channel-installation-box",
+            "concrete-installation-housing",
+            "meter-housing",
+            "outdoor-enclosure",
+            "series-terminal-enclosure",
+            "spelsberg-batch-02"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Empty Enclosure": {
+          "total": 1,
+          "manufacturers": [
+            "spelsberg"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Meter Housing": {
+          "total": 1,
+          "manufacturers": [
+            "spelsberg"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Installation Housing": {
+          "total": 1,
+          "manufacturers": [
+            "spelsberg"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Terminal Block Enclosure": {
+          "total": 1,
+          "manufacturers": [
+            "spelsberg"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Channel Installation Box": {
+          "total": 1,
+          "manufacturers": [
+            "spelsberg"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet": {
+          "total": 5,
+          "deviceTypes": [
+            "Channel Installation Box",
+            "Empty Enclosure",
+            "Installation Housing",
+            "Meter Housing",
+            "Terminal Block Enclosure"
+          ],
+          "manufacturers": [
+            "spelsberg"
+          ]
+        },
+        "cabinet.mechanical": {
+          "total": 5,
+          "deviceTypes": [
+            "Channel Installation Box",
+            "Empty Enclosure",
+            "Installation Housing",
+            "Meter Housing",
+            "Terminal Block Enclosure"
+          ],
+          "manufacturers": [
+            "spelsberg"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet.airconditioning",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Key Transfer Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "SVE",
+              "deviceType": "Key Transfer Switch",
+              "notes": "Schmersal key-selector interlocking devices"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Air Conditioner",
+            "Fan Assembly",
+            "Filter Fan",
+            "Heat Exchanger",
+            "Heater",
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "E-Bike Charging Station",
+            "EV Charging Station",
+            "Optical Connector",
+            "Socket Outlet Combination"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit",
+            "Small Distribution Board"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "MM500",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A PowerPlex Mini Modules for DC load distribution and control"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "PowerPlex Mini Modul",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A PowerPlex Mini Modules for DC load distribution and control"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK 12",
+              "deviceType": "Small Distribution Board",
+              "notes": "Spelsberg AK compact small distribution boards"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "AK 14",
+              "deviceType": "Small Distribution Board",
+              "notes": "Spelsberg AK compact small distribution boards"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Pull-wire Emergency Stop Switch",
+            "Safety Hinge Switch",
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS655",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS656",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "TV8S",
+              "deviceType": "Safety Hinge Switch",
+              "notes": "Schmersal TV8S hinge safety switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 2,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "spelsberg",
+      "catalogNumber": "74174501",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Empty Enclosure",
+      "actualDeviceType": "Empty Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "spelsberg-batch-02",
+        "outdoor-enclosure"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 10106,
+      "scrapeElapsedMs": 444,
+      "productUrl": "https://www.spelsberg.com/p/74174501",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\pdt\\spelsberg-74174501-pdt_pdt-audit.json",
+      "pdtWrittenCells": 35,
+      "pdtBlankCells": 54,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "GEOS-L 4050-22-to/sw",
+        "description": "Empty enclosure, suitable for installation in harsh environments and in unprotected outdoor areas...",
+        "productUrl": "https://www.spelsberg.com/p/74174501",
+        "localizedUrls": {
+          "en": "https://www.spelsberg.com/p/74174501"
+        },
+        "deviceTypeClassification": {
+          "type": "Empty Enclosure",
+          "confidence": 0.99,
+          "evidence": "Family GEOS-L (Spelsberg GEOS-L outdoor empty enclosures)",
+          "alternatives": [
+            {
+              "type": "Enclosure",
+              "score": 1580,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Cover / Door Accessory",
+              "score": 1320,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 1995
+        },
+        "normalized": {
+          "weight": "3.71 kg",
+          "dimensions": "400 x 500 x 226 mm",
+          "material": "Polycarbonate, glass-fibre reinforced",
+          "color": "black",
+          "protection": "IP66/IP67/IP69",
+          "operatingTemperatureMin": "-35",
+          "operatingTemperatureMax": "80",
+          "finish": "RAL 9005, Cover: Polycarbonate"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Article Number",
+            "value": "74174501",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Name",
+            "value": "GEOS-L 4050-22-to/sw",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Type",
+            "value": "Empty enclosure",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Description",
+            "value": "Empty enclosure, suitable for installation in harsh environments and in unprotected outdoor areas...",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Detailed Product Description",
+            "value": "with transparent door",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Dimensions",
+            "value": "400 x 500 x 226 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Material",
+            "value": "Polycarbonate, glass-fibre reinforced ; Polycarbonate; Silicone",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Protection",
+            "value": "IP66/IP67/IP69",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Impact Strength",
+            "value": "IK09",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Weight",
+            "value": "3.71 kg",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Width",
+            "value": "400 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Length",
+            "value": "500 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Height",
+            "value": "226 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Rated Insulation Voltage AC",
+            "value": "1000 V AC",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Rated Insulation Voltage DC",
+            "value": "1500 V DC",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Min. ambient temperature",
+            "value": "-35 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Max. ambient temperature",
+            "value": "80 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Base unit colour",
+            "value": "black",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Base unit material",
+            "value": "Polycarbonate, glass-fibre reinforced",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "EAN",
+            "value": "4013902679553",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "ETIM Class",
+            "value": "EC000261",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Customs Tariff Number",
+            "value": "85389099",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "400 x 500 x 226 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Productnumber: 74174501",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "similar to RAL 9005, Cover: Polycarbonate",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "GEOS-L 4050-22-to/sw data sheet",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Productnumber",
+            "value": "74174501",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dimensions: 400",
+            "value": "x 500 x 226 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "similar to RAL",
+            "value": "9005, Cover: Polycarbonate",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "GEOS-L 4050-22-to/sw data sheet",
+            "url": "https://www.spelsberg.com/p/74174501.pdf",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\documents\\74174501-datasheet-GEOS-L-4050-22-to-sw-data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "GEOS-L 4050-22-to/sw product image",
+            "url": "https://www.spelsberg.com/_pim_images/74174501/PHO_PRO_74174501_AWEBM_V1.jpg",
+            "sourceUrl": "https://www.spelsberg.com/p/74174501",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\images\\SPE.74174501.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://ng1o3mb1ni-dsn.algolia.net/1/indexes/els_articles_en/query",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "parserVersion": "spelsberg-v1",
+            "fetchedAt": "2026-10-19T13:30:03.491Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.spelsberg.com/p/74174501.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T13:30:11.985Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "spelsberg-algolia",
+              "url": "https://www.spelsberg.com/p/74174501",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "spelsberg-algolia",
+              "statusCode": 200,
+              "attributeCount": 22,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "spelsberg",
+      "catalogNumber": "74910001",
+      "caseType": "electrical",
+      "expectedDeviceType": "Meter Housing",
+      "actualDeviceType": "Meter Housing",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "spelsberg-batch-02",
+        "meter-housing"
+      ],
+      "status": "found",
+      "confidence": 0.58,
+      "elapsedMs": 7659,
+      "scrapeElapsedMs": 72,
+      "productUrl": "https://www.spelsberg.com/p/74910001",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\pdt\\spelsberg-74910001-pdt_pdt-audit.json",
+      "pdtWrittenCells": 32,
+      "pdtBlankCells": 56,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "ZKi 100",
+        "description": "Meter enclosure, with transparent cover, standard version sealable, with mounted meter cross and ...",
+        "productUrl": "https://www.spelsberg.com/p/74910001",
+        "localizedUrls": {
+          "en": "https://www.spelsberg.com/p/74910001"
+        },
+        "deviceTypeClassification": {
+          "type": "Meter Housing",
+          "confidence": 0.99,
+          "evidence": "Family ZKi (Spelsberg ZKi meter housings)",
+          "alternatives": [
+            {
+              "type": "Enclosure",
+              "score": 1470,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Cover / Door Accessory",
+              "score": 1320,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 2125
+        },
+        "normalized": {
+          "weight": "2.8 kg",
+          "dimensions": "250 x 520 x 193 mm",
+          "material": "Polycarbonate",
+          "color": "transparent",
+          "voltage": "400 V AC",
+          "protection": "IP54/IP65",
+          "operatingTemperatureMin": "-35",
+          "operatingTemperatureMax": "80"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Article Number",
+            "value": "74910001",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Name",
+            "value": "ZKi 100",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Type",
+            "value": "Meter housing",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Description",
+            "value": "Meter enclosure, with transparent cover, standard version sealable, with mounted meter cross and ...",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Detailed Product Description",
+            "value": "for tri-phase counter",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Dimensions",
+            "value": "250 x 520 x 193 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Material",
+            "value": "Polycarbonate; Polycarbonate; Polyurethane",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Protection",
+            "value": "IP54/IP65",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Impact Strength",
+            "value": "IK08",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Weight",
+            "value": "2.8 kg",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Width",
+            "value": "250 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Length",
+            "value": "520 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Height",
+            "value": "193 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Rated Operating Voltage AC",
+            "value": "400 V AC",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Min. ambient temperature",
+            "value": "-35 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Max. ambient temperature",
+            "value": "80 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Base unit material",
+            "value": "Polycarbonate",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "EAN",
+            "value": "4013902941315",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "ETIM Class",
+            "value": "EC000248",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Customs Tariff Number",
+            "value": "85389099",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "250 x 520 x 193 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Productnumber: 74910001",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "ZKi 100 data sheet",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Productnumber",
+            "value": "74910001",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dimensions: 250",
+            "value": "x 520 x 193 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "ZKi 100 data sheet",
+            "url": "https://www.spelsberg.com/p/74910001.pdf",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\documents\\74910001-datasheet-ZKi-100-data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "ZKi 100 product image",
+            "url": "https://www.spelsberg.com/_pim_images/74910001/PHO_PRO_74910001_AWEBM_V1.jpg",
+            "sourceUrl": "https://www.spelsberg.com/p/74910001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\images\\SPE.74910001.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://ng1o3mb1ni-dsn.algolia.net/1/indexes/els_articles_en/query",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "parserVersion": "spelsberg-v1",
+            "fetchedAt": "2026-10-19T13:30:13.561Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.spelsberg.com/p/74910001.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T13:30:20.216Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "spelsberg-algolia",
+              "url": "https://www.spelsberg.com/p/74910001",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "spelsberg-algolia",
+              "statusCode": 200,
+              "attributeCount": 20,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "spelsberg",
+      "catalogNumber": "98210101",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Installation Housing",
+      "actualDeviceType": "Installation Housing",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "spelsberg-batch-02",
+        "concrete-installation-housing"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 8088,
+      "scrapeElapsedMs": 59,
+      "productUrl": "https://www.spelsberg.com/p/98210101",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\pdt\\spelsberg-98210101-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 56,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "IBTLED 1-O",
+        "description": "Installation housing, for prefabricated construction, halogen-free, for the installation of LV/HV...",
+        "productUrl": "https://www.spelsberg.com/p/98210101",
+        "localizedUrls": {
+          "en": "https://www.spelsberg.com/p/98210101"
+        },
+        "deviceTypeClassification": {
+          "type": "Installation Housing",
+          "confidence": 0.99,
+          "evidence": "Family IBTLED (Spelsberg concrete-installation housings)",
+          "scoreMargin": 3585
+        },
+        "normalized": {
+          "weight": "0.318 kg",
+          "dimensions": "177 x 200 x 125 mm",
+          "material": "Polypropylene",
+          "color": "grey",
+          "protection": "IP30",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "60"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Article Number",
+            "value": "98210101",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Name",
+            "value": "IBTLED 1-O",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Type",
+            "value": "Installation housing",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Description",
+            "value": "Installation housing, for prefabricated construction, halogen-free, for the installation of LV/HV...",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Detailed Product Description",
+            "value": "maximum installation depth 100 mm, additional insertions 2 x to M40, adh...",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Dimensions",
+            "value": "177 x 200 x 125 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Material",
+            "value": "Polypropylene; Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Protection",
+            "value": "IP30",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Weight",
+            "value": "0.318 kg",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Width",
+            "value": "177 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Length",
+            "value": "200 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Height",
+            "value": "125 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Rated Insulation Voltage AC",
+            "value": "400 V AC",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Min. ambient temperature",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Max. ambient temperature",
+            "value": "60 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Base unit colour",
+            "value": "grey",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Base unit material",
+            "value": "Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "EAN",
+            "value": "4013902607891",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "ETIM Class",
+            "value": "EC000414",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Customs Tariff Number",
+            "value": "39269097",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated insulation voltage",
+            "value": "400V AC",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Weight",
+            "value": "0.318 kg",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "100 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "115 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Length",
+            "value": "100 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "177 x 200 x 125 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Productnumber: 98210101",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "the installation of VDE-tested lights to DIN EN",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "60598 (VDE 0711), and with F or MM marking,",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "protection class IP30, rated insulation voltage: 400V",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "IBTLED 1-O data sheet",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Productnumber",
+            "value": "98210101",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dimensions: 177",
+            "value": "x 200 x 125 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Protection class",
+            "value": "IP30, rated insulation voltage: 400V",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "maximum installation",
+            "value": "depth 100 mm, additional",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Inner length:",
+            "value": "100 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Inner width:",
+            "value": "100 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Inner height:",
+            "value": "115 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Weight: 0.318",
+            "value": "kg",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "IBTLED 1-O data sheet",
+            "url": "https://www.spelsberg.com/p/98210101.pdf",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\documents\\98210101-datasheet-IBTLED-1-O-data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "IBTLED 1-O product image",
+            "url": "https://www.spelsberg.com/_pim_images/98210101/PHO_PRO_98210101_AWEBM_V1.jpg",
+            "sourceUrl": "https://www.spelsberg.com/p/98210101",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\images\\SPE.98210101.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://ng1o3mb1ni-dsn.algolia.net/1/indexes/els_articles_en/query",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "parserVersion": "spelsberg-v1",
+            "fetchedAt": "2026-10-19T13:30:21.469Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.spelsberg.com/p/98210101.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T13:30:28.566Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "spelsberg-algolia",
+              "url": "https://www.spelsberg.com/p/98210101",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "spelsberg-algolia",
+              "statusCode": 200,
+              "attributeCount": 20,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "spelsberg",
+      "catalogNumber": "63510001",
+      "caseType": "electrical",
+      "expectedDeviceType": "Terminal Block Enclosure",
+      "actualDeviceType": "Terminal Block Enclosure",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "spelsberg-batch-02",
+        "series-terminal-enclosure"
+      ],
+      "status": "found",
+      "confidence": 0.57,
+      "elapsedMs": 8208,
+      "scrapeElapsedMs": 125,
+      "productUrl": "https://www.spelsberg.com/p/63510001",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\pdt\\spelsberg-63510001-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 58,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "RKi 4/100-100x4²",
+        "description": "Terminal block enclosure, protection class IP54/IP66, nominal cross-section 4 mm², Ui=400V AC, Po...",
+        "productUrl": "https://www.spelsberg.com/p/63510001",
+        "localizedUrls": {
+          "en": "https://www.spelsberg.com/p/63510001"
+        },
+        "deviceTypeClassification": {
+          "type": "Terminal Block Enclosure",
+          "confidence": 0.99,
+          "evidence": "Family RKi (Spelsberg series terminal enclosures)",
+          "alternatives": [
+            {
+              "type": "Enclosure",
+              "score": 1580,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Terminal Block",
+              "score": 1570,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 2010
+        },
+        "normalized": {
+          "weight": "2.74 kg",
+          "dimensions": "360 x 254 x 111 mm",
+          "material": "Polycarbonate",
+          "protection": "IP54/IP66",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "40"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Article Number",
+            "value": "63510001",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Name",
+            "value": "RKi 4/100-100x4²",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Type",
+            "value": "Terminal block enclosure",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Description",
+            "value": "Terminal block enclosure, protection class IP54/IP66, nominal cross-section 4 mm², Ui=400V AC, Po...",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Detailed Product Description",
+            "value": "equipped with 100 screw terminals 4mm², (type Weidmüller WDU 4)",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Dimensions",
+            "value": "360 x 254 x 111 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Material",
+            "value": "Polycarbonate; Polycarbonate; Polyurethane",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Protection",
+            "value": "IP54/IP66",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Impact Strength",
+            "value": "IK08",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Weight",
+            "value": "2.74 kg",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Width",
+            "value": "360 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Length",
+            "value": "254 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Height",
+            "value": "111 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Rated Insulation Voltage AC",
+            "value": "400 V AC",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Min. ambient temperature",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Max. ambient temperature",
+            "value": "40 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Base unit material",
+            "value": "Polycarbonate",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "EAN",
+            "value": "4013902573202",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "ETIM Class",
+            "value": "EC002713",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Customs Tariff Number",
+            "value": "85369095",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "360 x 254 x 111 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Productnumber: 63510001",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "RKi 4/100-100x4² data sheet",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Productnumber",
+            "value": "63510001",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dimensions: 360",
+            "value": "x 254 x 111 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Terminal block enclosure, protection",
+            "value": "class",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "RKi 4/100-100x4² data sheet",
+            "url": "https://www.spelsberg.com/p/63510001.pdf",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\documents\\63510001-datasheet-RKi-4-100-100x4²-data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "RKi 4/100-100x4² product image",
+            "url": "https://www.spelsberg.com/_pim_images/63510001/PHO_PRO_61510001_AWEBM_V1.jpg",
+            "sourceUrl": "https://www.spelsberg.com/p/63510001",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\images\\SPE.63510001.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://ng1o3mb1ni-dsn.algolia.net/1/indexes/els_articles_en/query",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "parserVersion": "spelsberg-v1",
+            "fetchedAt": "2026-10-19T13:30:29.840Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.spelsberg.com/p/63510001.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T13:30:37.052Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "spelsberg-algolia",
+              "url": "https://www.spelsberg.com/p/63510001",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "spelsberg-algolia",
+              "statusCode": 200,
+              "attributeCount": 20,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "spelsberg",
+      "catalogNumber": "36140701",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Channel Installation Box",
+      "actualDeviceType": "Channel Installation Box",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "spelsberg-batch-02",
+        "channel-installation-box"
+      ],
+      "status": "found",
+      "confidence": 0.67,
+      "elapsedMs": 10713,
+      "scrapeElapsedMs": 2431,
+      "productUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\pdt\\spelsberg-36140701-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
+      "pdtBlankCells": 54,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "KD 1 70/47 F2 gn",
+        "description": "Channel installation box KD 1 70/47 F2 gn (36140701) for installation in Niedax wall trunkings/device installation ducts",
+        "productUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+        "localizedUrls": {
+          "en": "https://www.spelsberg.com/product-finder/?query=36140701",
+          "de": "https://www.spelsberg.de/produktfinder/?query=36140701"
+        },
+        "deviceTypeClassification": {
+          "type": "Channel Installation Box",
+          "confidence": 0.99,
+          "evidence": "Family KD 1 (Spelsberg channel installation boxes)",
+          "scoreMargin": 3580
+        },
+        "normalized": {
+          "weight": "0.0445 kg",
+          "dimensions": "80 x 79 x 47 mm",
+          "material": "Polypropylene",
+          "color": "grey",
+          "voltage": "400 V AC, certified by VDE (DIN EN 50085-1 (VDE 0604-1))",
+          "certificates": "CE, UKCA, VDE",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "40"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "VDE",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "CE",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "UKCA",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Channel installation box KD 1 70/47 F1 gr Productnumber 36110701",
+            "name": "Channel installation box",
+            "value": "KD 1 70/47 F1 gr | Productnumber 36110701",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Channel installation box KD 2 70/44 F1 gr Productnumber 36210401",
+            "name": "Channel installation box",
+            "value": "KD 2 70/44 F1 gr | Productnumber 36210401",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Channel installation box KD 2 70/44 F2 gn Productnumber 36240401",
+            "name": "Channel installation box",
+            "value": "KD 2 70/44 F2 gn | Productnumber 36240401",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Description",
+            "name": "Channel installation box, rated insulation voltage",
+            "value": "400V AC, certified by VDE (DIN EN 50085-1 (VDE 0604-1))",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "24h ambient temperature",
+            "value": "35 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Base unit material",
+            "value": "Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Cover colour",
+            "value": "grey",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Cover material",
+            "value": "Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "EAN",
+            "value": "4013902031481",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Height",
+            "value": "47 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Installation location",
+            "value": "Indoors",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Length",
+            "value": "79 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Max. ambient temperature",
+            "value": "40 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "max. relative humidity 25°C",
+            "value": "100 %",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "max. relative humidity 40°C",
+            "value": "50 %",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Min. ambient temperature",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Minimum order quantity",
+            "value": "40",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Rated insulation voltage AC",
+            "value": "400 V",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Weight",
+            "value": "0.0445 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "electrical characteristics",
+            "name": "Width",
+            "value": "80 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated insulation voltage",
+            "value": "400V AC",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated insulation voltage",
+            "value": "400 V",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Channel installation box KD 1 70/47 F2 gn (36140701) for installation in Niedax wall trunkings/device installation ducts",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Ambient temperature",
+            "value": "25 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Ambient temperature",
+            "value": "40 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Ambient temperature",
+            "value": "35 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "47 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Length",
+            "value": "79 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "0.0445 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "2.075 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "167.4 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "80 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Channel installation box",
+            "value": "KD 1 70/47 F1 gr | Productnumber 36110701",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Channel installation box",
+            "value": "KD 2 70/44 F1 gr | Productnumber 36210401",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Channel installation box",
+            "value": "KD 2 70/44 F2 gn | Productnumber 36240401",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Channel installation box, rated insulation voltage",
+            "value": "400V AC, certified by VDE (DIN EN 50085-1 (VDE 0604-1))",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text",
+            "name": "Channel installation box, rated insulation voltage",
+            "value": "400V AC, certified by VDE (DIN EN 50085-1 (VDE 0604-1))",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text",
+            "name": "Dimensions",
+            "value": "80 x 79 x 47 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text",
+            "name": "Weight",
+            "value": "0.0445 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Dimensions",
+            "value": "80 x 79 x 47 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "GTIN",
+            "value": "4013902339662",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "GTIN",
+            "value": "4013902339679",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "GTIN",
+            "value": "4013902031481",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Voltage",
+            "value": "400V AC, certified by VDE (DIN EN 50085-1 (VDE 0604-1))",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Article Number",
+            "value": "36140701",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Customs Tariff Number",
+            "value": "39269097",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Description",
+            "value": "Channel installation box, rated insulation voltage: 400V AC, certified by VDE (DIN EN 50085-1 (VD...",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Detailed Product Description",
+            "value": "for installation in Niedax wall trunking/device installation ducts",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Dimensions",
+            "value": "80 x 79 x 47 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "EAN",
+            "value": "4013902031481",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "ETIM Class",
+            "value": "EC000073",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Name",
+            "value": "KD 1 70/47 F2 gn",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Product Finder",
+            "name": "Product Type",
+            "value": "Channel installation box",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Base unit material",
+            "value": "Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Height",
+            "value": "47 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Length",
+            "value": "79 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Material",
+            "value": "Polypropylene; Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Max. ambient temperature",
+            "value": "40 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Min. ambient temperature",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Rated Insulation Voltage AC",
+            "value": "400 V AC",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Weight",
+            "value": "0.0445 kg",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Spelsberg Technical Data",
+            "name": "Width",
+            "value": "80 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72
+          },
+          {
+            "group": "Table",
+            "name": "24h ambient temperature",
+            "value": "35 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Base unit material",
+            "value": "Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Cover colour",
+            "value": "grey",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Cover material",
+            "value": "Polypropylene",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Custom tariff number",
+            "value": "39269097",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Depth",
+            "value": "0.31 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Depth",
+            "value": "1.2 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Depth",
+            "value": "0.079 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "EAN",
+            "value": "4013902031481",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "EAN / GTIN",
+            "value": "4013902339662",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "EAN / GTIN",
+            "value": "4013902339679",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "EAN / GTIN",
+            "value": "4013902031481",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "ETIM Class",
+            "value": "EC000073",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Height",
+            "value": "47 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Height",
+            "value": "0.142 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Height",
+            "value": "1.84 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Height",
+            "value": "0.047 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Installation location",
+            "value": "Indoors",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Length",
+            "value": "79 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Max. ambient temperature",
+            "value": "40 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "max. relative humidity 25°C",
+            "value": "100 %",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "max. relative humidity 40°C",
+            "value": "50 %",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Min. ambient temperature",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Minimum order quantity",
+            "value": "40",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Quantity",
+            "value": "40 pieces",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Quantity",
+            "value": "2880 pieces",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Quantity",
+            "value": "1 pieces",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Rated insulation voltage AC",
+            "value": "400 V",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Test mark",
+            "value": "VDE (DIN EN 50085-1 (VDE 0604-1))",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Weight",
+            "value": "0.0445 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Weight",
+            "value": "2.075 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Weight",
+            "value": "167.4 kg",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Width",
+            "value": "80 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Width",
+            "value": "0.382 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Width",
+            "value": "0.8 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Table",
+            "name": "Width",
+            "value": "0.08 m",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Text",
+            "name": "#36140701 | Dimensions",
+            "value": "80 x 79 x 47 mm",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "Text",
+            "name": "Channel installation box, rated insulation voltage",
+            "value": "400V AC, certified by VDE (DIN EN 50085-1 (VDE 0604-1))",
+            "sourceUrl": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "stage": "spelsberg-product-page",
+            "confidence": 0.82
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "80 x 79 x 47 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Productnumber: 36140701",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "KD 1 70/47 F2 gn data sheet",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Channel installation",
+            "value": "box",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Productnumber",
+            "value": "36140701",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dimensions: 80",
+            "value": "x 79 x 47 mm",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Channel installation",
+            "value": "box, rated insulation voltage:",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "KD 1 70/47 F2 gn data sheet",
+            "url": "https://www.spelsberg.com/p/36140701.pdf",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\documents\\36140701-datasheet-KD-1-70-47-F2-gn-data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "KD 1 70/47 F2 gn product image",
+            "url": "https://www.spelsberg.com/_pim_images/36140701/PHO_PRO_36140701_AWEBM_V1.jpg",
+            "sourceUrl": "https://www.spelsberg.com/p/36140701",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "confidence": 0.72,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019133002\\images\\SPE.36140701.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-product-page",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T13:30:40.103Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://ng1o3mb1ni-dsn.algolia.net/1/indexes/els_articles_en/query",
+            "sourceType": "official-fallback",
+            "parser": "spelsberg-algolia",
+            "parserVersion": "spelsberg-v1",
+            "fetchedAt": "2026-10-19T13:30:38.286Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.spelsberg.com/p/36140701.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T13:30:47.435Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "spelsberg-product-page",
+              "url": "https://www.spelsberg.com/channelsockets/front-mounted/36140701/",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "spelsberg-product-page",
+              "statusCode": 200,
+              "attributeCount": 103,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
