@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import type { DocumentRecord, FallbackSourceConfig, ProductResult } from "../../shared/types.js";
+import type { AttributeRecord, DocumentRecord, FallbackSourceConfig, ProductResult } from "../../shared/types.js";
 import type { ManufacturerConnector, ScrapeContext } from "./types.js";
 import { dedupeDocuments } from "./dedupe.js";
 import { scrapeDiscoveredFallback, withDiscoveryFallbackDiagnostics } from "./discovery-fallback.js";
@@ -17,6 +17,11 @@ const SCHMERSAL_PAGE_HTML_BY_CATALOG = new Map<string, string>();
 // crawler and can consume the whole fixture timeout. This is the exact official PDP discovered
 // during the cold audit; keep it bounded and scoped to the reproduced article.
 const SCHMERSAL_DETERMINISTIC_DETAIL_URLS: Record<string, string> = {
+  "153031612": `${SCHMERSAL_BASE_URL}/en_IN/rs655-z22-153031612`,
+  "103056630": `${SCHMERSAL_BASE_URL}/en_CH/psc1-c-10-103056630`,
+  "101197191": `${SCHMERSAL_BASE_URL}/en_IO/sve1100-24vdc-101197191`,
+  "151155141": `${SCHMERSAL_BASE_URL}/en_IO/tv8s-335-11z-m20-151155141`,
+  "103037576": `${SCHMERSAL_BASE_URL}/en_IN/srb101exi-1a-103037576`,
   "101160101": `${SCHMERSAL_BASE_URL}/en_US/tq-441-0101y-ue-m20-101160101`,
   "103039599": `${SCHMERSAL_BASE_URL}/en_IO/slc440-er-1930-14-h1-103039599`,
   "103005740": `${SCHMERSAL_BASE_URL}/en_IO/tesk-sa-11l1-3m-103005740`,
@@ -128,7 +133,12 @@ export class SchmersalConnector implements ManufacturerConnector {
         const heading = cleanText(fetched.text.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i)?.[1]?.replace(/<[^>]+>/g, " "));
         if (exactPath && heading && fetched.text.includes(catalogNumber.trim())) {
           baseResult = parseGenericProductPage(this.id, catalogNumber, fetched, "official-fallback", "Schmersal product page");
-          baseResult = { ...baseResult, title: heading, productUrl: deterministicUrl };
+          baseResult = {
+            ...baseResult,
+            title: heading,
+            productUrl: deterministicUrl,
+            attributes: [...baseResult.attributes, ...extractSchmersalPdpAttributes(fetched.text, deterministicUrl)]
+          };
         }
       } catch {
         // Fall through to the established exact-source fallback below.
@@ -707,6 +717,41 @@ export function extractSchmersalPageData(rawHtml: string): SchmersalPageData | u
   } catch {
     return undefined;
   }
+}
+
+export function extractSchmersalPdpAttributes(rawHtml: string, sourceUrl: string): AttributeRecord[] {
+  const page = extractSchmersalPageData(rawHtml);
+  if (!page) return [];
+  const attributes: AttributeRecord[] = [];
+  for (const group of page.dataTabGroups) {
+    const properties = group.properties;
+    if (!Array.isArray(properties)) continue;
+    for (const rawProperty of properties) {
+      if (!rawProperty || typeof rawProperty !== "object") continue;
+      const property = rawProperty as { groupName?: unknown; values?: unknown; unit?: unknown };
+      const name = cleanText(String(property.groupName ?? "").replace(/<[^>]*>/g, " "));
+      const values = Array.isArray(property.values)
+        ? property.values.map((value) => cleanText(String(value ?? ""))).filter(Boolean)
+        : [];
+      if (!name || values.length === 0) continue;
+      const unit = cleanText(String(property.unit ?? ""));
+      const value = uniqueStringsBase(values).join(" / ");
+      attributes.push({
+        group: group.technicalName,
+        name,
+        value,
+        ...(unit ? { unit } : {}),
+        sourceUrl,
+        sourceType: "official-fallback",
+        parser: "Schmersal product page data tabs",
+        stage: "exact-product-page",
+        confidence: 0.99,
+        scope: "variant",
+        matchLevel: "exact"
+      });
+    }
+  }
+  return attributes;
 }
 
 function extractSchmersalDetailUrl(rawHtml: string, baseUrl: string, catalogNumber: string): string | undefined {

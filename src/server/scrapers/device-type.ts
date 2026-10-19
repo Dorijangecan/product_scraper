@@ -127,6 +127,9 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Vision Sensor", /\b(?:vision\s+sensor|smart\s*camera|industrial camera|machine vision)\b/i, 860),
   rule("RFID Device", /\b(?:rfid|read\/write\s+head|read[-\s]?write\s+head|(?:hf|uhf)\s+(?:reader|antenna|read\/write)|13\.56\s*mhz|rfid\s+(?:reader|antenna|transponder))\b/i, 850),
   rule("Safety Light Curtain", /\b(?:safety\s+)?light\s+curtains?\b/i, 890),
+  rule("Safety Hinge Switch", /\b(?:safety\s+hinge\s+switch(?:es)?|hinge\s+safety\s+switch(?:es)?)\b/i, 1010),
+  rule("Pull-wire Emergency Stop Switch", /\bpull[-\s]?wire\s+emergency[-\s]?stop\s+switch(?:es)?\b/i, 1040),
+  rule("Key Transfer Switch", /\b(?:key[-\s]?transfer\s+system|key[-\s]?selector\s+switch(?:\s+interlocking\s+(?:equipment|device))?)\b/i, 1010),
   rule("Flow Sensor", /\bflow\s+(?:sensor|meter|switch|transmitter|rate\s+(?:measurement|monitoring))\b/i, 845),
   rule("Level Sensor", /\b(?:level\s+(?:sensor|switch|transmitter)|float switch)\b/i, 843),
   rule("Encoder", /\b(?:rotary encoders?|absolute encoders?|incremental encoders?|encoders?)\b/i, 840),
@@ -576,6 +579,11 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
   }
 
   if (hasExactSchneiderSafetyControllerEvidence(result)) byType.delete("Safety Relay");
+  if (hasExactSchmersalSafetyControllerEvidence(result)) byType.delete("Programmable Logic Controller");
+  if (hasExactSchmersalSafetyHingeSwitchEvidence(result)) {
+    byType.delete("Sensor");
+    byType.delete("Limit Switch");
+  }
 
   // Some Eaton MCCB pages publish the generic taxonomy row "Type: Circuit breaker" next to an
   // exact product name that explicitly says "molded case circuit breaker". Preserve the specific
@@ -624,6 +632,24 @@ function hasExactSchneiderSafetyControllerEvidence(result: ProductResult): boole
     /^(?:product or component type|description)$/i.test(attribute.name.trim()) &&
     /\bsafety controller cpu\b/i.test(attribute.value)
   );
+}
+
+function hasExactSchmersalSafetyControllerEvidence(result: ProductResult): boolean {
+  const exactUrl = result.productUrl ?? result.localizedUrls?.en;
+  if (result.manufacturerId !== "schmersal" || !exactUrl || !catalogTextMatches(exactUrl, result.catalogNumber)) return false;
+  return /\bPSC1(?:-C)?-/i.test(`${result.catalogNumber} ${result.title ?? ""}`) &&
+    result.attributes.some((attribute) =>
+      attribute.parser === "schmersal-product-page" &&
+      Boolean(attribute.sourceUrl && catalogTextMatches(attribute.sourceUrl, result.catalogNumber)) &&
+      /^(?:product type description|product type|description)$/i.test(attribute.name.trim()) &&
+      /\bPSC1\b/i.test(attribute.value)
+    );
+}
+
+function hasExactSchmersalSafetyHingeSwitchEvidence(result: ProductResult): boolean {
+  const exactUrl = result.productUrl ?? result.localizedUrls?.en;
+  return result.manufacturerId === "schmersal" && Boolean(exactUrl && catalogTextMatches(exactUrl, result.catalogNumber)) &&
+    /\bTV8S\b/i.test(`${result.catalogNumber} ${result.title ?? ""}`);
 }
 
 const deviceTypeClassificationCache = new WeakMap<ProductResult, DeviceTypeClassification>();

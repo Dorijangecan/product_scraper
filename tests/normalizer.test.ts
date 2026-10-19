@@ -23,6 +23,42 @@ describe("splitNameValue (Phase A4)", () => {
 });
 
 describe("normalizer", () => {
+  it("does not treat Schmersal pull-wire travel as the device envelope", () => {
+    const normalized = normalizeFields([
+      { group: "Ordering data", name: "Article number (order number)", value: "153031612", sourceUrl: "https://products.schmersal.com/en_IO/rs655-z22-153031612", sourceType: "official", parser: "schmersal-product-page" },
+      { group: "General data", name: "Length of the wire, maximum", value: "100 m", sourceUrl: "https://products.schmersal.com/en_IO/rs655-z22-153031612", sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Features", name: "Feature", value: "two-side operation / wire up to 2 x 100 m", sourceUrl: "https://products.schmersal.com/en_IO/rs655-z22-153031612", sourceType: "official", parser: "schmersal-product-page" }
+    ], [], "schmersal");
+
+    expect(normalized.dimensions).toBeUndefined();
+  });
+
+  it("uses Schmersal exact-model control voltage and relay supply consumption", () => {
+    const relayUrl = "https://products.schmersal.com/en_IN/srb101exi-1a-103037576";
+    const relay = normalizeFields([
+      { group: "Ordering data", name: "Article number (order number)", value: "103037576", sourceUrl: relayUrl, sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Electrical data", name: "Current consumption", value: "57 mA", sourceUrl: relayUrl, sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Electrical data", name: "Current, Utilisation category AC-15", value: "2 A", sourceUrl: relayUrl, sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Electrical data", name: "Rated operating current (safety outputs)", value: "2,000 mA", sourceUrl: relayUrl, sourceType: "official", parser: "schmersal-product-page" }
+    ], [], "schmersal");
+    const keySwitchUrl = "https://products.schmersal.com/en_IO/sve1100-24vdc-101197191";
+    const keySwitch = normalizeFields([
+      { group: "Ordering data", name: "Article number (order number)", value: "101197191", sourceUrl: keySwitchUrl, sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Electrical data", name: "Rated control voltage", value: "24 VDC", sourceUrl: keySwitchUrl, sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Electrical data", name: "Rated voltage", value: "24 VDC / 24 VAC", sourceUrl: keySwitchUrl, sourceType: "official", parser: "schmersal-product-page" }
+    ], [], "schmersal");
+    const pullWireUrl = "https://products.schmersal.com/en_IN/rs655-z22-153031612";
+    const pullWire = normalizeFields([
+      { group: "Ordering data", name: "Article number (order number)", value: "153031612", sourceUrl: pullWireUrl, sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Electrical data", name: "Utilisation category AC-15", value: "230 VAC", sourceUrl: pullWireUrl, sourceType: "official", parser: "schmersal-product-page" },
+      { group: "Electrical data", name: "Utilisation category AC-15", value: "3 A", sourceUrl: pullWireUrl, sourceType: "official", parser: "schmersal-product-page" }
+    ], [], "schmersal");
+
+    expect(relay.current).toBe("57 mA");
+    expect(keySwitch.voltage).toBe("24 V DC");
+    expect(pullWire.voltage).toBe("230 V AC");
+  });
+
   it("uses ETA's rated-current range instead of the 2-6500 locked-rotor ceiling", () => {
     const normalized = normalizeFields([
       { group: "PDF Electrical Text", name: "Rated current", value: "max. 30 A", sourceType: "generated", parser: "pdf-table-extractor", matchLevel: "exact" },

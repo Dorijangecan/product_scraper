@@ -1,0 +1,63 @@
+[
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "153031612",
+    "caseType": "electrical",
+    "expectedDeviceType": "Pull-wire Emergency Stop Switch",
+    "riskTags": ["cold", "pull-wire", "emergency-stop", "two-sided", "100m-wire", "exact-image"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/rs655-z22-153031612"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["RS655-Z22", "wire pull and breakage detection", "IP66", "IP67", "2 x 100 m", "6,140 g", "Grey cast iron", "Number of safety contacts.*2", "-40", "70 °C", "230 VAC", "3 A"],
+    "expectedNormalizedFields": ["weight", "protection"],
+    "expectedBlankNormalizedFields": ["dimensions"],
+    "expectedNormalizedPatterns": {"weight": "6140|6[,. ]?14", "protection": "IP66.*IP67|IP67.*IP66"}
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103056630",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Controller",
+    "riskTags": ["cold", "safety-controller", "modular", "14-safe-inputs", "64-io", "exact-image"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/psc1-c-10-103056630"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["PSC1-C-10", "490 g", "45 mm", "100 mm", "115 mm", "IP20", "24 VDC", "14", "4 safe", "2 A", "Performance Level, up to.*e", "Category.*4"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage"],
+    "expectedNormalizedPatterns": {"weight": "490", "voltage": "24", "dimensions": "45.*100.*115|100.*45.*115"}
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "101197191",
+    "caseType": "electrical",
+    "expectedDeviceType": "Key Transfer Switch",
+    "riskTags": ["cold", "key-selector", "key-transfer", "electromagnetic-lock", "24vdc", "exact-image"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/sve1100-24vdc-101197191"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["SVE1/100-24VDC", "Key-operated selector switch", "IP65", "Thermoplastic enclosure"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "protection"],
+    "expectedNormalizedPatterns": {"weight": "750", "dimensions": "169.*96.*144|96.*169.*144", "voltage": "24 V? ?DC", "protection": "IP20.*IP65|IP65.*IP20"}
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "151155141",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Hinge Switch",
+    "riskTags": ["cold", "hinge-safety-switch", "oil-resistant", "metal-enclosure", "exact-image"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/tv8s-335-11z-m20-151155141"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["TV8S 335-11Z-M20", "40.5 mm", "107 mm", "65.3 mm", "265 g", "IP67", "-25", "70 °C", "230 VAC", "4 A", "24 VDC"],
+    "expectedNormalizedFields": ["weight", "dimensions", "protection"],
+    "expectedNormalizedPatterns": {"weight": "265", "protection": "IP67", "dimensions": "40.5.*107.*65.3|107.*40.5.*65.3"}
+  },
+  {
+    "manufacturerId": "schmersal",
+    "catalogNumber": "103037576",
+    "caseType": "electrical",
+    "expectedDeviceType": "Safety Relay",
+    "riskTags": ["cold", "ex-zone-2", "atex", "safety-relay", "24vdc", "57ma", "exact-image"],
+    "expectedOfficialUrlPatterns": ["products\\.schmersal\\.com/.*/srb101exi-1a-103037576"],
+    "requiredDocuments": ["image"],
+    "expectedAttributePatterns": ["SRB101EXi-1A", "24 VDC", "57 mA", "265 g", "22.5 mm", "100 mm", "121 mm", "IP40", "Ex-Zone 2", "ATEX", "1 safety contact"],
+    "expectedNormalizedFields": ["weight", "dimensions", "voltage", "current"],
+    "expectedNormalizedPatterns": {"weight": "265", "voltage": "24", "current": "57|0.057", "dimensions": "22.5.*100.*121|100.*22.5.*121"}
+  }
+]

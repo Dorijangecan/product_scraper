@@ -66,6 +66,39 @@ describe("device type classifier", () => {
     }
   });
 
+  it("classifies Schmersal controllers, pull-wire stops, key-transfer switches, and hinge switches by family", () => {
+    const cases = [
+      ["PSC1-C-10", "103056630", "Safety Controller", "PLC"],
+      ["RS655-Z22", "153031612", "Pull-wire Emergency Stop Switch", "safety sensor"],
+      ["SVE1/100-24VDC", "101197191", "Key Transfer Switch", "Switch"],
+      ["TV8S 335-11Z-M20", "151155141", "Safety Hinge Switch", "safety sensor"]
+    ] as const;
+    for (const [catalogNumber, articleNumber, expected, sheet] of cases) {
+      const productUrl = `https://products.schmersal.com/en_IO/${catalogNumber.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}-${articleNumber}`;
+      const attributes: ProductResult["attributes"] = [{
+        group: "Ordering data",
+        name: "Product type description",
+        value: catalogNumber,
+        sourceType: "official",
+        parser: "schmersal-product-page",
+        sourceUrl: productUrl
+      }];
+      if (expected === "Safety Controller") {
+        attributes.push({ group: "Taxonomy", name: "ETIM number, version 7.0", value: "EC000236" });
+      }
+      if (expected === "Safety Hinge Switch") {
+        attributes.push({ group: "Taxonomy", name: "ECLASS number, version 10.0", value: "27270609" });
+      }
+      const result = classifyDeviceType(product(attributes, catalogNumber, {
+        manufacturerId: "schmersal",
+        catalogNumber,
+        productUrl
+      }));
+      expect(result.type).toBe(expected);
+      expect(deviceSheetsFor(result.type)).toContain(sheet);
+    }
+  });
+
   it("separates common industrial hardware from the generic cover/door accessory type", () => {
     const cases = [
       ["Adjustable Leveling Foot", "Leveling Foot"],

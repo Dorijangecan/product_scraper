@@ -185,6 +185,10 @@ export const DEVICE_TYPE_FAMILIES: Record<string, readonly FamilyEntry[]> = {
     { patterns: ["73481501"], type: "Connector", notes: "Spelsberg AK STD 16 A mounting socket" }
   ],
   schmersal: [
+    { patterns: ["PSC1"], type: "Safety Controller", notes: "Schmersal modular safety controllers" },
+    { patterns: ["RS655", "RS656"], type: "Pull-wire Emergency Stop Switch", notes: "Schmersal two-sided pull-wire emergency-stop switches" },
+    { patterns: ["SVE"], type: "Key Transfer Switch", notes: "Schmersal key-selector interlocking devices" },
+    { patterns: ["TV8S"], type: "Safety Hinge Switch", notes: "Schmersal TV8S hinge safety switches" },
     { patterns: ["TQ"], type: "Safety Sensor", notes: "Schmersal pull-wire safety switches" },
     { patterns: ["EFM", "EFMH", "EFR", "T2FH", "T2F", "Z2FH", "Z2F", "TFH", "TF"], type: "Switch", notes: "Schmersal foot switches" },
     { patterns: ["SLC", "SLB"], type: "Safety Sensor", notes: "Schmersal safety light curtains and barriers" },

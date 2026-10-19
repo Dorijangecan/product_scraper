@@ -275,7 +275,7 @@ export function normalizeFields(attributes: AttributeRecord[], documents: Docume
   const combinedDimensionsAttr = attributes
     .filter((attr) => {
       const haystack = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-      if (manufacturerId === "schmersal" && /sensor chain/.test(haystack)) return false;
+      if (manufacturerId === "schmersal" && /sensor chain|\bwire\b/.test(haystack)) return false;
       // FIELD_LABEL_PATTERNS.dimensions matches on GROUP text too (e.g. "Rockwell Dimensions"), so
       // a bare single-axis attribute like name="Height" would otherwise ALSO qualify as a "combined
       // Dimensions string" candidate purely because it sits in a dimensions-named group — stealing
@@ -2602,7 +2602,7 @@ function bestDimensionAxisAttribute(attributes: AttributeRecord[], axis: "height
   return attributes
     .filter((attr) => {
       const label = `${attr.group ?? ""} ${attr.name}`.toLowerCase();
-      if (manufacturerId === "schmersal" && (/protection field|connectable cable|\bcable\b|sensor chain|\b(?:castor|roller)\b/.test(label) || /ontology spec text/i.test(attr.group ?? ""))) return false;
+      if (manufacturerId === "schmersal" && (/protection field|connectable cable|\bcable\b|\bwire\b|sensor chain|\b(?:castor|roller)\b/.test(label) || /ontology spec text/i.test(attr.group ?? ""))) return false;
       if (hasMeasuringLength && /^length$/i.test(attr.name.trim()) && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
       if (hasThreadLength && /^length$/i.test(attr.name.trim()) && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
       if (manufacturerId === "schneider" && hasPackageDimensions && /pdf ontology spec miner/i.test(attr.group ?? "")) return false;
@@ -3406,7 +3406,11 @@ function exactSchmersalPdpVoltage(attributes: AttributeRecord[], manufacturerId?
     /^rated operating voltage$/i,
     /^operating voltage$/i,
     /^supply voltage$/i,
+    /^rated control voltage$/i,
+    /^control voltage$/i,
     /^rated voltage$/i,
+    /^voltage,?\s*utili[sz]ation category ac-15$/i,
+    /^utili[sz]ation category ac-15$/i,
     /^voltage rating$/i,
     /^bemessungsbetriebsspannung$/i
   ];
@@ -3539,7 +3543,7 @@ function exactSchmersalNoLoadSupplyCurrent(attributes: AttributeRecord[], manufa
   // AC-15 is the primary switching rating for these contact devices. DC-13 remains available in
   // raw evidence when both categories are published. A single operating current is used for TQ;
   // safety light curtains expose separate emitter/receiver currents and must not be collapsed.
-  return exactCurrent(/^(?:no-load supply current\b|as-i current consumption\s*,?\s*maximum$)/i) ??
+  return exactCurrent(/^(?:no-load supply current\b|current consumption\b|as-i current consumption\s*,?\s*maximum$)/i) ??
     exactCurrent(/^(?:utilisation category ac-15|strom,\s*gebrauchskategorie ac-15)$/i) ??
     exactCurrent(/^(?:operating current|rated operating current|bemessungsbetriebsstrom)$/i) ??
     exactCurrent(/^(?:current,\s*)?utilisation category dc-13$/i);

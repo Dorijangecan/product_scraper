@@ -9,7 +9,7 @@ import { LappConnector, parseLappProduct } from "../src/server/scrapers/lapp.js"
 import { RockwellConnector } from "../src/server/scrapers/rockwell.js";
 import { SCEConnector } from "../src/server/scrapers/sce.js";
 import { ScameConnector } from "../src/server/scrapers/scame.js";
-import { SchmersalConnector } from "../src/server/scrapers/schmersal.js";
+import { SchmersalConnector, extractSchmersalPdpAttributes } from "../src/server/scrapers/schmersal.js";
 import { SchneiderConnector } from "../src/server/scrapers/schneider.js";
 import { SiemensConnector } from "../src/server/scrapers/siemens.js";
 import { SpelsbergConnector } from "../src/server/scrapers/spelsberg.js";
@@ -1390,5 +1390,31 @@ describe("manufacturer configuration", () => {
     // on quality failure to surface them for voltage/current/power/certificate enrichment.
     expect(turck?.scrapeRecipe?.fallbackPolicy?.browserOnQualityFailure).toBe(true);
     expect(turck?.scrapeRecipe?.fallbackPolicy?.maxBrowserAttempts).toBe(1);
+  });
+});
+
+describe("Schmersal PDP data-tab extraction", () => {
+  it("keeps exact product-page values, units, and source evidence", () => {
+    const html = JSON.stringify({
+      productId: "p-1",
+      dataTabGroups: [{
+        technicalName: "EXT_CAT_SAFE",
+        properties: [
+          { groupName: "Performance Level, up to", values: ["e"], unit: null },
+          { groupName: "Category", values: ["4"], unit: null },
+          { groupName: "Control voltage", values: ["24"], unit: "VDC" }
+        ]
+      }]
+    });
+    const sourceUrl = "https://products.schmersal.com/en_CH/psc1-c-10-103056630";
+    const attributes = extractSchmersalPdpAttributes(html, sourceUrl);
+
+    expect(attributes.map(({ name, value }) => [name, value])).toEqual([
+      ["Performance Level, up to", "e"],
+      ["Category", "4"],
+      ["Control voltage", "24"]
+    ]);
+    expect(attributes.every((attribute) => attribute.unit === undefined || attribute.unit === "VDC")).toBe(true);
+    expect(attributes.every((attribute) => attribute.sourceUrl === sourceUrl && attribute.scope === "variant" && attribute.matchLevel === "exact")).toBe(true);
   });
 });
