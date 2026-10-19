@@ -57,4 +57,4 @@ The same five products then passed two isolated cold runs. Each run found 5/5 ex
 | Cold 01 | 0.925 s | 0.940 s | 1.080 s | 7.754 s | 13.006 s |
 | Cold 02 | 0.863 s | 0.846 s | 1.003 s | 7.661 s | 13.578 s |
 
-Every core scrape is below the 2.5-second target. Full benchmark time also includes document downloads, PDF parsing, workbook generation, and PDT export. Reports: `../../benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-04.isolatedStorage-1.tag-eta-batch-04-pdf-type-domain-device-type-cold-01-20261019.json` and `../../benchmark-report.manufacturer-eta.limit-5.fixtureDir-benchmarks-eta-accuracy-speed-20261015-batch-04.isolatedStorage-1.tag-eta-batch-04-pdf-type-domain-device-type-cold-02-20261019.json`.
+Every core scrape is below the 2.5-second target. Full benchmark time also includes document downloads, PDF parsing, workbook generation, and PDT export. Reports: [cold 01](report-cold-01.json) and [cold 02](report-cold-02.json).
