@@ -33,6 +33,24 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   const candidates = buildFieldCandidates(result);
   const resolutions = buildFieldResolutions(candidates);
   const normalized = { ...result.normalized };
+  // Wöhner publishes conductor/lamella thickness for busbar fit; that is not enclosure wall
+  // thickness. Wöhner does not make enclosure sheets, so do not populate this unrelated field.
+  const woehnerHasRatedOperatingCurrent = result.attributes.some((attribute) =>
+    attribute.sourceUrl === result.productUrl &&
+    (attribute.sourceType === "official" || attribute.sourceType === "official-fallback") &&
+    /^(?:rated current(?: \((?:IEC|UL)\))?|output current|prim\.?\s*rated current Ipr):?$/i.test(attribute.name.trim())
+  );
+  const woehnerHasExplicitMaterial = result.attributes.some((attribute) =>
+    attribute.sourceUrl === result.productUrl &&
+    (attribute.sourceType === "official" || attribute.sourceType === "official-fallback") &&
+    /^material:?$/i.test(attribute.name.trim()) &&
+    /^(?:table|mechanical data|material properties)$/i.test(attribute.group?.trim() ?? "")
+  );
+  if (result.manufacturerId === "woehner") {
+    delete normalized.wallThickness;
+    if (!woehnerHasRatedOperatingCurrent) delete normalized.current;
+    if (!woehnerHasExplicitMaterial) delete normalized.material;
+  }
   const nventGroundingClamp = result.manufacturerId === "nvent" && result.attributes.some((attribute) =>
     attribute.parser === "nvent-direct" && /^(?:name|title)$/i.test(attribute.name.trim()) && /^multi-purpose grounding clamp\b/i.test(attribute.value)
   );
@@ -104,6 +122,9 @@ export function applyFieldCandidateResolution(result: ProductResult): ProductRes
   for (const resolution of resolutions) {
     if (!resolution.selectedValue || !isNormalizedField(resolution.field)) continue;
     const key = resolution.field as keyof NormalizedProductFields;
+    if (result.manufacturerId === "woehner" && key === "wallThickness") continue;
+    if (result.manufacturerId === "woehner" && key === "current" && !woehnerHasRatedOperatingCurrent) continue;
+    if (result.manufacturerId === "woehner" && key === "material" && !woehnerHasExplicitMaterial) continue;
     if (key === "weight" && /\b(?:CO2|carbon\s+footprint)\b/i.test(resolution.selectedValue)) continue;
     // The family datasheet's EM/AM/SM masses are for submodules, not the complete 18plus system.
     if (eta18plusSystem && key === "weight") continue;

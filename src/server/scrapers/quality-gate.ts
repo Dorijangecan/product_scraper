@@ -237,7 +237,15 @@ export function finalizeQualityGate(result: ProductResult, manufacturer: Manufac
     if (isDrcaAnalysisSet && !recomputed.voltage) delete normalized.voltage;
     candidate = { ...result, normalized };
   }
-  return applyQualityGate(candidate, manufacturer, evaluateQualityGate(candidate, manufacturer, candidate.catalogNumber, candidate.qualityGate?.attempts ?? []));
+  const finalized = applyQualityGate(candidate, manufacturer, evaluateQualityGate(candidate, manufacturer, candidate.catalogNumber, candidate.qualityGate?.attempts ?? []));
+  if (manufacturer.id === "woehner") {
+    // Wöhner's busbar product tables also publish lamella/conductor thickness. It is not the
+    // housing wall thickness represented by this normalized field. Wöhner's catalogue covers
+    // busbar systems and panel components, not enclosure sheets, so the generic wall-thickness
+    // slot is not meaningful here.
+    delete finalized.normalized.wallThickness;
+  }
+  return finalized;
 }
 
 function defaultRecipe(): ScrapeRecipeConfig {

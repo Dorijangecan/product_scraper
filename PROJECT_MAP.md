@@ -68,7 +68,7 @@ playwright ako patchright ikad zakaže na nekoj mašini.
 | Folder / fajl | Čemu služi |
 | --- | --- |
 | `src/server/` | Express API, orkestracija runova, DB, I/O, layout outputa |
-| `src/server/scrapers/` | **Srce sustava** — konektori po proizvođaču + zajednička infra + "understanding engine" (44 fajla; ReeR koristi `reer.ts` REST-to-canonical-PDP konektor); `pdf-product-image.ts` izdvaja ugrađenu fotografiju samo iz službenog ETA datasheeta povezanog s PDP-om koji na prvoj stranici ispisuje točan SKU; uz to `cohort-anomaly.ts` i `field-coverage-drift.ts` |
+| `src/server/scrapers/` | **Srce sustava** — konektori po proizvođaču + zajednička infra + "understanding engine" (45 fajlova; ReeR koristi `reer.ts` REST-to-canonical-PDP konektor, Wöhner koristi `woehner.ts` browser-confirmed PIM search-to-article konektor); `pdf-product-image.ts` izdvaja ugrađenu fotografiju samo iz službenog ETA datasheeta povezanog s PDP-om koji na prvoj stranici ispisuje točan SKU; uz to `cohort-anomaly.ts` i `field-coverage-drift.ts` |
 | `src/server/pdt/` | Generiranje PDT Excela iz rezultata runa (22 fajla) |
 | `src/server/config/` | `manufacturers.ts` — built-in profili + custom config |
 | `src/client/` | React UI (`App.tsx` monolitan, `Dropdown.tsx`, `api.ts`, `main.tsx`, `styles.css`) |

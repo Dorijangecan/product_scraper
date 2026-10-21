@@ -1,0 +1,58 @@
+[
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "01422 000",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Busbar",
+    "riskTags": ["cold", "60classic", "3-pole", "busbar-support", "internal-screw-holes"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/.*/1000066653"],
+    "expectedNormalizedFields": ["voltage", "dimensions", "weight"],
+    "expectedBlankNormalizedFields": ["current"],
+    "expectedAttributePatterns": ["busbar support", "3-pole", "internal screw holes", "4021267014223"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "32116 000AC",
+    "caseType": "electrical",
+    "expectedDeviceType": "Busbar",
+    "riskTags": ["cold", "60classic", "4-pole", "busbar-adapter", "mccb-compatible"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/.*/1000268843"],
+    "expectedNormalizedFields": ["voltage", "current", "dimensions", "weight"],
+    "expectedNormalizedPatterns": { "voltage": "690\\s*V", "current": "560\\s*A", "dimensions": "184.*300.*52" },
+    "expectedAttributePatterns": ["busbar adapter 630 A", "560 A", "690 V", "184 x 300", "4021267321161"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "01251 000",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Busbar",
+    "riskTags": ["cold", "busbar-cover", "touch-protection", "1000-mm"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/.*/1000044165"],
+    "expectedNormalizedFields": ["dimensions", "weight"],
+    "expectedBlankNormalizedFields": ["voltage", "current", "material"],
+    "expectedNormalizedPatterns": { "dimensions": "1000.*13.*70", "weight": "17\\.6\\s*kg/100" },
+    "expectedAttributePatterns": ["busbar cover", "40 - 60 x 10", "touch protection", "1000 x 13 x 70", "4021267012519"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "33337 000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fuse Switch Disconnector",
+    "riskTags": ["cold", "capus-panel", "nh-00", "160-a", "fused-switch-disconnector"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/.*/1000049788"],
+    "expectedNormalizedFields": ["current", "voltage", "dimensions", "weight"],
+    "expectedNormalizedPatterns": { "current": "160\\s*A", "voltage": "690\\s*V" },
+    "expectedAttributePatterns": ["switch disconnector with fuses", "NH 00", "160 A", "4021267333379"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "37530 000A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fuse Switch Disconnector",
+    "riskTags": ["cold", "185power", "inline", "size-00", "prewired-current-transformers"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/.*/1000364026"],
+    "expectedNormalizedFields": ["current", "voltage", "protection", "dimensions", "weight"],
+    "expectedNormalizedPatterns": { "current": "150\\s*A", "voltage": "690\\s*V", "dimensions": "50.*687.*189" },
+    "expectedAttributePatterns": ["in-line fuse switch-disconnector 160 A", "150 A / 333 mV", "class 0.5", "3-pole switchable", "4021267375300"]
+  }
+]

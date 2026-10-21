@@ -1,0 +1,57 @@
+[
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "23003 000AD",
+    "caseType": "electrical",
+    "expectedDeviceType": "Disconnect Switch",
+    "riskTags": ["cold", "panel-mounted", "3-pole", "250-a", "switch-disconnector"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/.*1000239991"],
+    "expectedNormalizedFields": ["current", "voltage", "weight"],
+    "expectedNormalizedPatterns": { "current": "250\\s*A", "voltage": "690\\s*V" },
+    "expectedAttributePatterns": ["250\\s*A", "690\\s*V", "3[- ]pole", "4021267230036"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "33803 000A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Fuse Switch Disconnector",
+    "riskTags": ["cold", "60classic", "nh-fuse-switch-disconnector", "size-000", "125-a"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/System/60Classic_630_A_.*1000236607"],
+    "expectedNormalizedFields": ["current", "voltage", "dimensions", "weight"],
+    "expectedNormalizedPatterns": { "current": "125\\s*A", "voltage": "690\\s*V", "dimensions": "49\\.5.*200.*117" },
+    "expectedAttributePatterns": ["125\\s*A", "size\\s*000", "5-pole system", "4021267338039"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "36203 000A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Power Supply",
+    "riskTags": ["cold", "crossboard", "power-supply", "24-vdc", "20-a"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/System/CrossBoard/electronic_components/power_supplies/1000313016"],
+    "expectedNormalizedFields": ["current", "voltage", "dimensions", "weight"],
+    "expectedNormalizedPatterns": { "current": "20\\s*A", "voltage": "380\\s*V.*500\\s*V.*24\\s*V" },
+    "expectedAttributePatterns": ["380\\s*-\\s*500\\s*V AC / 24\\s*V DC", "rated voltage \\(IEC\\) AC.*500\\s*V", "output current.*20\\s*A", "4021267362034"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "36400 000A",
+    "caseType": "electrical",
+    "expectedDeviceType": "Current Sensor",
+    "riskTags": ["cold", "crossmt", "current-measuring-module", "100-a", "io-link"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/Measurement_technique/Measurement_CB/CrossMT/1000255071"],
+    "expectedNormalizedFields": ["current", "voltage", "dimensions", "weight"],
+    "expectedNormalizedPatterns": { "current": "100\\s*A", "voltage": "600\\s*V", "dimensions": "45.*185.*25" },
+    "expectedAttributePatterns": ["measuring module\\s*100\\s*A", "IO-Link", "status LEDs", "4021267364007"]
+  },
+  {
+    "manufacturerId": "woehner",
+    "catalogNumber": "33744 000",
+    "caseType": "electrical",
+    "expectedDeviceType": "Current Transformer",
+    "riskTags": ["cold", "current-transformer", "150-a-5-a", "ct5", "1.5-va-class-1"],
+    "expectedOfficialUrlPatterns": ["pim\\.woehner\\.de/EN/EN/.*1000155889"],
+    "expectedNormalizedFields": ["current", "voltage", "dimensions", "weight"],
+    "expectedNormalizedPatterns": { "current": "150\\s*A.*5\\s*A", "voltage": "720\\s*V", "dimensions": "49.*27.*70" },
+    "expectedAttributePatterns": ["150\\s*A\\s*/\\s*5\\s*A", "1\\.5\\s*VA", "class\\s*1", "49\\s*x\\s*27\\s*x\\s*70", "4021267337445"]
+  }
+]

@@ -647,6 +647,32 @@ const builtInManufacturerConfigs: Record<string, ManufacturerConfig> = {
       minContentLength: 1000
     },
     fallbackSources: []
+  },
+  woehner: {
+    id: "woehner",
+    canonicalName: "Wöhner",
+    shortName: "WOE",
+    rateLimitMs: 1000,
+    concurrency: 2,
+    // Wöhner PDPs use internal article IDs, so discovery must resolve an exact catalog number
+    // through the official PIM rather than guessing a product URL from the requested number.
+    officialBaseUrls: ["https://pim.woehner.de/EN/EN/System"],
+    homepageUrl: "https://www.woehner.de/en/",
+    fallbackSources: [],
+    scrapeRecipe: {
+      // The PIM redirects exact `searchPattern` requests to the canonical article page. Generic
+      // `search=`, `q=`, and `query=` guesses do not resolve Wöhner catalog numbers.
+      searchUrlTemplates: ["https://pim.woehner.de/EN/EN/suchergebnis?searchPattern={part}"],
+      interactionPolicy: {
+        closeOverlaySelectors: ["button:has-text('Use necessary cookies only')"],
+        gotoTimeoutMs: 15000,
+        gotoWaitUntil: "domcontentloaded",
+        networkIdleTimeoutMs: 100,
+        waitForSelectors: ["h1"],
+        scrollPasses: 0,
+        maxClicks: 0
+      }
+    }
   }
 };
 

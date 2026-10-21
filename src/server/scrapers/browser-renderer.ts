@@ -546,24 +546,33 @@ export class BrowserRenderSession {
           await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
           await page.waitForTimeout(300);
         }
-        await clickSafeSelectors(page, recipe?.interactionPolicy?.localeSelectors ?? [], 4, signal);
-        await waitForRecipeSelectors(page, recipe?.interactionPolicy?.waitForSelectors ?? [], signal);
-        await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
-        await clickSafeSelectors(
-          page,
-          [
-            ...adaptiveInteractionSelectors(recipe),
-            ...DEFAULT_EXPAND_SELECTORS
-          ],
-          recipe?.interactionPolicy?.maxClicks ?? 50,
-          signal,
-          // Re-scan nested accordions/tabs revealed by the first click pass, without re-toggling anything already open.
-          { rescanSelectors: STATE_AWARE_EXPAND_SELECTORS }
-        );
-        await paginateThroughAll(page, [...(recipe?.interactionPolicy?.paginationSelectors ?? []), ...PAGINATION_SELECTORS], signal);
-        await scrollToBottom(page, recipe?.interactionPolicy?.scrollPasses ?? 2, signal);
-        await page.waitForLoadState("networkidle", { timeout: recipe?.interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
-        await page.waitForTimeout(750);
+        const interactionPolicy = recipe?.interactionPolicy;
+        const explicitlyNoPostLoadInteractions =
+          searchCatalogNumber === undefined &&
+          interactionPolicy?.maxClicks === 0 &&
+          interactionPolicy?.scrollPasses === 0 &&
+          !(interactionPolicy.localeSelectors?.length) &&
+          !(interactionPolicy.paginationSelectors?.length);
+        await clickSafeSelectors(page, interactionPolicy?.localeSelectors ?? [], 4, signal);
+        await waitForRecipeSelectors(page, interactionPolicy?.waitForSelectors ?? [], signal);
+        if (!explicitlyNoPostLoadInteractions) {
+          await scrollToBottom(page, interactionPolicy?.scrollPasses ?? 2, signal);
+          await clickSafeSelectors(
+            page,
+            [
+              ...adaptiveInteractionSelectors(recipe),
+              ...DEFAULT_EXPAND_SELECTORS
+            ],
+            interactionPolicy?.maxClicks ?? 50,
+            signal,
+            // Re-scan nested accordions/tabs revealed by the first click pass, without re-toggling anything already open.
+            { rescanSelectors: STATE_AWARE_EXPAND_SELECTORS }
+          );
+          await paginateThroughAll(page, [...(interactionPolicy?.paginationSelectors ?? []), ...PAGINATION_SELECTORS], signal);
+          await scrollToBottom(page, interactionPolicy?.scrollPasses ?? 2, signal);
+          await page.waitForLoadState("networkidle", { timeout: interactionPolicy?.networkIdleTimeoutMs ?? 12000 }).catch(() => undefined);
+          await page.waitForTimeout(750);
+        }
       }
       if (!fastIdentityCapture) await Promise.allSettled(responseCaptures);
       const mainHtml = await page.content();
@@ -1200,7 +1209,10 @@ async function waitForRecipeSelectors(page: PageLike, selectors: string[], signa
 
 async function scrollToBottom(page: PageLike, passes: number, signal?: AbortSignal): Promise<void> {
   if (signal?.aborted) throw new Error("Cancelled by user.");
-  for (let pass = 0; pass < Math.max(1, passes); pass += 1) {
+  // A zero pass count is an explicit opt-out for manufacturers whose catalogues expose all product
+  // details without scroll-triggered loading. Respecting it also avoids fragile scroll evaluation
+  // while client-side navigation is settling after a search redirect.
+  for (let pass = 0; pass < Math.max(0, Math.floor(passes)); pass += 1) {
     await page.evaluate(
       `new Promise((resolve) => {
           let previousHeight = 0;

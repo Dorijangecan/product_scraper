@@ -182,7 +182,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Line Reactor", /\b(?:three[-\s]?phase\s+)?line reactors?\b/i, 950),
   rule("Variable Speed Drive", /\b(?:variable speed drive|variable frequency drive|\bvfd\b|frequency (?:converter|inverter)|\bvsd\b|servo drive|ac drive|motor drive|inverter drive)\b|(?:\u53d8\u9891\u5668|\u53d8\u9891\u9a71\u52a8|\u9891\u7387\u8f6c\u6362\u5668)/i, 780),
   rule("Motor Starter", /\b(?:hybrid motor starter|electronic motor starter|motor starter|starter combination|reversing starter|direct[-\s]?on[-\s]?line starter|\bdol starter\b)\b/i, 1005),
-  rule("Fuse Switch Disconnector", /\bfuse[-\s]?switch[-\s]?disconnector\b/i, 980),
+  rule("Fuse Switch Disconnector", /\bfuse[-\s]?switch[-\s]?disconnector\b|\bswitch[-\s]?disconnector\s+with\s+fuses?\b/i, 980),
   rule("Disconnect Switch", /\bbattery\s+(?:isolation|disconnect(?:ing)?)\s+switch(?:es)?\b/i, 1150),
   rule("Disconnect Switch", /\b(?:switch[-\s]?disconnector|disconnect(?:ing|or)?\s+switch|isolator switch|safety switch|rotary disconnect|main switch|load break switch|last[-\s]?trennschalter|trennschalter|sectionneur|sezionatore)\b/i, 770),
   rule("Power Entry Module", /\bpower entry modules?\b/i, 935),
@@ -191,6 +191,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // "switch" term can make it look like a current-rated switch.
   rule("Accessory", /\b(?:flex(?:ible)?\s+)?shaft\s+handle\s+operator\b/i, 825),
   rule("Surge Protective Device", /\b(?:surge protective device|\bspd\b|surge arrester|surge protection|lightning arrester)\b/i, 765),
+  rule("Fuse Holder", /\b(?:holder for cylindrical fuses?|cylindrical fuse holders?|fuse holders?)\b/i, 925),
   rule("Fuse", /\b(?:fuse holder|fuse base|fuse disconnect(?:or)?|fuse switch|fuse link|fuse carrier|nh fuse|d fuse|\bfuse\b|sicherung(?:en)?|fusible|fusibile)\b/i, 760),
   rule("Selector Switch", /\b(?:selector switch|selector\s+switch\s+actuator|cam switch|toggle switch|key[-\s]?operated switch)\b/i, 790),
   rule("Switch", /\b(?:pushbutton switch)\b/i, 700),
@@ -468,7 +469,31 @@ const UNSPSC_TYPE_ENTRIES: UnspscTypeEntry[] = [
 export function classifyDeviceType(result: ProductResult | undefined): DeviceTypeClassification {
   if (!result) return {};
 
+  // On an identity-confirmed Wöhner article the exact PDP heading is the product's primary
+  // classification. Long article descriptions also mention handles, busbars, and accessories;
+  // those secondary terms must not outrank an explicit device type in the exact heading.
+  const exactWoehnerTitle = exactWoehnerPdpTitle(result);
+  const exactWoehnerTitleRule = exactWoehnerTitle ? strongestDeviceTypeRule(exactWoehnerTitle) : undefined;
+  if (exactWoehnerTitleRule) {
+    return {
+      type: exactWoehnerTitleRule.type,
+      confidence: 0.98,
+      evidence: `Exact Wöhner PIM article title: ${exactWoehnerTitle}`,
+      scoreMargin: 2_100
+    };
+  }
+
   const signals: DeviceTypeSignal[] = [];
+
+  if (exactWoehnerTitle && !exactWoehnerTitleRule &&
+      (/\bCrossMT\b/i.test(exactWoehnerTitle) || /\/Measurement_technique\/[^/]*\/CrossMT\//i.test(result.productUrl ?? ""))) {
+    signals.push({
+      type: "Current Sensor",
+      score: 2_100 * CHANNEL_WEIGHTS.text,
+      channel: "text",
+      evidence: `Exact Wöhner CrossMT article title: ${exactWoehnerTitle}`
+    });
+  }
 
   // --- Channel 1: text rules (title, attributes, description) ---
   const candidates = deviceTypeCandidates(result);
@@ -1001,6 +1026,19 @@ function exactNventPdpCategory(result: ProductResult): AttributeRecord | undefin
   );
 }
 
+function exactWoehnerPdpTitle(result: ProductResult): string | undefined {
+  if (result.manufacturerId !== "woehner") return undefined;
+  const productUrl = result.productUrl ?? result.localizedUrls?.en;
+  const exactIdentity = result.attributes.some((attribute) =>
+    (attribute.sourceType === "official" || attribute.sourceType === "official-fallback") &&
+    attribute.sourceUrl === productUrl &&
+    /^part\s*no\.?\s*:?$/i.test(attribute.name.trim()) &&
+    catalogTextMatches(attribute.value, result.catalogNumber, { compact: true })
+  );
+  if (!exactIdentity) return undefined;
+  const title = result.title?.trim();
+  return title || undefined;
+}
 function strongestDeviceTypeRule(value: string): DeviceTypeRule | undefined {
   return DEVICE_TYPE_RULES
     .filter((definition) => definition.pattern.test(value))
