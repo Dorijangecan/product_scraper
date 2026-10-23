@@ -2259,11 +2259,11 @@ async function extractPositionedWeightDimensionsSafely(
     // way to tell which footnoted fragment belongs to THIS specific catalog, so the concatenation is
     // never trustworthy — unlike Weight/Dimensions/Voltage/Current (verified correct for this exact
     // table), which read as one clean measurement per column with no footnote branching. Reuse
-    // isCleanSingleSpecValue's shape check (repeated word = multiple concatenated fragments) to drop
+    // positioned-value shape check (repeated word = multiple concatenated fragments) to drop
     // these rather than add a wrong value: silence beats a confidently wrong footnote-mangled string.
     const attributes: AttributeRecord[] = [];
     for (const [label, value] of Object.entries(rows)) {
-      if (!isCleanSingleSpecValue(value)) continue;
+      if (!isCleanPositionedTableValue(value)) continue;
       const name = /^w\s*x\s*h\s*x\s*d$/i.test(label) ? "Dimensions" : label;
       attributes.push({
         group: "PDF Positioned Table",
@@ -2364,7 +2364,7 @@ function extractOcrPositionedTableAttributes(
   const rows = extractPositionedTableRows(items, catalogNumber);
   if (!rows) return [];
   return Object.entries(rows).flatMap(([label, value]) => {
-    if (!isCleanSingleSpecValue(value)) return [];
+    if (!isCleanPositionedTableValue(value)) return [];
     return [{
       group: "PDF OCR Positioned Table",
       name: /^w\s*x\s*h\s*x\s*d$/i.test(label) ? "Dimensions" : label,
@@ -2375,6 +2375,26 @@ function extractOcrPositionedTableAttributes(
       confidence: 0.7
     }];
   });
+}
+
+/**
+ * Positioned PDF/OCR rows are already scoped to the exact SKU column. Keep clean slash-form
+ * values that occur naturally in technical tables (for example `50/60 Hz`, `AC/DC`, and
+ * `100/240 V`), while still rejecting the common signals of two rows or variants being flattened
+ * together: pipes/semicolons, repeated words, excessive text, and a second catalog-shaped code.
+ * The older `isCleanSingleSpecValue` intentionally rejects every slash because it is also used by
+ * broader non-positioned readers; this narrower rule applies only after the target column has been
+ * established from PDF coordinates.
+ */
+function isCleanPositionedTableValue(value: string): boolean {
+  const cleaned = cleanText(value);
+  if (!cleaned || cleaned.length > 180 || /[|;]/.test(cleaned)) return false;
+  if (isCleanSingleSpecValue(cleaned)) return true;
+  if (!cleaned.includes("/")) return false;
+  const words = (cleaned.match(/[a-z]{2,}/gi) ?? []).map((word) => word.toLowerCase());
+  if (new Set(words).size !== words.length) return false;
+  if (/\b[A-Z]{2,}\d[A-Z0-9-]{2,}\b/i.test(cleaned)) return false;
+  return true;
 }
 
 async function readCachedPdfPageSetIfEligible(filePath: string, cacheIdentity?: string): Promise<PdfPageSet | undefined> {
