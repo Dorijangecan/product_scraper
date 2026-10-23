@@ -34,11 +34,23 @@ describe("device type classifier", () => {
       ["SZ Door-operated switch, with toggle, without connection cable", "Door-operated Switch"],
       ["SK Filter mat for cooling units and air/air heat exchangers", "Filter"],
       ["TS Lock insert for handle systems, push-button and lock-insert", "Lock Insert"],
-      ["SZ Cable gland, polyamide, size M12 x 1.5", "Cable Gland"]
+      ["SZ Cable gland, polyamide, size M12 x 1.5", "Cable Gland"],
+      ["VX Comfort handle VX for VX, VX IT", "Handle"],
+      ["AX Base/plinth components, sides for AX", "Plinth Base"]
     ] as const;
     for (const [title, expected] of cases) {
       expect(classifyDeviceType(product([], title, { manufacturerId: "rittal" })).type).toBe(expected);
     }
+  });
+
+  it("lets an exact Rittal comfort-handle title outrank the lock-insert compatibility field", () => {
+    const url = "https://www.rittal.com/com-en/products/example?variantId=8618200";
+    const result = product([
+      { group: "Definition List", name: "Article no.", value: "VX 8618200", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Design", value: "for lock inserts", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" }
+    ], "Comfort handle VX for VX, VX IT", { manufacturerId: "rittal", catalogNumber: "8618200", productUrl: url });
+
+    expect(classifyDeviceType(result).type).toBe("Handle");
   });
 
   it("classifies distinct Spelsberg charging and distribution products by their primary function", () => {

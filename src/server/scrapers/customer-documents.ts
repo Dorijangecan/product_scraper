@@ -21,7 +21,9 @@ import { readPdfWithOptionalOcr } from "./pdf-ocr.js";
 import { identityAttributeLabelStrength } from "./product-identity.js";
 import { buildTightContextForCatalog } from "./tight-context.js";
 
-const MAX_CUSTOMER_PDF_PAGES = 400;
+// Large customer selection guides can exceed the former 400-page cutoff (the supplied
+// Rockwell guide has 438 pages), so keep walking until the PDF's actual end.
+const MAX_CUSTOMER_PDF_PAGES = 2000;
 const MAX_CUSTOMER_PDF_TEXT_CHARS = 400_000;
 const CUSTOMER_DOC_CONFIDENCE = 0.97;
 // 2 pages of context on each side — Eaton-style spec tables routinely span across a page
@@ -420,6 +422,7 @@ function customerFilledRegistryFields(
 ): Set<RegistryFieldKey> {
   const filled = new Set<RegistryFieldKey>();
   for (const attr of customerAttributes) {
+    if ((attr.confidence ?? CUSTOMER_DOC_CONFIDENCE) < 0.9) continue;
     const label = `${attr.group ?? ""} ${attr.name}`;
     for (const field of FIELD_REGISTRY) {
       if (!isCustomerDatasheetTechnicalField(field.key)) continue;
@@ -738,7 +741,7 @@ function extractFamilyPdf(
     ? dedupeCustomerAttributes([...attributes, ...namePlateVoltageAttributes])
     : attributes;
   return {
-    attributes: mergedAttributes,
+    attributes: stampCustomerFamilyInference(mergedAttributes),
     titleHint: guessTitleFromPdfText(text, catalogNumber) ?? familyTitleFromText(text),
     scannedImageOnly: false,
     pageCount: pages.length
@@ -792,7 +795,17 @@ export function extractCustomerFamilyPdfAttributes(
       confidence: 0.58
     }
   ];
-  return dedupeCustomerAttributes([...attributes, ...tableAttributes, ...proseAttributes]);
+  return stampCustomerFamilyInference(dedupeCustomerAttributes([...attributes, ...tableAttributes, ...proseAttributes]));
+}
+
+function stampCustomerFamilyInference(attributes: AttributeRecord[]): AttributeRecord[] {
+  return attributes.map((attr) => ({
+    ...attr,
+    sourceType: "generated",
+    parser: "customer-family-pdf-inference",
+    stage: "customer-document-enrichment",
+    confidence: Math.min(attr.confidence ?? 0.58, 0.58)
+  }));
 }
 
 function inferCatalogFamilyEvidence(catalogNumber: string, text: string): { key: string; displayKey: string } | undefined {
@@ -888,9 +901,10 @@ function customerExtractionMetrics(
   attributes: AttributeRecord[],
   pageCount?: number
 ): Pick<DocumentProcessingDiagnostic, "attributeCount" | "normalizedFields" | "pageCount"> {
+  const overrideEligible = attributes.filter((attr) => (attr.confidence ?? CUSTOMER_DOC_CONFIDENCE) >= 0.9);
   return {
     attributeCount: attributes.length,
-    normalizedFields: Object.entries(normalizeFields(attributes, []))
+    normalizedFields: Object.entries(normalizeFields(overrideEligible, []))
       .filter(([, value]) => value !== undefined && value !== "")
       .map(([key]) => key)
       .sort(),

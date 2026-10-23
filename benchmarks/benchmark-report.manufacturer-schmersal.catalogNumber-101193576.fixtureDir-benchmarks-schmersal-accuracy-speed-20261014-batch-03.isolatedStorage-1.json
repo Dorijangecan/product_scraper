@@ -1,0 +1,3005 @@
+{
+  "generatedAt": "2026-10-14T16:53:31.518Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014165321",
+  "filters": {
+    "manufacturer": "schmersal",
+    "catalogNumber": "101193576",
+    "fixtureDir": "benchmarks/schmersal-accuracy-speed-20261014/batch-03",
+    "isolatedStorage": "1"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "schmersal": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "22mm-mounting",
+            "cold",
+            "emergency-stop",
+            "latching",
+            "rdrz45rt"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Pushbutton / Operator": {
+          "total": 1,
+          "manufacturers": [
+            "schmersal"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "command and alarm device": {
+          "total": 1,
+          "deviceTypes": [
+            "Pushbutton / Operator"
+          ],
+          "manufacturers": [
+            "schmersal"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "schmersal"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "schmersal",
+      "catalogNumber": "101193576",
+      "caseType": "electrical",
+      "expectedDeviceType": "Pushbutton / Operator",
+      "actualDeviceType": "Pushbutton / Operator",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "rdrz45rt",
+        "emergency-stop",
+        "latching",
+        "22mm-mounting"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 9399,
+      "scrapeElapsedMs": 1618,
+      "productUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014165321\\pdt\\schmersal-101193576-pdt_pdt-audit.json",
+      "pdtWrittenCells": 29,
+      "pdtBlankCells": 51,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 5,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "RDRZ45RT",
+        "description": "RDRZ45RT from Schmersal",
+        "productUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+        "localizedUrls": {
+          "en": "https://products.schmersal.com/en_US/rdrz45rt-101193576"
+        },
+        "deviceTypeClassification": {
+          "type": "Pushbutton / Operator",
+          "confidence": 0.98,
+          "evidence": "Family RDRZ (Schmersal latching emergency-stop operators)",
+          "scoreMargin": 1680
+        },
+        "normalized": {
+          "weight": "110 g (0.11 kg)",
+          "dimensions": "H 27.5 mm",
+          "material": "Aluminium powder-coated",
+          "protection": "IP65",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "75",
+          "wallThickness": "1 mm"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "General data",
+            "name": "Standards",
+            "value": "EN ISO 13850",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Installation conditions (mechanical)",
+            "value": "arbitrarily",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Material of the operators",
+            "value": "Aluminium powder-coated",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Material of the front ring",
+            "value": "Aluminium",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Colour of the operating element",
+            "value": "Red",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Colour of the front ring",
+            "value": "Yellow",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Gross weight",
+            "value": "110 g",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Height",
+            "value": "27.5 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Note (Mounting depth)",
+            "value": "Depth behind front panel including one contact element",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Thickness, of the front panel, minimum",
+            "value": "1 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Thickness of the front panel, maximum",
+            "value": "6 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ambient conditions",
+            "name": "IP Degree of protection",
+            "value": "IP65",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ambient conditions",
+            "name": "Ambient temperature",
+            "value": "-25 ... +75 °C",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Gross weight",
+            "value": "110g",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Height",
+            "value": "27.5mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Thickness, of the front panel, minimum",
+            "value": "1mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Thickness of the front panel, maximum",
+            "value": "6mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "27.5 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Thickness",
+            "value": "minimum 1 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Thickness",
+            "value": "maximum 6 mm / 60 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ordering data",
+            "name": "Product type description",
+            "value": "RDRZ45RT",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ordering data",
+            "name": "Article number (order number)",
+            "value": "101193576",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ordering data",
+            "name": "EAN (European Article Number)",
+            "value": "4030661455419",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ordering data",
+            "name": "ETIM number, version 7.0",
+            "value": "EC001038",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ordering data",
+            "name": "ETIM number, version 6.0",
+            "value": "EC001038",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Mechanical lifetime, minimum",
+            "value": "100,000 Operations",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Actuating stroke",
+            "value": "4 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Mounting",
+            "value": "Mounting flange EFM",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Tightening torque of the screw",
+            "value": "0.6 Nm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Diameter total",
+            "value": "45 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "diameters for the actuating heads",
+            "value": "45 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Mounting diameter",
+            "value": "22.3 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "RDRZ45RT from Schmersal",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Emergency stop latching pushbutton",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "with latching",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Item number",
+            "value": "101193576",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "General data",
+            "name": "Sealing type",
+            "value": "Form seals; Lip gaskets; Membrane",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Mechanical lifetime, minimum",
+            "value": "100,000Operations",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Actuating stroke",
+            "value": "4mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Mounting",
+            "value": "flange EFM",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data",
+            "name": "Tightening torque of the screw",
+            "value": "0.6Nm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Diameter total",
+            "value": "45mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "diameters for the actuating heads",
+            "value": "45mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Mechanical data - Dimensions",
+            "name": "Mounting diameter",
+            "value": "22.3mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Tightening torque",
+            "value": "0.6 Nm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Diameter",
+            "value": "45 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Diameter",
+            "value": "22.3 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Stroke",
+            "value": "4 mm",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "stage": "Schmersal product page",
+            "confidence": 0.68
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-25...75 °C",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Tightening torque",
+            "value": "0.6 Nm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "27.5 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Diameter",
+            "value": "45 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Diameter",
+            "value": "22.3 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Thickness",
+            "value": "minimum 1 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Thickness",
+            "value": "maximum 6 mm / 60 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Stroke",
+            "value": "4 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Article number (order number) 101193576",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "IP Degree of protection IP65",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ambient temperature -25 ... +75 °C",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data sheet - English",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Product type description",
+            "value": "RDRZ45RT",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Article number (order number)",
+            "value": "101193576",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EAN (European Article Number)",
+            "value": "4030661455419",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mechanical lifetime, minimum",
+            "value": "100,000 Operations",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Actuating stroke",
+            "value": "4 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "Mounting flange EFM",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Tightening torque of the screw",
+            "value": "0.6 Nm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Height",
+            "value": "27.5 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Note (Mounting depth)",
+            "value": "Depth behind front panel including one contact element",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Diameter total",
+            "value": "45 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "diameters for the actuating heads",
+            "value": "45 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting diameter",
+            "value": "22.3 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Thickness, of the front panel, minimum",
+            "value": "1 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Thickness of the front panel, maximum",
+            "value": "6 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Spacing",
+            "value": "50 x 60 mm",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "IP Degree of protection",
+            "value": "IP65",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ambient temperature",
+            "value": "-25 ... +75 °C",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Restistance to shock",
+            "value": "30 g / 18 ms",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated insulation voltage",
+            "value": "400 V",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Anzugsdrehmoment",
+            "value": "max. 1 Nm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Höhe",
+            "value": "27.5 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Durchmesser",
+            "value": "45 mm / 22.3 mm / 0.4 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Schutzart: IP65",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "- Anschlüsse: IP20 (fingersicher)",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "- Schalträume: IP40",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "RoHS-Richtlinie",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Operating instructions and Declaration of conformity - German",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "DE",
+            "value": "1",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Vorsicht",
+            "value": "Bei Nichtbeachten dieses Warnhinweises können",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Warnung",
+            "value": "Bei Nichtbeachten dieses Warnhinweises kann ein",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Not-Halt-Befehlsgerät",
+            "value": "RDRZ45 RT",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Nr.",
+            "value": "Option | Beschreibung",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "➃ RT Farbe",
+            "value": "Rot",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Vorschriften:",
+            "value": "ISO 13850, IEC 60947-5-1,",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Bauform:",
+            "value": "NOT-HALT-Schlagtaster für Frontplattenmontage",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Entriegelungsart:",
+            "value": "Zugentriegelung",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Sprungmechanismus:",
+            "value": "integriert",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Vollisoliert:",
+            "value": "ja",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Einbau-Ø:",
+            "value": "22,3 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Mechanische Lebensdauer:",
+            "value": "100.000 Schaltspiele",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Schalthäufigkeit:",
+            "value": "600 s/h",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Betätigungskraft:",
+            "value": "ca. 25 N",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Werkstoff Bedienteil:",
+            "value": "Al eloxiert",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Werkstoff Frontring:",
+            "value": "Al eloxiert",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Farbe Bedienteil:",
+            "value": "Rot",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Farbe Frontring:",
+            "value": "Gold",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Höhe:",
+            "value": "27,5 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Durchmesser des Bedienknopfes:",
+            "value": "45 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Lochdurchmesser:",
+            "value": "22,3 mm + 0,4 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Form:",
+            "value": "rund",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Befestigungsart:",
+            "value": "Montageflansch EFM",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Max. Drehmoment für Befestigung:",
+            "value": "0,6 Nm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- min. Frontplattendicke:",
+            "value": "1 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- max. Frontplattendicke:",
+            "value": "6 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Rastermaß:",
+            "value": "50 × 50 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Einbaulage:",
+            "value": "beliebig",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Temperaturbereich:",
+            "value": "– 25 °C … +75 °C",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Schutzart:",
+            "value": "IP65",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Abdichtungsart:",
+            "value": "Lippendichtungen, Flachdichtungen",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Klimafestigkeit:",
+            "value": "gemäß DIN EN 60 068, Teil 2-30",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Vorschriften:",
+            "value": "IEC 60947-1, IEC 60947-5-1",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Werkstoff der Kontakte:",
+            "value": "Feinsilber, Federbronze bzw. Ms-Träger",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Gebrauchskategorie:",
+            "value": "AC-15: 250 V / 6 A;",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "DC-13",
+            "value": "24 V / 3 A",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Bemessungsisolationsspannung Ui:",
+            "value": "400 V",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Bemessungsstoßspannungsfestigkeit Uimp:",
+            "value": "4 kV",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Verschmutzungsgrad:",
+            "value": "3",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Überspannungskategorie:",
+            "value": "III",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Kleinspannungstauglichkeit:",
+            "value": "min. 5 VDC / 1 mA",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Thermischer Dauerstrom Ithe:",
+            "value": "6 A",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Kurzschlussschutz:",
+            "value": "gG 6 A",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Klimafestigkeit:",
+            "value": "gemäß DIN EN 60068 Teil 2-30",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Temperaturbereich:",
+            "value": "–25 °C … + 60 °C",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Öffner:",
+            "value": "ca. 1 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Schließer:",
+            "value": "ca. 2,5 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Zwangsöffnungsweg:",
+            "value": "2 mm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Prüfspannung gekapselt:",
+            "value": "2500 VAC",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Betätigungskraft bei Hubende:",
+            "value": "ca. 9 N",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Schalthäufigkeit:",
+            "value": "1.200 s/h",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Mechanische Lebens dauer:",
+            "value": "10.000.000 Schaltspiele",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Schockfestigkeit:",
+            "value": "30 g / 18 ms",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Erschütterungsfestigkeit:",
+            "value": "20 g/10 … 150 Hz",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Anschlusskennzeichnung:",
+            "value": "gemäß IEC 60947-1",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Anschlussart:",
+            "value": "Schraubanschluss",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Anzugsdrehmoment der Anschlussschraube:",
+            "value": "max. 1 Nm",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- eindrahtig:",
+            "value": "2 × (0,5 … 2,5 mm²)",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- zweidrahtig:",
+            "value": "2 × (0,5 … 1,5 mm²)",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Anschlüsse:",
+            "value": "IP20 (fingersicher)",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "- Schalträume:",
+            "value": "IP40",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Zulassungen:",
+            "value": "cULus",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Vorschriften:",
+            "value": "ISO 13 849-1",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "B10D (Öffner-Kontakt):",
+            "value": "100.000",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Gebrauchsdauer:",
+            "value": "20 Jahre",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "MTTF B",
+            "value": "d | x | h | s/h | 3600",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "10D",
+            "value": "op",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "op",
+            "value": "n",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "0,1 x n op",
+            "value": "t cycle",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Abmessungen Not-Halt-Befehlsgerät",
+            "value": "RDRZ45 RT",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "RF 03",
+            "value": "1 Schließer",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "RF 10",
+            "value": "1 Öffner",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "1 Öffner",
+            "value": "1 Schließer",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Bezeichnung des Bauteils:",
+            "value": "RDRZ45RT",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Typ:",
+            "value": "siehe Typenschlüssel",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Beschreibung des Bauteils:",
+            "value": "Not-Halt-Schlagtaster",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Einschlägige Richtlinien:",
+            "value": "2006/42/EG",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Angewandte Normen:",
+            "value": "DIN EN 60947-5-1:2010,",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "DIN EN 60947-5-5",
+            "value": "2015,",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "DIN EN ISO 13850",
+            "value": "2016",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Ort und Datum der Ausstellung:",
+            "value": "Wuppertal, 2. Januar 2017",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Original",
+            "value": "K.A. Schmersal GmbH & Co. KG",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Telefon",
+            "value": "+49 - (0)2 02 - 64 74 - 0",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Telefax",
+            "value": "+49 - (0)2 02 - 64 74 - 1 00",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "E-Mail:",
+            "value": "info@schmersal.com",
+            "sourceUrl": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet - English",
+            "url": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014165321\\documents\\101193576-datasheet-en-US.pdf",
+            "downloadStatus": "downloaded",
+            "sourceUrl": "https://products.schmersal.com/api/datasheet/generate",
+            "parser": "schmersal-datasheet-generator",
+            "stage": "schmersal-documents",
+            "sourceType": "official-fallback",
+            "confidence": 0.9,
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Operating instructions and Declaration of conformity - German",
+            "url": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceUrl": "https://products.schmersal.com/api/products/019d0f9d88ae70d28f0f9e745aea4e9c/documents?locale=de-DE",
+            "parser": "schmersal-documents-api",
+            "stage": "schmersal-documents",
+            "sourceType": "official-fallback",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014165321\\documents\\101193576-manual-Operating-instructions-and-Declaration-of-conformity---German.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Operating instructions and Declaration of conformity - English",
+            "url": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SEN_AIN_V2.pdf#en-US",
+            "sourceUrl": "https://products.schmersal.com/api/products/019d0f9d88ae70d28f0f9e745aea4e9c/documents?locale=en-US",
+            "parser": "schmersal-documents-api",
+            "stage": "schmersal-documents",
+            "sourceType": "official-fallback",
+            "confidence": 0.9
+          },
+          {
+            "type": "image",
+            "label": "Primary product image",
+            "url": "https://products.schmersal.com/_next/image?url=https%3A%2F%2Fschmersal-prod-media-perf.s3.de.perf.cloud.ovh.net%2Fmedia%2F71%2F32%2F01%2F1769810722%2FPHO_PRO_CAT_krdr4f02_PHO_PRO_CAT_INT.jpg%3Fts%3D1788898581&w=2400&q=75",
+            "sourceUrl": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal exact PDP image",
+            "stage": "schmersal-exact-image",
+            "confidence": 0.95,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014165321\\images\\SCH.101193576.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+            "sourceType": "official-fallback",
+            "parser": "Schmersal product page",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-14T16:53:22.072Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://products.schmersal.com/api/datasheet/generate#en-US-101193576",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-14T16:53:27.183Z"
+          },
+          {
+            "url": "https://products.schmersal.com/media/documents/DOC_MAN_MEC_mrl-rdrz45_SDE_AIN_V2.pdf#de-DE",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-14T16:53:28.876Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "Schmersal product page",
+              "url": "https://products.schmersal.com/en_US/rdrz45rt-101193576",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "Schmersal product page",
+              "statusCode": 200,
+              "attributeCount": 48,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

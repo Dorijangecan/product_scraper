@@ -69,7 +69,7 @@ interface ItemRow {
 
 export interface RunCheckpointRecord {
   runId: string;
-  kind: "item" | "excel-block" | "pdt";
+  kind: "item" | "run-progress" | "excel-block" | "pdt";
   checkpointKey: string;
   payload?: Record<string, unknown>;
   createdAt: string;
@@ -139,6 +139,7 @@ export class ScraperDb {
     this.db = new Database(paths.dbPath);
     this.db.pragma("journal_mode = WAL");
     this.db.pragma("foreign_keys = ON");
+    this.db.pragma("busy_timeout = 5000");
     this.init();
   }
 
@@ -533,43 +534,91 @@ export class ScraperDb {
     if (!current) return;
     const hasPatch = (key: keyof typeof patch) => Object.prototype.hasOwnProperty.call(patch, key);
     const updatedAt = new Date().toISOString();
-    this.db
-      .prepare(`
-        UPDATE run_items
-        SET status = @status,
-            stage = @stage,
-            stage_message = @stageMessage,
-            stage_started_at = @stageStartedAt,
-            title = @title,
-            product_url = @productUrl,
-            confidence = @confidence,
-            error = @error,
-            raw_json = @rawJson,
-            updated_at = @updatedAt
-        WHERE id = @id
-      `)
-      .run({
-        id,
-        status: hasPatch("status") && patch.status ? patch.status : current.status,
-        stage: hasPatch("stage") ? patch.stage ?? null : current.stage ?? null,
-        stageMessage: hasPatch("stageMessage") ? patch.stageMessage ?? null : current.stage_message ?? null,
-        stageStartedAt: hasPatch("stageStartedAt") ? patch.stageStartedAt ?? null : current.stage_started_at ?? null,
-        title: hasPatch("title") ? patch.title ?? null : current.title ?? null,
-        productUrl: hasPatch("productUrl") ? patch.productUrl ?? null : current.product_url ?? null,
-        confidence: hasPatch("confidence") ? patch.confidence ?? null : current.confidence ?? null,
-        error: hasPatch("error") ? patch.error ?? null : current.error ?? null,
-        rawJson: hasPatch("result") ? (patch.result ? JSON.stringify(patch.result) : null) : current.raw_json ?? null,
-        updatedAt
-      });
-    if (patch.status && ["found", "partial", "failed", "cancelled"].includes(patch.status)) {
-      this.saveRunCheckpoint(current.run_id, "item", String(current.row_index), {
-        itemId: current.id,
-        rowIndex: current.row_index,
-        catalogNumber: current.catalog_number,
-        status: patch.status,
-        updatedAt
-      });
+    const nextStatus = hasPatch("status") && patch.status ? patch.status : current.status;
+    const updateItem = this.db.prepare(`
+      UPDATE run_items
+      SET status = @status,
+          stage = @stage,
+          stage_message = @stageMessage,
+          stage_started_at = @stageStartedAt,
+          title = @title,
+          product_url = @productUrl,
+          confidence = @confidence,
+          error = @error,
+          raw_json = @rawJson,
+          updated_at = @updatedAt
+      WHERE id = @id
+    `);
+    const writeItem = () => updateItem.run({
+      id,
+      status: nextStatus,
+      stage: hasPatch("stage") ? patch.stage ?? null : current.stage ?? null,
+      stageMessage: hasPatch("stageMessage") ? patch.stageMessage ?? null : current.stage_message ?? null,
+      stageStartedAt: hasPatch("stageStartedAt") ? patch.stageStartedAt ?? null : current.stage_started_at ?? null,
+      title: hasPatch("title") ? patch.title ?? null : current.title ?? null,
+      productUrl: hasPatch("productUrl") ? patch.productUrl ?? null : current.product_url ?? null,
+      confidence: hasPatch("confidence") ? patch.confidence ?? null : current.confidence ?? null,
+      error: hasPatch("error") ? patch.error ?? null : current.error ?? null,
+      rawJson: hasPatch("result") ? (patch.result ? JSON.stringify(patch.result) : null) : current.raw_json ?? null,
+      updatedAt
+    });
+    const isTerminal = (status: ItemStatus) => ["found", "partial", "failed", "cancelled"].includes(status);
+    if (!isTerminal(nextStatus)) {
+      writeItem();
+      return;
     }
+
+    const processedDelta = Number(isTerminal(nextStatus)) - Number(isTerminal(current.status));
+    const foundDelta = Number(nextStatus === "found") - Number(current.status === "found");
+    const partialDelta = Number(nextStatus === "partial") - Number(current.status === "partial");
+    const failedDelta = Number(nextStatus === "failed") - Number(current.status === "failed");
+    const writeTerminalCheckpoint = this.db.transaction(() => {
+      writeItem();
+      this.db.prepare(`
+        UPDATE runs SET processed = processed + @processedDelta,
+          found = found + @foundDelta, partial = partial + @partialDelta,
+          failed = failed + @failedDelta, updated_at = @updatedAt WHERE id = @runId
+      `).run({ processedDelta, foundDelta, partialDelta, failedDelta, updatedAt, runId: current.run_id });
+      const totals = this.db.prepare(`
+        SELECT total, processed, found, partial, failed FROM runs WHERE id = ?
+      `).get(current.run_id) as { total: number; processed: number; found: number; partial: number; failed: number };
+      const progress = { ...totals, pending: Math.max(0, totals.total - totals.processed) };
+
+      const upsertCheckpoint = this.db.prepare(`
+        INSERT INTO run_checkpoints (run_id, kind, checkpoint_key, payload_json, created_at, updated_at)
+        VALUES (@runId, @kind, @checkpointKey, @payloadJson, @now, @now)
+        ON CONFLICT(run_id, kind, checkpoint_key) DO UPDATE SET
+          payload_json = excluded.payload_json, updated_at = excluded.updated_at
+      `);
+      upsertCheckpoint.run({
+        runId: current.run_id,
+        kind: "item",
+        checkpointKey: String(current.row_index),
+        payloadJson: JSON.stringify({
+          itemId: current.id,
+          rowIndex: current.row_index,
+          catalogNumber: current.catalog_number,
+          status: nextStatus,
+          ...progress,
+          updatedAt
+        }),
+        now: updatedAt
+      });
+      upsertCheckpoint.run({
+        runId: current.run_id,
+        kind: "run-progress",
+        checkpointKey: "latest",
+        payloadJson: JSON.stringify({
+          ...progress,
+          lastCompletedRow: current.row_index,
+          lastCatalogNumber: current.catalog_number,
+          lastItemStatus: nextStatus,
+          updatedAt
+        }),
+        now: updatedAt
+      });
+    });
+    writeTerminalCheckpoint();
   }
 
   saveRunCheckpoint(

@@ -55,7 +55,8 @@ export function discoveryFallbackSources(
   context: ScrapeContext,
   idPrefix = context.manufacturer.id
 ): FallbackSourceConfig[] {
-  return discovery.candidates.map((candidate, index) => ({
+  const candidates = context.onlySelectedInfo ? discovery.candidates.slice(0, 3) : discovery.candidates;
+  return candidates.map((candidate, index) => ({
     id: `${idPrefix}-discovered-${index + 1}`,
     label: `${context.manufacturer.shortName} ${candidate.reason}`,
     enabled: true,

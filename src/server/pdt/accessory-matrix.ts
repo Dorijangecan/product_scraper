@@ -265,6 +265,40 @@ export function accessoryMatrixCatalogNumbers(plan: AccessoryMatrixPlan): string
   return values;
 }
 
+/** Restrict an operator-authored matrix to the main products assigned to one PDT group. */
+export function filterAccessoryMatrixPlan(plan: AccessoryMatrixPlan, catalogNumbers: string[]): AccessoryMatrixPlan {
+  const wanted = new Set(catalogNumbers.map((value) => value.replace(/\s+/g, " ").trim().toUpperCase()));
+  const mainParts = plan.mainParts.filter((value) => wanted.has(value.replace(/\s+/g, " ").trim().toUpperCase()));
+  const filterRows = <T extends { mainPart: string } | AccessoryMatrixSeparator>(rows: Array<T>): Array<T> => {
+    const filtered: T[] = [];
+    let previousMainPart: string | undefined;
+    for (const entry of rows) {
+      if (!("mainPart" in entry)) continue;
+      if (!wanted.has(entry.mainPart.replace(/\s+/g, " ").trim().toUpperCase())) continue;
+      if (filtered.length && previousMainPart !== entry.mainPart) filtered.push({ kind: "separator" } as T);
+      filtered.push(entry);
+      previousMainPart = entry.mainPart;
+    }
+    return filtered;
+  };
+  const accessoryRows = filterRows(plan.accessoryRows);
+  const connectionPointRows = filterRows(plan.connectionPointRows);
+  const conditionParts = new Map<string, string[]>();
+  for (const row of accessoryRows) {
+    if (row.kind !== "accessory") continue;
+    const parts = conditionParts.get(row.point) ?? [];
+    if (!parts.includes(row.mainPart)) parts.push(row.mainPart);
+    conditionParts.set(row.point, parts);
+  }
+  return {
+    ...plan,
+    mainParts,
+    accessoryRows,
+    connectionPointRows,
+    conditions: [...conditionParts].map(([point, parts]) => ({ point, condition: `INLIST('${parts.join(",")}', PN)` }))
+  };
+}
+
 /** Main parts referenced by the matrix that were not scraped in this run (likely typos). */
 export function accessoryMatrixMainPartsNotInRun(plan: AccessoryMatrixPlan, runCatalogNumbers: string[]): string[] {
   const known = new Set(runCatalogNumbers.map((value) => value.trim().toUpperCase()));

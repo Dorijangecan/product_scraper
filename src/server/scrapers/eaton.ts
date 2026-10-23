@@ -373,17 +373,21 @@ export class EatonConnector implements ManufacturerConnector {
           diagnostics
         );
       }
+      if (context.onlySelectedInfo) return withEatonDiagnostics(mediumVoltageResult, diagnostics);
       // The MV route is intentionally source-backed, but the family page alone only carries the
       // compact catalogue facts above. Always open the linked official datasheet/manual once so
       // missing XML/PDT fields can be filled from the actual publication instead of being left
       // blank or inferred. The document downloader still enforces the run's normal selection and
       // per-item deadline; image-only runs remain cheap and skip PDF parsing.
+      if (context.onlySelectedInfo && context.shouldStopSelectedInfoSearch?.(mediumVoltageResult)) {
+        return withEatonDiagnostics(mediumVoltageResult, diagnostics);
+      }
       const enriched = await enrichEatonMediumVoltageDocuments(mediumVoltageResult, context);
       return withEatonDiagnostics(enriched, diagnostics);
     }
     // A catalogue PDF is useful for technical-data runs, but it cannot satisfy an image-only
     // request. Avoid opening/parsing it and continue only through the SKU page image paths below.
-    if (!context.imageOnly) {
+    if (!context.imageOnly && !context.onlySelectedInfo) {
       const cbePdfResult = await scrapeEatonCbeCatalogPdf(partNumber, context, diagnostics);
       if (cbePdfResult) return withEatonDiagnostics(cbePdfResult, diagnostics);
     }
@@ -448,6 +452,9 @@ export class EatonConnector implements ManufacturerConnector {
       }
     })();
     if (primaryDirectResult?.parsed.status !== "failed") result = primaryDirectResult?.parsed;
+    if (result && context.onlySelectedInfo && context.shouldStopSelectedInfoSearch?.(result)) {
+      return withEatonDiagnostics(result, diagnostics);
+    }
 
     const primaryHasExactSkuDatasheet = Boolean(result?.documents.some((document) =>
       document.type === "datasheet" && eatonSkuPdfMatches(document.url, partNumber)

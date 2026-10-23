@@ -1,0 +1,2347 @@
+{
+  "generatedAt": "2026-10-15T17:07:25.031Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015170710",
+  "filters": {
+    "manufacturer": "eta",
+    "limit": "1",
+    "catalogNumber": "CPC12PN",
+    "fixtureDir": "benchmarks/eta-accuracy-speed-20261015/batch-01",
+    "isolatedStorage": "1",
+    "tag": "eta-cpc12pn-post-throttle-speed-cold-02"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 1,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eta": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "bus-controller",
+            "controlplex",
+            "eta-batch-01",
+            "profinet"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Communication Gateway": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "PLC": {
+          "total": 1,
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        },
+        "RS232 interfaces": {
+          "total": 1,
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eta"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 2,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "CPC12PN",
+      "caseType": "electrical",
+      "expectedDeviceType": "Communication Gateway",
+      "actualDeviceType": "Communication Gateway",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eta-batch-01",
+        "controlplex",
+        "bus-controller",
+        "profinet"
+      ],
+      "status": "found",
+      "confidence": 0.73,
+      "elapsedMs": 13998,
+      "scrapeElapsedMs": 2091,
+      "productUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015170710\\pdt\\eta-CPC12PN-pdt_pdt-audit.json",
+      "pdtWrittenCells": 31,
+      "pdtBlankCells": 65,
+      "pdtSkippedCells": 3,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Type CPC12",
+        "description": "Bus controller enables transparency and remote access for 24 V DC power distribution",
+        "productUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+        "localizedUrls": {
+          "en": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/"
+        },
+        "deviceTypeClassification": {
+          "type": "Communication Gateway",
+          "confidence": 0.98,
+          "evidence": "description: Bus controller enables transparency and remote access for 24 V DC power distribution",
+          "scoreMargin": 1625
+        },
+        "normalized": {
+          "voltage": "DC 24 V (18...30 V)",
+          "current": "40 A",
+          "certificates": "IEC 60079-0, IEC 60079-15, IEC 60079-7, UL 121201, UL 1310, UL 2367, UL 508, CSA C22.2 No. 107.1, CSA C22.2 No. 14, CSA C22.2 No. 213, CE, UKCA, RoHS, ATEX Declaration of Comformity (English version), ATEX Declaration of Conformity (German version), EU Declaration of Conformity, REACH Regulation, TSCA, UKEX Declaration of Conformity",
+          "operatingTemperatureMin": "-30",
+          "operatingTemperatureMax": "60",
+          "weight": "Approx. 70 g (0.07 kg)",
+          "dimensions": "23 x 80 x 98.5 mm"
+        },
+        "requiredElectricalFields": [
+          "voltage"
+        ],
+        "attributes": [
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "ATEX",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Rated voltage",
+            "value": "DC 24 V (18…30 V)",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Rated current",
+            "value": "40 A",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Ambient temperature",
+            "value": "-30 °C ... +60 °C",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Certificates",
+            "value": "UL 2367, UL 1310 NEC Class2, UL 508 listed, CSA C22.2 No. 14, CSA C22.2 No. 107.1, UL 121201 (Class I, Division 2, Groups A, B, C, D), CSA C22.2 No. 213, ATEX 2014/34/EU, EN 60079-0, EN 60079-7, EN 60079-15, IEC 60079-0, IEC 60079-7, IEC 60079-15, EN IEC 60079-0, EN IEC 60079-7, EN IEC 60079-15, PROFINET, EtherNet/IP, EtherCAT, Modbus-TCP, REACH, RoHS, CE, UKCA",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Voltage",
+            "value": "24 V DC",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated voltage",
+            "value": "18...30 V",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated current",
+            "value": "40 A",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Ambient temperature",
+            "value": "-30 °C / +60 °C",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Bus controller enables transparency and remote access for 24 V DC power distribution",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Mounting method",
+            "value": "rail mounting",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Worldwide approvals",
+            "value": "Get information on our international product approvals and certifications.",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "Mobility & Transport Trucks Bus",
+            "value": "Transit and School Automotive Construction machinery Agricultural and forestry machinery Motor Home Specialty vehicles Rail Vehicles",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "Bus",
+            "value": "Transit and School",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "SOFTWARE for ControlPlex® systems",
+            "value": "The relevant software and firmware can be found in the download portal",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "[Translate to Englisch",
+            "value": "] CPC12 Bus controller 833.1 KB",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "spaceBetween",
+            "value": "40,",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "1,",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "2,",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "3,",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "4,",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "stroke",
+            "value": "#009fe4;",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "23 x 80 x 98.5 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "CPC12PN",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "VISUAL INDICATION OF THE OPERATING CONDITIONS",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "VISUAL, OF, THE, OPERATING",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "T 1 - 0 0 1",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "T 1 - 001 - E (with ATEX approval)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "ATEX",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "PIN ASSIGNMENT",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "PIN",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "APPLICATION EXAMPLES",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "EXAMPLES",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "CPC12PN",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "CPC12PN - VISUAL INDICATION OF THE OPERATING CONDITIONS",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "CPC12PN PIN ASSIGNMENT",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "CPC12EN, CPC12MB, CPC12PN APPLICATION EXAMPLES",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "CPC12PN",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "CPC12PN-T1-001",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "ble voltage supply",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Technical basics, REACH, RoHS, Contact",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "• Load voltage ACTUAL / MIN / MAX / MEDIUM VALUE",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "• Load current: ACTUAL / MIN / MAX / MEDIUM VALUE",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "• Supply voltage",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "• Total current",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "Feature",
+            "value": "CPC12PN - VISUAL INDICATION OF THE OPERATING CONDITIONS",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "Feature",
+            "value": "No actuator voltage n.a. Red n.a. n.a.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "Feature",
+            "value": "C P C 1 2 P N - T 1 - 0 0 1",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "Feature",
+            "value": "- CPC12 PN - T 1 - 001 - E (with ATEX approval)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Feature",
+            "value": "Approval authority Test standard File Certificate No. Rated voltage [V]",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Feature",
+            "value": "UL UL 2367",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Feature",
+            "value": "UL 1310 NEC Class2",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Feature",
+            "value": "UL UL 508 listed",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Feature",
+            "value": "CPC12PN PIN ASSIGNMENT",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Feature",
+            "value": "CPC12EN, CPC12MB, CPC12PN APPLICATION EXAMPLES",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Datasheet CPC12PN",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "• Devices including supply module, overcurrent protection,",
+            "value": "power",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ble voltage",
+            "value": "supply",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technical basics, REACH,",
+            "value": "RoHS, Contact",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "SAFETY AND INSTALLATION",
+            "value": "INSTRUCTIONS",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Installation must",
+            "value": "be done by a qualified electrician.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "• Please observe separate CPC12 instruction",
+            "value": "manual.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "• Load voltage",
+            "value": "ACTUAL / MIN / MAX / MEDIUM VALUE",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "• Load current:",
+            "value": "ACTUAL / MIN / MAX / MEDIUM VALUE",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "Mounting",
+            "value": "dimensions (WxHxD) 23 x 80 x 98.5 mm (tolerances according to DIN ISO 286 part 1 IT13)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "Weight",
+            "value": "Approx. 70 g",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "No actuator voltage",
+            "value": "n.a. Red n.a. n.a.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "EN EtherNet/IP",
+            "value": "(connection: 2x RJ45 socket)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - MECHANICAL DATA",
+            "name": "001 Marking",
+            "value": "version",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Approval authority",
+            "value": "Test standard File Certificate No. Rated voltage [V]",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "UL UL",
+            "value": "2367",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "UL 1310",
+            "value": "NEC Class2",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "UL UL",
+            "value": "508 listed",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Mounting",
+            "value": "/ DISMOUNTING ON DIN RAIL IN THE REX SYSTEM",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Mounting",
+            "value": "/ EXPANSION ON DIN RAIL IN THE REX SYSTEM",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Mounting",
+            "value": "data DIN rail according to EN 60715-35x7.5",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - APPROVALS",
+            "name": "Mounting",
+            "value": "VALUES",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "CPC12PN-Tx-xxxx",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_100_218_1089x01_CPC12.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "EU Declaration of Comformity",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_100_218_1089x01_CPC12.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Norm EN ISO/IEC to which this declaration",
+            "value": "relates, is in conformity with the essential requirements of following",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_100_218_1089x01_CPC12.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Datasheet CPC12PN",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015170710\\documents\\CPC12PN-datasheet-Datasheet-CPC12PN.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "Document",
+            "url": "https://global.e-t-a.com/support/downloads/whitepapers/",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/#productDownloads",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015170710\\documents\\CPC12PN-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "failed",
+            "parseError": "Invalid PDF structure."
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "javascript:;",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "I_CPC12PN_Y31348101_A5_de_en.pdf",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Installation_Manuals/de/ControlPlex/I_CPC12PN_Y31348101_A5_de_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015170710\\documents\\CPC12PN-manual-I_CPC12PN_Y31348101_A5_de_en.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "manual",
+            "label": "CPC12 ATEX",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Installation_Manuals/de/ControlPlex/BA_CPC12_ATEX_Y31441104_de_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "manual",
+            "label": "BA_CPC12PN_Y31348202_en.pdf",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Installation_Manuals/en/ControlPlex/BA_CPC12PN_Y31348202_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "manual",
+            "label": "Webserver CPC12",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Installation_Manuals/en/ControlPlex/BA_Webserver_CPC12_Y31395701_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "manual",
+            "label": "[Translate to Englisch:] CPC12 Bus controller",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Installation_Manuals/en/ControlPlex/BA_CPC12_JSON_REST_API_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://global.e-t-a.com/fileadmin/_processed_/f/1/csm_CPC12PN_cb39d8a80b.png",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015170710\\images\\ETA.CPC12PN.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Download Centre Find all relevant documents, e.g. data sheets, CAD files, etc. here.",
+            "url": "https://global.e-t-a.com/support/downloads/download_center/",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "t-cpc12-xx-t1-xxx_ik00.zip",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/ControlPlex_DINrail/t-cpc12-xx-t1-xxx_ik00.zip",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Device description file for PROFINET",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/GSDML-Datei/CPC12/GSDML-V2.35-ETA-CPC12PN-T1-20200330.zip",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "EU Declaration of Comformity",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_100_218_1089x01_CPC12.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015170710\\documents\\CPC12PN-certificate-EU-Declaration-of-Comformity.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "certificate",
+            "label": "EU Declaration of Conformity (ATEX)",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU_ATEX/ControlPlex_DINrail/Konformitaetserklaerung_CPC12_E_100_218_1111-01_5052.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "ATEX Declaration of Conformity (German version)",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_ATEX/ControlPlex_DINrail/E-T-A_23TH0426_CPC12_EPS_23_ATEX_1_262_U_de_0_signed_scan.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "ATEX Declaration of Comformity (English version)",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_ATEX/ControlPlex_DINrail/E-T-A_23TH0426_CPC12_EPS_23_ATEX_1_262_U_en_0_signed_scan.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "UKEX Declaration of Conformity",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_UKEX/ControlPlex_DINrail/EPS_23_UKEX_1_263_U___CPC12.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "TSCA Letter of Confirmation",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/TSCA_Letter_of_Confirmation_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "International locations We guarantee customer proximity and reliable deliveries in more than 60 countries worldwide.",
+            "url": "https://global.e-t-a.com/contact/worldwide_locations/",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "Worldwide approvals Get information on our international product approvals and certifications.",
+            "url": "https://global.e-t-a.com/footer_navigation/quality_certification/worldwide_approvals/",
+            "sourceUrl": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "stage": "ETA controlplex bus controller product page",
+            "confidence": 0.88
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+            "sourceType": "official-fallback",
+            "parser": "ETA controlplex bus controller product page",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-15T17:07:11.085Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/int_Stromverteilung/ControlPlex_DINrail/2_en/D_CPC12PN_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T17:07:17.707Z"
+          },
+          {
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_100_218_1089x01_CPC12.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-15T17:07:23.096Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "ETA controlplex bus controller product page",
+              "url": "https://global.e-t-a.com/products/power_distribution_systems/intelligent_power_distribution_systems/controlplex_overview/controlplex_dinrail/bus_controllers/p/cpc12/",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "ETA controlplex bus controller product page",
+              "statusCode": 200,
+              "attributeCount": 24,
+              "documentCount": 22,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

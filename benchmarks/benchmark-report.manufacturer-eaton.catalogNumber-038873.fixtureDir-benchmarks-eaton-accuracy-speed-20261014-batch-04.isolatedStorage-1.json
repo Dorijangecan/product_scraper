@@ -1,0 +1,4430 @@
+{
+  "generatedAt": "2026-10-14T14:45:42.842Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014144528",
+  "filters": {
+    "manufacturer": "eaton",
+    "catalogNumber": "038873",
+    "fixtureDir": "benchmarks/eaton-accuracy-speed-20261014/batch-04",
+    "isolatedStorage": "1"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 1,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eaton": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "20a",
+            "3-pole",
+            "cold",
+            "emergency-off",
+            "main-switch",
+            "red-handle",
+            "t0"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Disconnect Switch": {
+          "total": 1,
+          "manufacturers": [
+            "eaton"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "contactor a. fuses": {
+          "total": 1,
+          "deviceTypes": [
+            "Disconnect Switch"
+          ],
+          "manufacturers": [
+            "eaton"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eaton"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "eaton",
+      "catalogNumber": "038873",
+      "caseType": "electrical",
+      "expectedDeviceType": "Disconnect Switch",
+      "actualDeviceType": "Disconnect Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "t0",
+        "main-switch",
+        "3-pole",
+        "20a",
+        "emergency-off",
+        "red-handle"
+      ],
+      "status": "found",
+      "confidence": 0.67,
+      "elapsedMs": 13427,
+      "scrapeElapsedMs": 573,
+      "productUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014144528\\pdt\\eaton-038873-pdt_pdt-audit.json",
+      "pdtWrittenCells": 48,
+      "pdtBlankCells": 45,
+      "pdtSkippedCells": 4,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "038873 | Eaton Moeller® series T0 Main switch",
+        "description": "Eaton Moeller® series T0 Main switch, T0, 20 A, flush mounting, 2 contact unit(s), 3 pole, Emergency switching off function, With red rotary handle and yellow locking ring, Lockable in the 0 (Off) position",
+        "productUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+        "localizedUrls": {
+          "en": "https://www.eaton.com/gb/en-gb/skuPage.038873.html",
+          "de": "https://www.eaton.com/de/de-de/skuPage.038873.html"
+        },
+        "deviceTypeClassification": {
+          "type": "Disconnect Switch",
+          "confidence": 0.99,
+          "evidence": "Family T0- (Rotary switch-disconnector)",
+          "alternatives": [
+            {
+              "type": "Switch",
+              "score": 1935,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Cover / Door Accessory",
+              "score": 1320,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 2085
+        },
+        "normalized": {
+          "weight": "0.142 kg",
+          "dimensions": "74 x 65 x 111 mm",
+          "material": "Plastic",
+          "color": "Red",
+          "voltage": "690 V",
+          "current": "20 A",
+          "protection": "IP65; NEMA 12",
+          "certificates": "IEC, UL 60947, CSA, CE, VDE",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "50"
+        },
+        "requiredElectricalFields": [
+          "current"
+        ],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series T0 Main switch",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Number",
+            "value": "038873",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Model Code",
+            "value": "T0-2-1/EA/SVB",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "EAN",
+            "value": "4015080388739",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Length/Depth",
+            "value": "111 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Height",
+            "value": "74 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Width",
+            "value": "65 mm",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Weight",
+            "value": "0.142 kg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Certifications",
+            "value": "UL IEC/EN 60204 CE CSA-C22.2 No. 60947-4-1-14 UL File No.: E36332 CSA Class No.: 3211-05 IEC/EN 60947 UL 60947-4-1 VDE 0660 IEC/EN 60947-3 UL Category Control No.: NLRV CSA CSA File No.: 012528 CSA-C22.2 No. 94",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Catalog Notes",
+            "value": "Rated Short-time Withstand Current (Icw) for a time of 1 second",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Global Catalog",
+            "value": "038873",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "General specifications",
+            "name": "Product Type",
+            "value": "Main switch",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Product Category",
+            "value": "Main switch",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Features",
+            "value": "Version as maintenance-/service switch Version as emergency stop installation Version as main switch",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Actuator color",
+            "value": "Red",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.10 Temperature rise",
+            "value": "The panel builder is responsible for the temperature rise calculation. Eaton will provide heat dissipation data for the devices.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.11 Short-circuit rating",
+            "value": "Is the panel builder's responsibility. The specifications for the switchgear must be observed.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.12 Electromagnetic compatibility",
+            "value": "Is the panel builder's responsibility. The specifications for the switchgear must be observed.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.13 Mechanical function",
+            "value": "The device meets the requirements, provided the information in the instruction leaflet (IL) is observed.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.2 Corrosion resistance",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.3.1 Verification of thermal stability of enclosures",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.3.2 Verification of resistance of insulating materials to normal heat",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.3.3 Resist. of insul. mat. to abnormal heat/fire by internal elect. effects",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.4 Resistance to ultra-violet (UV) radiation",
+            "value": "UV resistance only in connection with protective shield.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.5 Lifting",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.6 Mechanical impact",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.2.7 Inscriptions",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.3 Degree of protection of assemblies",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.4 Clearances and creepage distances",
+            "value": "Meets the product standard's requirements.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.5 Protection against electric shock",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.6 Incorporation of switching devices and components",
+            "value": "Does not apply, since the entire switchgear needs to be evaluated.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.7 Internal electrical circuits and connections",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.8 Connections for external conductors",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.9.2 Power-frequency electric strength",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.9.3 Impulse withstand voltage",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "10.9.4 Testing of enclosures made of insulating material",
+            "value": "Is the panel builder's responsibility.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Fitted with:",
+            "value": "Red rotary handle and yellow locking ring",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Operating frequency",
+            "value": "1200 Operations/h",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Pollution degree",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Climatic proofing",
+            "value": "Damp heat, cyclic, to IEC 60068-2-30 Damp heat, constant, to IEC 60068-2-78",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated impulse withstand voltage (Uimp)",
+            "value": "6000 V AC",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power star-delta at 500 V, 50 Hz",
+            "value": "7.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power star-delta at 690 V, 50 Hz",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated permanent current at AC-21, 400 V",
+            "value": "20 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated uninterrupted current (Iu)",
+            "value": "20 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Static heat dissipation, non-current-dependent Pvs",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switching angle",
+            "value": "90 °",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switching power at 400 V",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Voltage per contact pair in series",
+            "value": "60 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-3, 500 V, 50 Hz",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Device construction",
+            "value": "Built-in device fixed built-in technique",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated short-time withstand current (Icw)",
+            "value": "320 A, Contacts, 1 second 0.32 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Electrical connection type of main circuit",
+            "value": "Screw connection",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Design",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Mounting position",
+            "value": "As required",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Actuator type",
+            "value": "Door coupling rotary drive",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature - max",
+            "value": "50 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature - min",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature (enclosed) - max",
+            "value": "40 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Ambient operating temperature (enclosed) - min",
+            "value": "-25 °C",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Assigned motor power at 115/120 V, 60 Hz, 1-phase",
+            "value": "0.5 HP",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Assigned motor power at 200/208 V, 60 Hz, 1-phase",
+            "value": "1 HP",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Assigned motor power at 200/208 V, 60 Hz, 3-phase",
+            "value": "3 HP",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Assigned motor power at 230/240 V, 60 Hz, 1-phase",
+            "value": "1.5 HP",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Assigned motor power at 230/240 V, 60 Hz, 3-phase",
+            "value": "3 HP",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Assigned motor power at 460/480 V, 60 Hz, 3-phase",
+            "value": "7.5 HP",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Assigned motor power at 575/600 V, 60 Hz, 3-phase",
+            "value": "7.5 HP",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Equipment heat dissipation, current-dependent Pvid",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Heat dissipation capacity Pdiss",
+            "value": "0 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Heat dissipation per pole, current-dependent Pvid",
+            "value": "0.6 W",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of auxiliary contacts (change-over contacts)",
+            "value": "0",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of auxiliary contacts (normally closed contacts)",
+            "value": "0",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated conditional short-circuit current (Iq)",
+            "value": "6 kA",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Overvoltage category",
+            "value": "III",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Control circuit reliability",
+            "value": "1 failure per 100,000 switching operations statistically determined, at 24 V DC, 10 mA)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Degree of protection (front side)",
+            "value": "IP65",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of poles",
+            "value": "Three-pole",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Mounting method",
+            "value": "Flush mounting",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Degree of protection",
+            "value": "NEMA 12",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Suitable for",
+            "value": "Branch circuits, suitable as motor disconnect, (UL/CSA) Front mounting center",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Locking facility",
+            "value": "Lockable in the 0 (Off) position",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Functions",
+            "value": "Interlockable Emergency switching off function",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of switches",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Safe isolation",
+            "value": "440 V AC, Between the contacts, According to EN 61140",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Screw size",
+            "value": "M3.5, Terminal screw",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Shock resistance",
+            "value": "15 g, Mechanical, According to IEC/EN 60068-2-27, Half-sinusoidal shock 20 ms",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Lifespan, mechanical",
+            "value": "400,000 Operations",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Load rating",
+            "value": "1.6 x Iₑ (with intermittent operation class 12, 40 % duty factor) 1.3 x Iₑ (with intermittent operation class 12, 60 % duty factor) 2 x Iₑ (with intermittent operation class 12, 25 % duty factor)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switching capacity (auxiliary contacts, general use)",
+            "value": "10A, IU, (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switching capacity (auxiliary contacts, pilot duty)",
+            "value": "P300 (UL/CSA) A600 (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Terminal capacity",
+            "value": "1 x (1 - 2.5) mm², solid or stranded 2 x (0.75 - 2.5) mm², flexible with ferrules to DIN 46228 18 - 14 AWG, solid or flexible with ferrule 1 x (0.75 - 2.5) mm², flexible with ferrules to DIN 46228 2 x (1 - 2.5) mm², solid or stranded",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Switching capacity (main contacts, general use)",
+            "value": "16 A, Rated uninterrupted current max. (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Safety parameter (EN ISO 13849-1)",
+            "value": "B10d values as per EN ISO 13849-1, table C.1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of auxiliary contacts (normally open contacts)",
+            "value": "0",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of contact units",
+            "value": "2",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of contacts in series at DC-21A, 240 V",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of contacts in series at DC-23A, 120 V",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of contacts in series at DC-23A, 24 V",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of contacts in series at DC-23A, 240 V",
+            "value": "5",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of contacts in series at DC-23A, 48 V",
+            "value": "2",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Number of contacts in series at DC-23A, 60 V",
+            "value": "3",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated breaking capacity at 220/230 V (cos phi to IEC 60947-3)",
+            "value": "100 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated breaking capacity at 400/415 V (cos phi to IEC 60947-3)",
+            "value": "110 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated breaking capacity at 500 V (cos phi to IEC 60947-3)",
+            "value": "80 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated breaking capacity at 660/690 V (cos phi to IEC 60947-3)",
+            "value": "60 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated making capacity up to 690 V (cos phi to IEC/EN 60947-3)",
+            "value": "130 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operating voltage (Ue) - max",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operating voltage (Ue) - min",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational voltage (Ue) at AC - max",
+            "value": "690 V",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Short-circuit current rating (basic rating)",
+            "value": "50A, max. Fuse, SCCR (UL/CSA) 5 kA, SCCR (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Short-circuit current rating (high fault)",
+            "value": "10 kA, SCCR (UL/CSA) 20 A, Class J, max. Fuse, SCCR (UL/CSA)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Short-circuit protection rating",
+            "value": "20 A gG/gL, Fuse, Contacts",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-21, 440 V",
+            "value": "20 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-23A, 230 V",
+            "value": "13.3 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-23A, 400 V, 415 V",
+            "value": "13.3 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-23A, 500 V",
+            "value": "13.3 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-23A, 690 V",
+            "value": "7.6 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-3, 220 V, 230 V, 240 V",
+            "value": "11.5 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-3, 380 V, 400 V, 415 V",
+            "value": "11.5 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-3, 500 V",
+            "value": "9 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at AC-3, 660 V, 690 V",
+            "value": "4.9 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-1, load-break switches l/r = 1 ms",
+            "value": "10 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-13, control switches L/R = 50 ms",
+            "value": "10 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-21, 240 V",
+            "value": "1 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-23A, 120 V",
+            "value": "5 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-23A, 24 V",
+            "value": "10 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-23A, 240 V",
+            "value": "5 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-23A, 48 V",
+            "value": "10 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) at DC-23A, 60 V",
+            "value": "10 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) star-delta at AC-3, 220/230 V",
+            "value": "20 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) star-delta at AC-3, 380/400 V",
+            "value": "20 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) star-delta at AC-3, 500 V",
+            "value": "15.6 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current (Ie) star-delta at AC-3, 690 V",
+            "value": "8.5 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational current for specified heat dissipation (In)",
+            "value": "20 A",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-23A, 220/230 V, 50 Hz",
+            "value": "3 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-23A, 400 V, 50 Hz",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-23A, 500 V, 50 Hz",
+            "value": "7.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-23A, 690 V, 50 Hz",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-3, 380/400 V, 50 Hz",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-3, 415 V, 50 Hz",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power at AC-3, 690 V, 50 Hz",
+            "value": "4 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power star-delta at 220/230 V, 50 Hz",
+            "value": "5.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Rated operational power star-delta at 380/400 V, 50 Hz",
+            "value": "7.5 kW",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Tightening torque",
+            "value": "8.8 lb-in, Screw terminals 1 Nm, Screw terminals",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Uninterrupted current",
+            "value": "Rated uninterrupted current Iu is specified for max. cross-section.",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Product specifications",
+            "name": "Housing material",
+            "value": "Plastic",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Product Name",
+            "value": "Eaton Moeller® series T0 Main switch",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Description",
+            "value": "Eaton Moeller® series T0 Main switch, T0, 20 A, flush mounting, 2 contact unit(s), 3 pole, Emergency switching off function, With red rotary handle and yellow locking ring, Lockable in the 0 (Off) position",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "SKU",
+            "value": "038873",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Structured Product Data",
+            "name": "Brand",
+            "value": "Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Country",
+            "value": "us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Language",
+            "value": "en-us",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Channel",
+            "value": "web",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Page Type",
+            "value": "product sku",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Family",
+            "value": "sku page",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product SKU",
+            "value": "038873",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Product Name",
+            "value": "T0",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Eaton data layer",
+            "name": "Domain",
+            "value": "www.eaton.com",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Title",
+            "value": "038873 | Eaton Moeller® series T0 Main switch | Eaton",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Description",
+            "value": "038873 - Eaton Moeller® series T0 Main switch, T0, 20 A, flush mounting, 2 contact unit(s), 3 pole, Emergency switching off function, With red rotary handle and yellow locking ring, Lockable in the 0 (Off) position",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Open Graph Type",
+            "value": "product",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Page metadata",
+            "name": "Canonical URL",
+            "value": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "057892 - 60377478 Eaton Moeller® series SVB Thumb-grip, red, lockable with padlock, for T0, T3, P1 (https://www.eaton.com/us/en-us/skuPage.057892.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "group": "Designed to work together",
+            "name": "Related Product",
+            "value": "060265 - 60377478 Eaton Moeller® series SVB Thumb-grip, black, lockable with padlock, for T0, T3, P1 (https://www.eaton.com/us/en-us/skuPage.060265.html)",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "038873",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": ") as Reference-",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "(Reference)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "T0-2-1/EA/SVB (Y7-038873)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Y7-038873",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Y7-038873 (Reference)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf (PEP Eco-passport)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Product Category",
+            "value": "Switches",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Installation 1.00",
+            "value": "1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00 1.00",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Installation 0.93",
+            "value": "0.96 0.97 1.00 0.99 1.01 0.99 1.00 0.98 1.00 1.00 0.98 0.99",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Installation 0.30",
+            "value": "0.58 0.55 0.02 0.35 0.65 0.69 0.96 0.30 1.00 0.33 0.58 0.06",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "29 x 29 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "45 x 45 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "84 x 84 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "MZ008005ZU_Orderform_Customized_Switch.pdf (Product notifications)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Typenschlüssel:",
+            "value": "T……",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TM = 10A",
+            "value": "8 | 16 | /I = Aufbau",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T0 = 20A",
+            "value": "11 | 22 | /I…/SVB = Aufbau-Hauptschalter",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T3 = 32A",
+            "value": "11 | 22 | /E = Einbau",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T5B = 63A",
+            "value": "10 | 20 | /EA/SVB = Einbau-Hauptschalter",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T5 = 100A",
+            "value": "10 | 20",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/V",
+            "value": "Zwischenbau-Hauptschalter",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/IVS",
+            "value": "Verteilereinbau (TM, T0)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "- ………………………..",
+            "value": "/…………………………",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Andere Verbindungen sind vom Anwender bei der Installation",
+            "value": "selbst herzustellen.",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "BE (max.)",
+            "value": "Kontakte (max.)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/EZ",
+            "value": "Zentraleinbau (T0, T3)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/Z",
+            "value": "Zwischenbau",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "lieferbare Schaltwinkel sind",
+            "value": "30°, 45°, 60°, 90°",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Die Schaltkammer",
+            "value": "Baueinheit (BE) des TM, T0 oder T3-Nockenschalters hat 1 oder 2 Kontakte, die unabhängig voneinander von je einer",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Schaltwinkel",
+            "value": "Typ: | Anzahl Kontakte:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T5",
+            "value": "5 | 16 | I…/SVB | I…/SVB-SW",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Grad",
+            "value": "TM-E | 10 | 21 | +",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Grad Beschriftung",
+            "value": "2 | 6 | 8 | 12 | 14 | 16 | 20 | 24 | 26 | 28 | 30 | 34 | 36 | 38 | 42 | 44",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Legende",
+            "value": "Abziehbarkeit des Schlüssels bei S-T0 und SVA-T3:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 1 und 2",
+            "value": "= Kontakt nur in Stellung 1 geschlossen | Pos. 1: Schlüssel abziehbar",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 3 und 4",
+            "value": "= Umschalten mit Unterbrechung | Pos. 2: Schlüssel abziehbar",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 5 und 6",
+            "value": "= Umschalten ohne Unterbrechung | Pos. 3: Schlüssel abziehbar",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 7 und 8",
+            "value": "= Kontakt in Stellung 1 und 3 geschlossen | Pos. 4: Schlüssel nicht abziehbar",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 9 und 10",
+            "value": "= Kontakt von Stellung 1 bis 3 geschlossen",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 11 und 12",
+            "value": "= Wischkontakt (nur bei 60° oder 90°)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 13 und 14",
+            "value": "= Kontakt nacheilend",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 15 und 16",
+            "value": "= Kontakt voreilend",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kontakt 17 und 18",
+            "value": "= Kontakt mit automatischem Rückzug",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T5(B)",
+            "value": "TM-EZ",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "45 60",
+            "value": "315",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Typ für Nachbestellungen (vom Werk auszufüllen)",
+            "value": "T",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Bearbeiter:",
+            "value": "Auftrags-Nr.:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 Zeichen",
+            "value": "5 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Typ für Nachbestellungen (vom Werk auszufüllen)",
+            "value": "FS",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T0, T3, P1",
+            "value": "45 x 45 mm (für Rahmen 48 x 48)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T5B, T5, P3",
+            "value": "84 x 84 mm (für Rahmen 88 x 88)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "45, 135, 225, 315",
+            "value": "TM-…/E | 29 x 29 mm (für Rahmen 30 x 30)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "60, 120, 240, 300",
+            "value": "TM-…/EZ | 29 x 29 mm (für Rahmen 30 x 30)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Grad",
+            "value": "T5/P3 | TM-EZ | T0/P1",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Typ",
+            "value": "Frontschildgröße",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Schrifthöhe 2 Zeichen",
+            "value": "3,5 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 Zeichen",
+            "value": "3 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Schrifthöhe 4 mm",
+            "value": "2 Zeichen",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 Zeichen",
+            "value": "8 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Stückzahl:",
+            "value": "Euro/Stück",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Kunde:",
+            "value": "Kundespez.-Nr:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Büro:",
+            "value": "Bearbeiter:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Auftrags-Nr:",
+            "value": "Position:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Key of type references:",
+            "value": "T……",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TM = 10A",
+            "value": "8 | 16 | /I = Surface mounting",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T0 = 20A",
+            "value": "11 | 22 | /I…/SVB = Surface mounting main switches",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T3 = 32A",
+            "value": "11 | 22 | /E = Flush mounting",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T5B = 63A",
+            "value": "10 | 20 | /EA/SVB = Flush mounting main switches",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/V",
+            "value": "Rear mounting main switches",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/IVS",
+            "value": "Service distribution board mounting (TM, T0)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "form",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/EZ",
+            "value": "Centre mounting (T0, T3)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "/Z",
+            "value": "Rear mounting",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Design notes for non-standard",
+            "value": "contact-sequences",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Max. units",
+            "value": "Max. contacts",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Available switching angles are",
+            "value": "30°, 45°, 60°, 90°",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Switching",
+            "value": "Type: | No. of contacts:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TM-E",
+            "value": "10 | 21 | +",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Degrees Inscription",
+            "value": "2 | 6 | 8 | 12 | 14 | 16 | 20 | 24 | 26 | 28 | 30 | 34 | 36 | 38 | 42 | 44",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Legend",
+            "value": "Key withdraw ability with S-T0 and SVA-T3:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 1 and 2",
+            "value": "= Contact closed only in position 1 | Pos. 1: Key withdrawable",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 3 and 4",
+            "value": "= Switching with interruption of contact | Pos. 2: Key withdrawable",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 5 and 6",
+            "value": "= Switching without interruption of contact | Pos. 3: Key withdrawable",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 7 and 8",
+            "value": "= Contact closed in positions 1 + 3 | Pos. 4: Key not withdrawable",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 9 and 10",
+            "value": "= Contact closed in positions 1 to 3",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 11 and 12",
+            "value": "= Fleeting contact (only with 60° or 90°)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 13 and 14",
+            "value": "= Late-break contact",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 15 and 16",
+            "value": "= Early-make contact",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Contact 17 and 18",
+            "value": "= Contact with automatic spring-return",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T0(3)",
+            "value": "TM-EZ",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "forms are",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "form:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "45, 135, 225, 315",
+            "value": "4",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Key withdrawable",
+            "value": "Type for re-ordering (to be filled in by factory)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Date:",
+            "value": "Customer:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Item:",
+            "value": "Office:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Binding document for initial orders of non-standard",
+            "value": "front plates",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Order number:",
+            "value": "Item:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Office:",
+            "value": "Name:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Quantity:",
+            "value": "Euro/each: | Date:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Non-Standard Front",
+            "value": "Plates",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Note",
+            "value": "The maximum number of characters allowed",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Non-standard front",
+            "value": "plate T0, T3 or P1",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 characters",
+            "value": "3 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 characters",
+            "value": "4 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Non-standard front",
+            "value": "plate T5B, T5 or P3",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 characters",
+            "value": "8 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "letters",
+            "value": "2 characters",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Degrees",
+            "value": "T5/P3",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Non-standard front",
+            "value": "plate TM/E",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Non-standard front",
+            "value": "plate TM/EZ",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "letters",
+            "value": "3 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Type",
+            "value": "Size of front plate",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "TM-EZ",
+            "value": "T0/P1",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "45, 135, 225, 315",
+            "value": "TM-…/E | 29 x 29 mm (for frame size 30 x 30)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Type for re-ordering (to be fill in by factory)",
+            "value": "FS",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "TM-…/EZ",
+            "value": "29 x 29 mm (for frame size 30 x 30)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "90, 270",
+            "value": "T0, T3, P1 | 45 x 45 mm (for frame size 48 x 48)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "T5B, T5, P3",
+            "value": "84 x 84 mm (for frame size 88 x 88)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "UL/CSA:",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "IL03801020Z (Installation instructions)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "تﺎتـﺎــــــــﻤـﻴﻤﻠﻴﻌﻠﺘﻌﻟﺘاﻟر اﻮرـﻮــــــــﺸـﻨﺸﻣﻨﻣ",
+            "value": "06/21 IL03801020Z",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "￫ ≠ 1",
+            "value": "1",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Standard Short",
+            "value": "Circuit",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "b d",
+            "value": "4 - 8 mm",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "V1",
+            "value": "2 V",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "0 Y",
+            "value": "Y | Δ Δ",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "1V",
+            "value": "2U",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "0 1",
+            "value": "2 1",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "RoHS in Electrical and Electronic Equipment Regulations 2012 No. 3032",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "eaton-main-switch-declaration-of-conformity-uk251328en.pdf (Declarations of conformity)",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "specifications and relevant installation",
+            "value": "instructions are observed and the products are installed, maintained, and used",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-1",
+            "value": "2007 + A1:2011 + A2:2014",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN 60947-5-1",
+            "value": "2017 + AC:2020",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN IEC 60947-3",
+            "value": "2021",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "EN IEC 63000",
+            "value": "2018",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Additional notes: This declaration",
+            "value": "applies to T0-*-COMBINATION-* types depending on the configuration.",
+            "sourceUrl": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Eaton Specification Sheet - 038873",
+            "url": "https://www.eaton.com/us/en-us/skuPage.038873.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "Brochure - T Rotary Cam switch and P Switch-disconnector (Brochures)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/t-rotary-cam-switches-and-p-switch-disconnectors/eaton-t-rotary-cam-switches-p-switch-disconnectors-brochure-br008009en-en-gb.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "P Switch-disconnectors and T Rotary cam switches catalogue CA042001EN (Catalogs)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/t-rotary-cam-switches-and-p-switch-disconnectors/eaton-p-switch-disconnectors-t-rotary-cam-switches-catalogue-ca042001-en-us.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf (PEP Eco-passport)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014144528\\documents\\038873-datasheet-eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf-(PEP-Eco-passport).pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "MZ008005ZU_Orderform_Customized_Switch.pdf (Product notifications)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014144528\\documents\\038873-datasheet-MZ008005ZU_Orderform_Customized_Switch.pdf-(Product-notifications).pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "datasheet",
+            "label": "MZ008006ZU_Orderform_Customized_Switch.pdf (Product notifications)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008006ZU-Orderform-Customized-Switch.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "manual",
+            "label": "IL03801020Z (Installation instructions)",
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014144528\\documents\\038873-manual-IL03801020Z-(Installation-instructions).pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "image",
+            "label": "038873 - sku page",
+            "url": "https://dynamicmedia.eaton.com/is/image/eaton/y7-38873_C?wid=500&hei=500",
+            "candidateUrls": [
+              "https://www.eaton.com/mdmfiles/PDM83854787/y7-38873_C/90x90_96dpi"
+            ],
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014144528\\images\\ETN.038873.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-rotary-switches-mounting-p1-main-switch-3d-drawing.eps (Drawings)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/control-drives-automation-sensors/switch-disconnectors-and-cam-switches/rotary-cam-switches/eaton-rotary-switches-mounting-p1-main-switch-3d-drawing.eps.thumb.580.580.png",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-t0-main-switch-eplan-038873.edz (eCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/ecad/edz/edz01/eaton-t0-main-switch-eplan-038873.edz",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "DA-CS-t0_2_ea (mCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/mcad/step/t0_2_ea.stp",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "cad",
+            "label": "eaton-enclosed-rotary-disconnects-mcad-drawings-t0-2-ea.dwg (mCAD model)",
+            "url": "https://www.eaton.com/content/dam/eaton/cad/mcad/dwg/dwg03/eaton-enclosed-rotary-disconnects-mcad-drawings-t0-2-ea.dwg",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "certificate",
+            "label": "eaton-main-switch-declaration-of-conformity-uk251328en.pdf (Declarations of conformity)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014144528\\documents\\038873-certificate-eaton-main-switch-declaration-of-conformity-uk251328en.pdf-(Declarations-of-conf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "stage": "static-html",
+            "confidence": 0.9,
+            "type": "certificate",
+            "label": "eaton-main-switch-declaration-of-conformity-eu250845en.pdf (Declarations of conformity)",
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-eu250845en.pdf",
+            "sourceUrl": "https://www.eaton.com/us/en-us/skuPage.038873.html"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+            "sourceType": "official-fallback",
+            "parser": "eaton-product-page",
+            "parserVersion": "eaton-v2",
+            "fetchedAt": "2026-10-14T14:45:29.191Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/pep-ecopassport/eaton-enclosed-rotary-disconnects-pep-eato-00178-v0101-en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-14T14:45:34.348Z"
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/mz/MZ008005ZU-Orderform-Customized-Switch.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-14T14:45:37.263Z"
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/technicaldocumentation/il/IL03801020Z2021_06.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-14T14:45:38.976Z"
+          },
+          {
+            "url": "https://www.eaton.com/content/dam/eaton/products/industrialcontrols-drives-automation-sensors/switch-disconnectors-and-cam-switches/declarations-of-conformity/eaton-main-switch-declaration-of-conformity-uk251328en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-14T14:45:39.349Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "eaton-product-page",
+              "url": "https://www.eaton.com/us/en-us/skuPage.038873.html",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "eaton-product-page",
+              "statusCode": 200,
+              "attributeCount": 165,
+              "documentCount": 14,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

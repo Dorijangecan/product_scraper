@@ -96,6 +96,7 @@ interface BenchmarkCaseReport {
     documents: ProductResult["documents"];
     sources: ProductResult["sources"];
     qualityGate?: ProductResult["qualityGate"];
+    diagnostics?: ProductResult["diagnostics"];
   };
   error?: string;
 }
@@ -520,7 +521,8 @@ function reportFromResult(
       attributes: result.attributes,
       documents: result.documents,
       sources: result.sources,
-      qualityGate: result.qualityGate
+      qualityGate: result.qualityGate,
+      diagnostics: result.diagnostics
     }
   };
 }

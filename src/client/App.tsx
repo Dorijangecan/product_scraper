@@ -49,6 +49,7 @@ import type {
   MarkerExtractionRule,
   ItemStatus,
   PdtRoutingPreview,
+  PdtGroupDefinition,
   RunItemRecord,
   RunRecord,
   ScrapeRecipeConfig
@@ -302,6 +303,7 @@ export function App() {
   const [generateExcel, setGenerateExcel] = useState(true);
   const [generateLinksFile, setGenerateLinksFile] = useState(false);
   const [forceFinalRetry, setForceFinalRetry] = useState(false);
+  const [onlySelectedInfo, setOnlySelectedInfo] = useState(false);
   const [pdtAiCleanup, setPdtAiCleanup] = useState(false);
   const [runAccessoryMatrix, setRunAccessoryMatrix] = useState<AccessoryMatrixSummary | null>(null);
   const [runAccessoryMatrixBusy, setRunAccessoryMatrixBusy] = useState(false);
@@ -317,6 +319,9 @@ export function App() {
   const [pdtRoutingSelected, setPdtRoutingSelected] = useState<Set<number>>(new Set());
   const [pdtRoutingBulkSheet, setPdtRoutingBulkSheet] = useState<string>("");
   const [pdtRoutingLoading, setPdtRoutingLoading] = useState(false);
+  const [pdtSeparateFiles, setPdtSeparateFiles] = useState(false);
+  const [pdtGroupDrafts, setPdtGroupDrafts] = useState<Array<PdtGroupDefinition & { catalogNumbersText: string }>>([]);
+  const [pdtRoutingReviewExpanded, setPdtRoutingReviewExpanded] = useState(false);
   // Per-run coverage tiles. `null` means "use the manufacturer default verbatim" — the moment
   // the user types into the editor we copy the manufacturer's list and switch to a concrete
   // array so subsequent edits persist for that run.
@@ -546,7 +551,7 @@ export function App() {
       kind: "customerDocuments",
       title: "Select customer documents",
       multiple: true,
-      filters: [{ name: "Customer documents", extensions: ["pdf", "doc", "docx", "xls", "xlsx", "csv", "tsv", "txt"] }]
+      filters: [{ name: "Customer documents", extensions: ["pdf", "doc", "docx", "xls", "xlsx", "csv", "tsv", "txt", "7z"] }]
     });
     if (desktopFiles !== null) {
       if (desktopFiles.length === 0) return;
@@ -573,7 +578,8 @@ export function App() {
               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
               "text/csv": [".csv"],
               "text/tab-separated-values": [".tsv"],
-              "text/plain": [".txt"]
+              "text/plain": [".txt"],
+              "application/x-7z-compressed": [".7z"]
             }
           }
         ]
@@ -733,12 +739,13 @@ export function App() {
         file: runFile,
         manufacturerId,
         columnName: columnName || undefined,
-        downloadDocuments: downloadPdfs || downloadCad,
-        downloadPdfs,
-        downloadCad,
-        downloadImages,
-        generateExcel,
-        generateLinksFile,
+        downloadDocuments: onlySelectedInfo ? false : downloadPdfs || downloadCad,
+        downloadPdfs: onlySelectedInfo ? false : downloadPdfs,
+        downloadCad: onlySelectedInfo ? false : downloadCad,
+        downloadImages: onlySelectedInfo ? false : downloadImages,
+        generateExcel: onlySelectedInfo ? true : generateExcel,
+        generateLinksFile: onlySelectedInfo ? false : generateLinksFile,
+        onlySelectedInfo,
         customCoverageFields,
         hiddenCoverageFields: runHiddenCoverageFields.length > 0 ? runHiddenCoverageFields : undefined,
         forceFinalRetry,
@@ -750,6 +757,7 @@ export function App() {
       // manufacturer default.
       setRunCoverageFields(null);
       setRunHiddenCoverageFields([]);
+      setOnlySelectedInfo(false);
       // Clear customer documents — they're now persisted in the run folder. The next run
       // starts fresh and the user re-attaches whatever's needed.
       setCustomerDocuments([]);
@@ -865,6 +873,29 @@ export function App() {
       for (const it of preview.items) {
         if (it.suggestedSheets.length > 0) seeded[it.itemId] = it.suggestedSheets[0];
       }
+      const drafts = preview.savedGroups?.length
+        ? preview.savedGroups.map((group) => ({ ...group, catalogNumbersText: group.catalogNumbers.join("\n") }))
+        : (() => {
+            const bySheet = new Map<string, string[]>();
+            for (const item of preview.items) {
+              const sheet = item.suggestedSheets[0] || "";
+              if (!sheet) continue;
+              const numbers = bySheet.get(sheet) ?? [];
+              numbers.push(item.catalogNumber);
+              bySheet.set(sheet, numbers);
+            }
+            return [...bySheet.entries()].map(([sheetName, catalogNumbers], index) => ({
+              id: `auto-${index}-${sheetName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+              name: `${selectedRun.manufacturerId.toUpperCase()} - ${sheetName}`,
+              fileName: `${selectedRun.manufacturerId}_${String(index + 1).padStart(2, "0")}_${sheetName.replace(/[^a-z0-9]+/gi, "-")}_PDT`,
+              sheetName,
+              catalogNumbers,
+              catalogNumbersText: catalogNumbers.join("\n")
+            }));
+          })();
+      setPdtGroupDrafts(drafts);
+      setPdtSeparateFiles(Boolean(preview.savedGroups?.length) || preview.items.length >= 50 && drafts.length > 1);
+      setPdtRoutingReviewExpanded(preview.items.length <= 100);
       setPdtRoutingOverrides(seeded);
       setPdtRoutingSelected(new Set());
       setPdtRoutingBulkSheet("");
@@ -878,10 +909,12 @@ export function App() {
 
   async function handleConfirmPdtRouting() {
     if (!selectedRun || !pdtRoutingPreview) return;
+    const groupIssues = pdtSeparateFiles ? getPdtGroupIssues(pdtGroupDrafts, pdtRoutingPreview) : [];
+    if (groupIssues.length > 0) {
+      setError(groupIssues.join(" "));
+      return;
+    }
     const preview = pdtRoutingPreview;
-    setPdtRoutingPreview(null);
-    setPdtRoutingSelected(new Set());
-    setPdtRoutingBulkSheet("");
     setPdtBusy(true);
     setError(null);
     try {
@@ -894,17 +927,34 @@ export function App() {
         const auto = it.suggestedSheets[0];
         if (chosen !== auto) payload[it.itemId] = [chosen];
       }
+      const groups: PdtGroupDefinition[] | undefined = pdtSeparateFiles
+        ? pdtGroupDrafts.map(({ catalogNumbersText, ...group }) => ({
+            ...group,
+            catalogNumbers: parsePdtCatalogNumbers(catalogNumbersText)
+          }))
+        : undefined;
+      if (groups?.some((group) => group.catalogNumbers.length === 0 || !group.name.trim() || !group.fileName.trim() || !group.sheetName)) {
+        throw new Error("Each separate PDT needs a name, file name, device sheet and at least one catalog number.");
+      }
       const result = await importRunPdt(selectedRun.id, {
         aiCleanup: pdtAiCleanup,
-        sheetOverrides: Object.keys(payload).length > 0 ? payload : undefined
+        sheetOverrides: Object.keys(payload).length > 0 ? payload : undefined,
+        groups
       });
       await refreshSelectedRun(selectedRun.id);
-      const warnings = [accessoryMatrixNotice(result.stats), pdtImportWarning(result.stats)].filter(Boolean) as string[];
-      if (result.stats.cleanup && ["qwen_unavailable", "qwen_no_valid_output"].includes(result.stats.cleanup.status)) {
-        warnings.push(`PDT AI cleanup: ${result.stats.cleanup.message}`);
-      }
-      if (warnings.length > 0) setError(warnings.join(" "));
+      const warnings = [...new Set((result.groupStats ?? [result.stats]).flatMap((stats) => {
+        const groupWarnings = [accessoryMatrixNotice(stats), pdtImportWarning(stats)].filter(Boolean) as string[];
+        if (stats.cleanup && ["qwen_unavailable", "qwen_no_valid_output"].includes(stats.cleanup.status)) {
+          groupWarnings.push(`PDT AI cleanup: ${stats.cleanup.message}`);
+        }
+        return groupWarnings;
+      }))];
+      setPdtRoutingPreview(null);
+      setPdtRoutingSelected(new Set());
+      setPdtRoutingBulkSheet("");
+      setError(warnings.length > 0 ? warnings.join(" ") : null);
     } catch (err) {
+      await refreshSelectedRun(selectedRun.id).catch(() => undefined);
       setError(errorMessage(err));
     } finally {
       setPdtBusy(false);
@@ -1281,10 +1331,23 @@ export function App() {
     }
   }
 
-  const hasSelectedOutput = generateExcel || downloadImages || downloadPdfs || downloadCad || generateLinksFile;
+  const onlySelectedBuiltinFields = REQUIRED_COVERAGE_FIELDS.filter(
+    (field) => !["enUrl", "deUrl", "image"].includes(field.key) && !runHiddenCoverageFields.includes(field.key)
+  );
+  const onlySelectedCustomFields = effectiveRunCoverageFields.filter(
+    (field) => field.label.trim() && field.pattern.trim()
+  );
+  const onlySelectedFieldLabels = [
+    ...onlySelectedBuiltinFields.map((field) => field.label),
+    ...onlySelectedCustomFields.map((field) => field.label.trim())
+  ];
+  const hasOnlySelectedInfoField = onlySelectedFieldLabels.length > 0;
+  const hasSelectedOutput = onlySelectedInfo || generateExcel || downloadImages || downloadPdfs || downloadCad || generateLinksFile;
   // A catalog CSV with a chosen column, or an accessory matrix whose main parts we can scrape.
   const hasRunInput = Boolean((file && preview && columnName) || accessoryMatrixPreview);
-  const readyToRun = Boolean(hasRunInput && selectedManufacturer && hasSelectedOutput);
+  const readyToRun = Boolean(
+    hasRunInput && selectedManufacturer && hasSelectedOutput && (!onlySelectedInfo || hasOnlySelectedInfoField)
+  );
   const canPause = selectedRun?.status === "queued" || selectedRun?.status === "running";
   const canResume = selectedRun?.status === "paused" || selectedRun?.status === "pausing";
   const canCancel =
@@ -1367,6 +1430,16 @@ export function App() {
   const canTestManufacturer = Boolean(sampleCatalogNumbers.length >= 3 && manufacturerDraft.officialBaseUrlsText.trim());
   const canSaveManufacturer = Boolean(wizardTestResult?.passed);
   const overrideActive = editorManufacturer?.origin === "override" || editorManufacturer?.hasOverride;
+  const pdtGroupIssues = useMemo(
+    () => pdtSeparateFiles ? getPdtGroupIssues(pdtGroupDrafts, pdtRoutingPreview) : [],
+    [pdtGroupDrafts, pdtRoutingPreview, pdtSeparateFiles]
+  );
+  const pdtGroupAssignedCount = useMemo(() => {
+    if (!pdtRoutingPreview) return 0;
+    const known = new Set(pdtRoutingPreview.items.map((item) => canonicalPdtCatalogNumber(item.catalogNumber)));
+    return new Set(pdtGroupDrafts.flatMap((group) => parsePdtCatalogNumbers(group.catalogNumbersText))
+      .map(canonicalPdtCatalogNumber).filter((number) => known.has(number))).size;
+  }, [pdtGroupDrafts, pdtRoutingPreview]);
 
   useEffect(() => {
     setRunItemPage((current) => Math.min(Math.max(current, 1), runItemPageCount));
@@ -1600,14 +1673,14 @@ export function App() {
                 : "Customer documents (optional)"}
             </strong>
             <span>
-              Drop PDFs, DOCs, XLSX or CSVs. Data extracted from these files overrides
+              Drop PDFs, DOCs, XLSX, CSVs or a 7z archive. Data extracted from these files overrides
               the website scrape — use this when the customer hands you their own source.
             </span>
             <input
               ref={customerInputRef}
               type="file"
               multiple
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.tsv,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.tsv,.txt,.7z,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain,application/x-7z-compressed"
               onClick={(event) => event.stopPropagation()}
               onChange={(event) => {
                 addCustomerDocuments(event.currentTarget.files);
@@ -1676,39 +1749,39 @@ export function App() {
           <fieldset className="run-option-group">
             <legend>Outputs</legend>
             <div className="run-checkbox-grid">
-              <label className={`run-checkbox-card${generateExcel ? " is-selected" : ""}`}>
-                <input type="checkbox" checked={generateExcel} onChange={(event) => setGenerateExcel(event.target.checked)} />
+              <label className={`run-checkbox-card${generateExcel || onlySelectedInfo ? " is-selected" : ""}${onlySelectedInfo ? " is-disabled" : ""}`}>
+                <input type="checkbox" checked={generateExcel || onlySelectedInfo} disabled={onlySelectedInfo} onChange={(event) => setGenerateExcel(event.target.checked)} />
                 <span>
                   <strong>Excel</strong>
-                  <small>Workbook with scraped product data.</small>
+                  <small>{onlySelectedInfo ? "A separate workbook with selected fields and the product source link will be created." : "Workbook with scraped product data."}</small>
                 </span>
               </label>
-              <label className={`run-checkbox-card${downloadImages ? " is-selected" : ""}`}>
-                <input type="checkbox" checked={downloadImages} onChange={(event) => setDownloadImages(event.target.checked)} />
+              <label className={`run-checkbox-card${downloadImages ? " is-selected" : ""}${onlySelectedInfo ? " is-disabled" : ""}`}>
+                <input type="checkbox" checked={downloadImages} disabled={onlySelectedInfo} onChange={(event) => setDownloadImages(event.target.checked)} />
                 <span>
                   <strong>Images</strong>
-                  <small>Save product images to the images folder.</small>
+                  <small>{onlySelectedInfo ? "Skipped in Only selected info mode." : "Save product images to the images folder."}</small>
                 </span>
               </label>
-              <label className={`run-checkbox-card${downloadPdfs ? " is-selected" : ""}`}>
-                <input type="checkbox" checked={downloadPdfs} onChange={(event) => setDownloadPdfs(event.target.checked)} />
+              <label className={`run-checkbox-card${downloadPdfs ? " is-selected" : ""}${onlySelectedInfo ? " is-disabled" : ""}`}>
+                <input type="checkbox" checked={downloadPdfs} disabled={onlySelectedInfo} onChange={(event) => setDownloadPdfs(event.target.checked)} />
                 <span>
                   <strong>PDFs</strong>
-                  <small>Datasheets, manuals and certificates.</small>
+                  <small>{onlySelectedInfo ? "Skipped in Only selected info mode." : "Datasheets, manuals and certificates."}</small>
                 </span>
               </label>
-              <label className={`run-checkbox-card${downloadCad ? " is-selected" : ""}`}>
-                <input type="checkbox" checked={downloadCad} onChange={(event) => setDownloadCad(event.target.checked)} />
+              <label className={`run-checkbox-card${downloadCad ? " is-selected" : ""}${onlySelectedInfo ? " is-disabled" : ""}`}>
+                <input type="checkbox" checked={downloadCad} disabled={onlySelectedInfo} onChange={(event) => setDownloadCad(event.target.checked)} />
                 <span>
                   <strong>CAD</strong>
-                  <small>CAD files in a separate cad folder.</small>
+                  <small>{onlySelectedInfo ? "Skipped in Only selected info mode." : "CAD files in a separate cad folder."}</small>
                 </span>
               </label>
-              <label className={`run-checkbox-card${generateLinksFile ? " is-selected" : ""}`}>
-                <input type="checkbox" checked={generateLinksFile} onChange={(event) => setGenerateLinksFile(event.target.checked)} />
+              <label className={`run-checkbox-card${generateLinksFile ? " is-selected" : ""}${onlySelectedInfo ? " is-disabled" : ""}`}>
+                <input type="checkbox" checked={generateLinksFile} disabled={onlySelectedInfo} onChange={(event) => setGenerateLinksFile(event.target.checked)} />
                 <span>
                   <strong>Device links</strong>
-                  <small>Separate CSV with product URLs.</small>
+                  <small>{onlySelectedInfo ? "Product source links are included in the selected-info workbook." : "Separate CSV with product URLs."}</small>
                 </span>
               </label>
             </div>
@@ -1780,7 +1853,7 @@ export function App() {
           >
             <summary>
               <span>
-                <strong>Coverage tiles for this run</strong>
+                <strong>Required fields for this run</strong>
                 <small>
                   {effectiveRunCoverageFields.length === 0
                     ? "Built-in only (Weight, Material, …)"
@@ -1822,6 +1895,32 @@ export function App() {
                   );
                 })}
               </div>
+              <label className="run-option-card">
+                <input
+                  type="checkbox"
+                  checked={onlySelectedInfo}
+                  onChange={(event) => setOnlySelectedInfo(event.target.checked)}
+                />
+                <span>
+                  <strong>Only selected info</strong>
+                  <small>Search enabled value fields only; skip extra enrichment and retries after the official scrape. Save those values and the product source link in a separate Excel. Images, PDFs, CAD, extra links CSV and uploaded customer documents are skipped.</small>
+                </span>
+              </label>
+              {onlySelectedInfo && (
+                <div className={`only-selected-summary${hasOnlySelectedInfoField ? "" : " is-warning"}`} role="status" aria-live="polite">
+                  {hasOnlySelectedInfoField ? (
+                    <>
+                      <strong>Excel will include {onlySelectedFieldLabels.length} selected field{onlySelectedFieldLabels.length === 1 ? "" : "s"}</strong>
+                      <span>{onlySelectedFieldLabels.join(" · ")} · Product source link</span>
+                    </>
+                  ) : (
+                    <>
+                      <strong>Select at least one value field to continue</strong>
+                      <span>Turn on a built-in field or add a custom field below. Links and images do not count as value fields.</span>
+                    </>
+                  )}
+                </div>
+              )}
               <p className="muted-note">Custom tiles</p>
               {effectiveRunCoverageFields.map((field, index) => (
                 <div key={index} className="coverage-editor-row">
@@ -2017,6 +2116,18 @@ export function App() {
                   {pdtBusy ? <Loader2 className="spin" size={16} /> : <Download size={16} />}
                   PDT
                 </button>
+              )}
+              {selectedRun?.options?.pdtExports && selectedRun.options.pdtExports.length > 0 && (
+                <details className="pdt-files-menu">
+                  <summary className="download-button secondary"><Download size={14} /> PDT files ({selectedRun.options.pdtExports.length})</summary>
+                  <div className="pdt-files-list">
+                    {selectedRun.options.pdtExports.map((entry) => (
+                      <a key={entry.groupId} href={`/api/runs/${selectedRun.id}/files/pdt/${encodeURIComponent(entry.groupId)}`}>
+                        <span>{entry.name}</span><small>{entry.productCount} articles</small>
+                      </a>
+                    ))}
+                  </div>
+                </details>
               )}
               {hasOutputFolder && (
                 <button type="button" className="download-button secondary" onClick={() => void handleOpenOutputFolder()} disabled={openOutputFolderBusy}>
@@ -3383,7 +3494,64 @@ de https://www.company.com/de/product/{part}`}
                 Reset to auto
               </button>
             </div>
-            <div className="pdt-routing-table-wrap">
+            <section className="pdt-group-editor">
+                <label className="pdt-group-toggle">
+                  <input
+                    type="checkbox"
+                    checked={pdtSeparateFiles}
+                    onChange={(event) => setPdtSeparateFiles(event.target.checked)}
+                  />
+                  Create separate PDT files by device group ({pdtGroupDrafts.length} suggested)
+                </label>
+                {error && pdtRoutingPreview && <div className="pdt-group-issues" role="alert">{error}</div>}
+                {pdtSeparateFiles && (
+                  <>
+                    <p>Groups are suggested from detected device sheets. Their selected sheet controls those products; row routing below applies to products left in the main PDT. Each exact catalog number is exported once, and numbers not listed in a group stay in the main PDT.</p>
+                    <div className="pdt-group-summary" role="status">
+                      {pdtGroupDrafts.length} groups · {pdtGroupAssignedCount} of {pdtRoutingPreview.items.length} articles assigned · {Math.max(0, pdtRoutingPreview.items.length - pdtGroupAssignedCount)} remain in the main PDT
+                    </div>
+                    {pdtGroupIssues.length > 0 && (
+                      <div className="pdt-group-issues" role="alert">
+                        {pdtGroupIssues.map((issue) => <div key={issue}>{issue}</div>)}
+                      </div>
+                    )}
+                    {pdtGroupDrafts.map((group, index) => (
+                      <div className="pdt-group-card" key={group.id}>
+                        <div className="pdt-group-fields">
+                          <label>Group name<input value={group.name} onChange={(event) => setPdtGroupDrafts((prev) => prev.map((entry, i) => i === index ? { ...entry, name: event.target.value } : entry))} /></label>
+                          <label>PDT file name<input value={group.fileName} onChange={(event) => setPdtGroupDrafts((prev) => prev.map((entry, i) => i === index ? { ...entry, fileName: event.target.value } : entry))} /></label>
+                          <label>Device sheet<select value={group.sheetName} onChange={(event) => setPdtGroupDrafts((prev) => prev.map((entry, i) => i === index ? { ...entry, sheetName: event.target.value } : entry))}>
+                            <option value="">— choose sheet —</option>
+                            {pdtRoutingPreview.availableSheets.map((sheet) => <option key={sheet} value={sheet}>{sheet}</option>)}
+                          </select></label>
+                          <button type="button" className="download-button secondary" onClick={() => setPdtGroupDrafts((prev) => prev.filter((_, i) => i !== index))} aria-label={`Remove ${group.name}`}><Trash2 size={14} /> Remove</button>
+                        </div>
+                        <label className="pdt-group-catalogs">Catalog numbers <span>{parsePdtCatalogNumbers(group.catalogNumbersText).length} listed</span><textarea value={group.catalogNumbersText} onChange={(event) => setPdtGroupDrafts((prev) => prev.map((entry, i) => i === index ? { ...entry, catalogNumbersText: event.target.value } : entry))} rows={3} placeholder="Paste catalog numbers separated by lines, tabs, commas or semicolons" /></label>
+                        <button type="button" className="download-button secondary pdt-group-add-selected" disabled={pdtRoutingSelected.size === 0} onClick={() => {
+                          const selectedNumbers = pdtRoutingPreview.items.filter((item) => pdtRoutingSelected.has(item.itemId)).map((item) => item.catalogNumber);
+                          setPdtGroupDrafts((prev) => prev.map((entry, i) => {
+                            if (i !== index) return entry;
+                            const merged = parsePdtCatalogNumbers(`${entry.catalogNumbersText}\n${selectedNumbers.join("\n")}`);
+                            return { ...entry, catalogNumbers: merged, catalogNumbersText: merged.join("\n") };
+                          }));
+                        }}><ListChecks size={14} /> Add selected rows{pdtRoutingSelected.size ? ` (${pdtRoutingSelected.size})` : ""}</button>
+                      </div>
+                    ))}
+                    <button type="button" className="download-button secondary" onClick={() => {
+                      const id = `manual-${Date.now()}`;
+                      setPdtGroupDrafts((prev) => {
+                        const index = prev.length + 1;
+                        return [...prev, { id, name: `Group ${index}`, fileName: `${selectedRun?.manufacturerId ?? "run"}_${String(index).padStart(2, "0")}_PDT`, sheetName: "", catalogNumbers: [], catalogNumbersText: "" }];
+                      });
+                    }}><Plus size={14} /> Add group</button>
+                  </>
+                )}
+            </section>
+            <button type="button" className="download-button secondary pdt-routing-review-toggle" onClick={() => setPdtRoutingReviewExpanded((expanded) => !expanded)}>
+              {pdtRoutingReviewExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              {pdtRoutingReviewExpanded ? "Hide" : "Review"} individual article routing ({pdtRoutingPreview.items.length})
+            </button>
+            {pdtRoutingReviewExpanded && <div className="pdt-routing-table-wrap">
               <table className="pdt-routing-table">
                 <thead>
                   <tr>
@@ -3458,7 +3626,7 @@ de https://www.company.com/de/product/{part}`}
                   })}
                 </tbody>
               </table>
-            </div>
+            </div>}
             <div className="pdt-routing-actions">
               {(() => {
                 // Count items left without any sheet (no override AND no auto-suggestion) so we
@@ -3485,7 +3653,7 @@ de https://www.company.com/de/product/{part}`}
                 type="button"
                 className="download-button"
                 onClick={() => void handleConfirmPdtRouting()}
-                disabled={pdtBusy}
+                disabled={pdtBusy || pdtGroupIssues.length > 0}
               >
                 {pdtBusy ? <Loader2 className="spin" size={16} /> : <FileOutput size={16} />}
                 {pdtBusy ? "Generating" : "Generate PDT"}
@@ -3496,6 +3664,67 @@ de https://www.company.com/de/product/{part}`}
       )}
     </main>
   );
+}
+
+function canonicalPdtCatalogNumber(value: string): string {
+  return value.replace(/\s+/g, " ").trim().toLocaleLowerCase("en-US");
+}
+
+function parsePdtCatalogNumbers(value: string): string[] {
+  const seen = new Set<string>();
+  const numbers: string[] = [];
+  for (const raw of value.split(/[\n\r\t,;]+/)) {
+    const number = raw.replace(/^\uFEFF/, "").trim().replace(/^['"]|['"]$/g, "").replace(/\s+/g, " ").trim();
+    const key = canonicalPdtCatalogNumber(number);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    numbers.push(number);
+  }
+  return numbers;
+}
+
+function getPdtGroupIssues(
+  groups: Array<PdtGroupDefinition & { catalogNumbersText: string }>,
+  preview: PdtRoutingPreview | null
+): string[] {
+  const issues: string[] = [];
+  const populated = groups.filter((group) => parsePdtCatalogNumbers(group.catalogNumbersText).length > 0);
+  if (populated.length === 0) issues.push("Add at least one group with catalog numbers, or turn off separate PDT files.");
+  const known = new Set((preview?.items ?? []).map((item) => canonicalPdtCatalogNumber(item.catalogNumber)));
+  const claimed = new Map<string, string>();
+  const safeNames = new Set<string>();
+  const unknown: string[] = [];
+  for (const group of groups) {
+    const numbers = parsePdtCatalogNumbers(group.catalogNumbersText);
+    if (!group.name.trim()) issues.push("Every group needs a name.");
+    if (!group.fileName.trim()) issues.push(`Add a file name for '${group.name || "unnamed group"}'.`);
+    if (!group.sheetName || !preview?.availableSheets.some((sheet) => sheet.toLocaleLowerCase("en-US") === group.sheetName.toLocaleLowerCase("en-US"))) {
+      issues.push(`Choose an existing device sheet for '${group.name || "unnamed group"}'.`);
+    }
+    if (numbers.length === 0) continue;
+    const safeName = group.fileName
+      .replace(/\.xlsx$/i, "")
+      .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
+      .replace(/\s+/g, "-")
+      .replace(/[. ]+$/g, "")
+      .slice(0, 80)
+      .replace(/[. ]+$/g, "")
+      .toLocaleLowerCase("en-US");
+    if (safeName && safeNames.has(safeName)) issues.push(`File name '${group.fileName}' is used more than once.`);
+    if (safeName) safeNames.add(safeName);
+    for (const number of numbers) {
+      const key = canonicalPdtCatalogNumber(number);
+      if (!known.has(key)) {
+        if (unknown.length < 4) unknown.push(number);
+        continue;
+      }
+      const previous = claimed.get(key);
+      if (previous) issues.push(`${number} is listed in both '${previous}' and '${group.name}'.`);
+      else claimed.set(key, group.name);
+    }
+  }
+  if (unknown.length > 0) issues.push(`Not found among exportable run articles: ${unknown.join(", ")}${unknown.length === 4 ? ", …" : ""}.`);
+  return [...new Set(issues)];
 }
 
 function TopStat({ icon, label, value, tone = "calm" }: { icon: React.ReactNode; label: string; value: string | number; tone?: "calm" | "hot" }) {

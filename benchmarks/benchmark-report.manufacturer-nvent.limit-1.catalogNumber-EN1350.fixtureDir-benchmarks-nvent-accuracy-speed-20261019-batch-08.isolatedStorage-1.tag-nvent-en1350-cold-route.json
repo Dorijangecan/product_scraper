@@ -1,0 +1,4181 @@
+{
+  "generatedAt": "2026-10-19T12:30:10.942Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019122941",
+  "filters": {
+    "manufacturer": "nvent",
+    "limit": "1",
+    "catalogNumber": "EN1350",
+    "fixtureDir": "benchmarks/nvent-accuracy-speed-20261019/batch-08",
+    "isolatedStorage": "1",
+    "tag": "nvent-en1350-cold-route"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 0,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 1,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "nvent": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "230v-32a",
+            "exact-route",
+            "intelligent-ipdu",
+            "schroff"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Power Distribution Unit": {
+          "total": 1,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "energy distribution system": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Distribution Unit"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "nvent"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Key Transfer Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "SVE",
+              "deviceType": "Key Transfer Switch",
+              "notes": "Schmersal key-selector interlocking devices"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Air Conditioner",
+            "Fan Assembly",
+            "Filter Fan",
+            "Heat Exchanger",
+            "Heater",
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Alu Connection Angle",
+            "Bag Cutter",
+            "Ball Catch",
+            "Bottle Holder",
+            "Broom Holder",
+            "Cable Binder",
+            "Compression Latch",
+            "Control Compartment",
+            "Cover / Door Accessory",
+            "Cube Connector",
+            "Door Latch",
+            "Door Stop",
+            "Enclosure",
+            "Fixed Caster",
+            "Gland Plate",
+            "Handle",
+            "Hinge",
+            "Keyboard Housing",
+            "Label Holder",
+            "Leveling Foot",
+            "Magnetic Catch",
+            "Mechanical Interlock Kit",
+            "Monitor Mount",
+            "Mounting Bracket",
+            "Over-Center Draw Latch",
+            "Plinth Base",
+            "Pull-Out Shelf",
+            "Quarter Turn Lock",
+            "Rain Hood",
+            "Slam Latch",
+            "Subpanel",
+            "Suspension System Component",
+            "Swivel Caster",
+            "Tool Hook",
+            "Tool Tray",
+            "Window Kit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Pull-wire Emergency Stop Switch",
+            "Safety Hinge Switch",
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS655",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS656",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "TV8S",
+              "deviceType": "Safety Hinge Switch",
+              "notes": "Schmersal TV8S hinge safety switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "EN1350",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Distribution Unit",
+      "actualDeviceType": "Power Distribution Unit",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "schroff",
+        "intelligent-ipdu",
+        "230v-32a",
+        "exact-route"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 26275,
+      "scrapeElapsedMs": 11923,
+      "productUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019122941\\pdt\\nvent-EN1350-pdt_pdt-audit.json",
+      "pdtWrittenCells": 40,
+      "pdtBlankCells": 60,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Intelligent iPDU, EN1350, 230 VAC, 1-PH, 32 A",
+        "description": "Modular, compact intelligent PDU with inlet metering. Ultra-Low Profile Design",
+        "productUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+        "localizedUrls": {
+          "en": "https://www.nvent.com/en-us/schroff/products/encen1350",
+          "de": "https://www.nvent.com/de-de/schroff/products/encen1350"
+        },
+        "deviceTypeClassification": {
+          "type": "Power Distribution Unit",
+          "confidence": 0.86,
+          "evidence": "category: Intelligent PDUs",
+          "alternatives": [
+            {
+              "type": "PCB Connector",
+              "score": 1610,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Connector",
+              "score": 1585,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 105
+        },
+        "normalized": {
+          "weight": "0.646kg",
+          "dimensions": "58.66 x 2.2 x 2.17 in (1489.964 x 55.88 x 55.118 mm)",
+          "material": "Steel",
+          "finish": "Powder Coated",
+          "color": "Black",
+          "voltage": "200...240 V",
+          "current": "32 A",
+          "certificates": "IEC 62368, UKCA, RoHS, Prop 65, REACH Regulation, TSCA",
+          "operatingTemperatureMin": "-40",
+          "operatingTemperatureMax": "85"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Input Cable Length",
+            "value": "3m",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Input Voltage",
+            "value": "200 – 240V",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Nominal Voltage",
+            "value": "230V",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Max Power Input",
+            "value": "7.44 kVA",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Amperage (Derated Amperage)",
+            "value": "32 A",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Output Voltage",
+            "value": "230VAC",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Material",
+            "value": "Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Finish",
+            "value": "Powder Coated",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Height",
+            "value": "58.66in",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Height",
+            "value": "1490mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Width",
+            "value": "2.2in",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Width",
+            "value": "56mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Depth",
+            "value": "2.17in",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Depth",
+            "value": "55mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Weight",
+            "value": "18.08lb",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Weight",
+            "value": "8.22kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Standard Packaging Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Product Family",
+            "value": "Enlogic",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Type",
+            "value": "Intelligent PDU",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Product Type",
+            "value": "Socket Strip",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Socket Type",
+            "value": "(20) C13/C15; (20) C13/C15/C19/C21",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Socket Quantity",
+            "value": "40",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Circuit Breaker",
+            "value": "20 A, 1-pole, Hy-Mag",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Circuit Breaker Quantity",
+            "value": "2",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Power Rating",
+            "value": "7.4 kVA",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Input Cable Location",
+            "value": "Top Feed",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Phase",
+            "value": "1 PH",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Interrupt Rating",
+            "value": "5kAIC",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Rack Units",
+            "value": "0U",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Plug Type",
+            "value": "IEC 60309 332P6 (IP44)",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Metering Type",
+            "value": "Input",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Package Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Packing Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "name",
+            "value": "Intelligent iPDU, EN1350, 230 VAC, 1-PH, 32 A",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "category",
+            "value": "Intelligent PDUs",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "description",
+            "value": "Modular, compact intelligent PDU with inlet metering. Ultra-Low Profile Design. Reduce IP addresses by Daisy Chaining up to 64 PDU's.",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "sku",
+            "value": "EN1350",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "Brand",
+            "value": "SCHROFF",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Input Voltage",
+            "value": "200 – 240V",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Nominal Voltage",
+            "value": "230V",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Max Power Input",
+            "value": "7.44 kVA",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Amperage (Derated Amperage)",
+            "value": "32 A",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Output Voltage",
+            "value": "230VAC",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Material",
+            "value": "Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Finish",
+            "value": "Powder Coated",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Height",
+            "value": "58.66in",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Width",
+            "value": "2.2in",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Depth",
+            "value": "2.17in",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Weight",
+            "value": "18.08lb",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Standard Packaging Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Current Selected Country",
+            "value": "United States | English",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Enlogic Advantage series User Guide",
+            "value": "English",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Height",
+            "value": "270mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Gross Weight",
+            "value": "0.148kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Height",
+            "value": "260mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Height",
+            "value": "310mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Rackpower iPDU Additional Mounting Bracket for Single iPDU Vertical Mounting with Plugin from Side-Recessed or Rear",
+            "value": "Catalog#:; 21630-318",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Finish",
+            "value": "Powder Coated",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Material",
+            "value": "Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Net Weight",
+            "value": "0.646kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Rackpower iPDU Mounting Bracket for Double iPDU Vertical Mounting",
+            "value": "Catalog#:; 21630-252",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Net Weight",
+            "value": "0.438kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Rackpower iPDU Mounting Bracket for Single iPDU Vertical Mounting with Plugin from Side",
+            "value": "Catalog#:; 21630-251",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Net Weight",
+            "value": "0.362kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Voltage",
+            "value": "230 VAC",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "32 A",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "270mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Gross weight",
+            "value": "0.148kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "260mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Height",
+            "value": "310mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Finish",
+            "value": "Powder Coated",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Material",
+            "value": "Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Net weight",
+            "value": "0.646kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Net weight",
+            "value": "0.438kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Net weight",
+            "value": "0.362kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Nominal voltage",
+            "value": "230V",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated voltage",
+            "value": "230 V AC",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated current",
+            "value": "32 A",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Input Voltage",
+            "value": "200...240 V",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Nominal Voltage",
+            "value": "230V",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Output Voltage",
+            "value": "230VAC",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "18.08lb",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Gross Weight",
+            "value": "0.148kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net Weight",
+            "value": "0.646kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net Weight",
+            "value": "0.438kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Net Weight",
+            "value": "0.362kg",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "270mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "260mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Height",
+            "value": "310mm",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Identity",
+            "name": "Catalog Number",
+            "value": "EN1350",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Product Family",
+            "value": "Enlogic",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Type",
+            "value": "Intelligent PDU",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Product Type",
+            "value": "Socket Strip",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Socket Type",
+            "value": "(20) C13/C15; (20) C13/C15/C19/C21",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Socket Quantity",
+            "value": "40",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Circuit Breaker",
+            "value": "20 A, 1-pole, Hy-Mag",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Circuit Breaker Quantity",
+            "value": "2",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Power Rating",
+            "value": "7.4 kVA",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Input Cable Location",
+            "value": "Top Feed",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Phase",
+            "value": "1 PH",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Interrupt Rating",
+            "value": "5kAIC",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Rack Units",
+            "value": "0U",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Plug Type",
+            "value": "IEC 60309 332P6 (IP44)",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Metering Type",
+            "value": "Input",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Package Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Packing Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Modular, compact intelligent PDU with inlet metering. Ultra-Low Profile Design",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Enlogic EN1xxx Intelligent Power Distribution Units monitors input power of the entire PDU, provides billing grade unit level monitoring",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "High Visibility Data Display and Interactive Graphic Display",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Measure circuit breaker loads across redundant feeds to avoid accidental downtime",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Enables smart load balancing for power efficiency and maximized capacity utilization",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Gigabit Ethernet Interface and redundant Ethernet (10/100)",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "iPDU DC power redundancy solution for up to 64 PDU's",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Toolless Hot-Swap Controller",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "I...nput voltage 230 VAC, 1-phase",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "C13, C19 outlets",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Related Accessories",
+            "name": "Distributors In Your Area",
+            "value": "Resources Related Accessories Distributors In Your Area",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EN1350",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Secure Series Firmware",
+            "value": "English",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Single Temperature Sensor",
+            "value": "Catalog#:; EA9102",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9102",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Product Type",
+            "value": "Sensor",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Package Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Plug Type",
+            "value": "RJ45",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Product Family",
+            "value": "Enlogic",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Single Temperature and Humidity Sensor",
+            "value": "Catalog#:; EA9103",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9103",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "3x Temperature and 1x Humidity Sensor",
+            "value": "Catalog#:; EA9105",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9105",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Sensor Input Hub",
+            "value": "Catalog#:; EA9106",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9106",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Door Switch Sensor",
+            "value": "Catalog#:; EA9109",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9109",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9110",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Spot Leak Detection Sensor",
+            "value": "Catalog#:; EA9111",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9111",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Rope Leak Detection Sensor",
+            "value": "Catalog#:; EA9112",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "EA9112",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "21630-318",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Type",
+            "value": "Intelligent PDU; Single Recessed",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Package Quantity",
+            "value": "2",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Product Type",
+            "value": "Bracket",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "21630-252",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Type",
+            "value": "Intelligent PDU; Double",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "21630-251",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Type",
+            "value": "Intelligent PDU; Single",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text",
+            "name": "version",
+            "value": "2.1,",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text",
+            "name": "z-index",
+            "value": "100;",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Product type",
+            "value": "Sensor",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Type",
+            "value": "RJ45",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Product family",
+            "value": "Enlogic",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Type",
+            "value": "Intelligent PDU; Single Recessed",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Product type",
+            "value": "Bracket",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Type",
+            "value": "Intelligent PDU; Double",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Type",
+            "value": "Intelligent PDU; Single",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Product type",
+            "value": "Socket Strip Socket",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Output Voltage",
+            "value": "200...240 V",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Output Current",
+            "value": "20A",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Depth",
+            "value": "75 mm",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "Model : EN1350",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Model : EN1350",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Operating / Storage Temperature -5 to 60C (23 to 140F) / -20 to 60C (-4 to 140F)",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Safety & Environmental IEC 62368 listed. RoHS, and REACH compliant. See",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Temperature Rating -40 to 85°C (-40 to 185°F) Ambient",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Metering Attributes Voltage(V), Current(A), Apparent Power(kVA), Real",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Output Voltage 200 - 240 VAC",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Maximum Output Current (Phase) -",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Circuit Interrupt Rating 5 kAIC",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Inrush Pulse Tolerance 10 times rated current (approx.)",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "EN1350-Spec-Sheet.pdf English",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Model",
+            "value": "EN1350",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Compliance",
+            "value": "Safety & Environmental IEC 62368 listed. RoHS, and REACH compliant. See",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Safety & Environmental IEC 62368 listed.",
+            "value": "RoHS, and REACH compliant. See",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "User Display Dual Displays",
+            "value": "large high visibility LED display for key metering information and alarms.",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Color",
+            "value": "Code User programmable",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Color",
+            "value": "border allows power source identification by PDU",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Input Metered PDU Data Sheet",
+            "value": "- EN1 Series",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metering Attributes Voltage(V),",
+            "value": "Current(A), Apparent Power(kVA), Real",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Output voltage",
+            "value": "200 - 240 VAC",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Maximum Output Current",
+            "value": "(Phase) -",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Overload Protection",
+            "value": "(Internal) (2)1-pole,20A,5 kAIC,\"temp stable, hy-mag type\"",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Input Cord Length",
+            "value": "3m (9.84')",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Network Connectivity Dual ports",
+            "value": "1x Gigabit Ethernet (10/100/1000 Mbps) and 1x (10/100 Mbps) connection/IP",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Trip Curve",
+            "value": "Sensata",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Trip Curve",
+            "value": "62/Carling",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Trip Curve",
+            "value": "24",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Inrush Pulse Tolerance 10 times rated current",
+            "value": "(approx.)",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dielectric Strength 3,750 VAC,",
+            "value": "60Hz, 60 seconds between all electrically isolated terminals",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Output Voltage",
+            "value": "200...240 V",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Output Current",
+            "value": "20A",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Depth",
+            "value": "75 mm",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "Model : EN1350",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Model : EN1350",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Operating / Storage Temperature -5 to 60C (23 to 140F) / -20 to 60C (-4 to 140F)",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Safety & Environmental IEC 62368 listed. RoHS, and REACH compliant. See",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Temperature Rating -40 to 85°C (-40 to 185°F) Ambient",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Metering Attributes Voltage(V), Current(A), Apparent Power(kVA), Real",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Output Voltage 200 - 240 VAC",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Maximum Output Current (Phase) -",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Circuit Interrupt Rating 5 kAIC",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Inrush Pulse Tolerance 10 times rated current (approx.)",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "en1350-spec-sheet.pdf",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Model",
+            "value": "EN1350",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Compliance",
+            "value": "Safety & Environmental IEC 62368 listed. RoHS, and REACH compliant. See",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Safety & Environmental IEC 62368 listed.",
+            "value": "RoHS, and REACH compliant. See",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "User Display Dual Displays",
+            "value": "large high visibility LED display for key metering information and alarms.",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Color",
+            "value": "Code User programmable",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Color",
+            "value": "border allows power source identification by PDU",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Input Metered PDU Data Sheet",
+            "value": "- EN1 Series",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Metering Attributes Voltage(V),",
+            "value": "Current(A), Apparent Power(kVA), Real",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Output voltage",
+            "value": "200 - 240 VAC",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Maximum Output Current",
+            "value": "(Phase) -",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Overload Protection",
+            "value": "(Internal) (2)1-pole,20A,5 kAIC,\"temp stable, hy-mag type\"",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Input Cord Length",
+            "value": "3m (9.84')",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Network Connectivity Dual ports",
+            "value": "1x Gigabit Ethernet (10/100/1000 Mbps) and 1x (10/100 Mbps) connection/IP",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Trip Curve",
+            "value": "Sensata",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Trip Curve",
+            "value": "62/Carling",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Trip Curve",
+            "value": "24",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Inrush Pulse Tolerance 10 times rated current",
+            "value": "(approx.)",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dielectric Strength 3,750 VAC,",
+            "value": "60Hz, 60 seconds between all electrically isolated terminals",
+            "sourceUrl": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated impulse voltage",
+            "value": "2.5 kV / 250V",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Temperature range",
+            "value": "25°C / 100°C",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "This product is CE compliant, and UL tested. An appropriate declaration of conformity has been",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "• EN 61000-3-3 Limitation of voltage changes, voltage fluctuations and flicker",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "• EN 61000-3-2 Limits for harmonic current emissions",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "• LVD 2014/35/EU Low-Voltage Directive",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "• RoHS 2011/65/EU RoHS Directive-2",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Products fulfilling those requirements are marked with a CE/UKCA label. For Declarations of Conformity",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "• Temperature range: 25°C – 100°C.",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "• Rated impulse voltage: 2.5 kV.",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "ENLOGIC-Advantage-Series-User-Manual.pdf English ENLOGIC-Advantage-Series-User-Manual.pdf",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Voltage",
+            "value": "fluctuations and flicker",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "• EN 61000-3-2 Limits for harmonic current",
+            "value": "emissions",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "CE /",
+            "value": "UKCA Compliance",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "• LVD 2014/35/EU Low-Voltage",
+            "value": "Directive",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "• RoHS",
+            "value": "2011/65/EU RoHS Directive-2",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "• Temperature range:",
+            "value": "25°C – 100°C.",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "• Rated impulse voltage:",
+            "value": "2.5 kV.",
+            "sourceUrl": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "RoHS Directive 2011/65/EU and its amendment 2015/863/EU",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "that our products are manufactured in compliance with the latest version of the RoHS Directive",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "2011/65/EU and its amendment 2015/863/EU (RoHS Guide). Any restricted substances above the",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Lead Lead CAS# 7439-92-1; RoHS",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "nVent RoHS SCHROFF 125 KB English nVent RoHS SCHROFF",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "RoHS Directive",
+            "value": "2011/65/EU and its amendment 2015/863/EU",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "In accordance with nVent’s ESG commitments and RoHS",
+            "value": "Directive 2011/65/EU and its amendment",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "homogeneous material",
+            "value": "concentrations contained within nVent products are set out in the attached",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Tom Hurney Date",
+            "value": "Jan. 1st, 2023",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Director, Enterprise Product Compliance",
+            "value": "& Approvals",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Last Updated",
+            "value": "November 30, 2023",
+            "sourceUrl": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "EN1350-Spec-Sheet.pdf English",
+            "url": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019122941\\documents\\EN1350-datasheet-EN1350-Spec-Sheet.pdf-English.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "en1350-spec-sheet.pdf",
+            "url": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019122941\\documents\\EN1350-datasheet-en1350-spec-sheet.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "pdf",
+            "url": "https://www.nvent.com/en-us/schroff/products/encen1350/pdf?measure_system=imperial",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "manual",
+            "label": "ENLOGIC-Advantage-Series-User-Manual.pdf English ENLOGIC-Advantage-Series-User-Manual.pdf",
+            "url": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019122941\\documents\\EN1350-manual-ENLOGIC-Advantage-Series-User-Manual.pdf-English-ENLOGIC-Advantage-Series-User-M.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Enlogic Advantage series User Guide English Enlogic Advantage series User Guide",
+            "url": "https://nvent.widen.net/content/exjyd1rejc/original/enlogicadvsecure-user-guide.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "manual",
+            "label": "enlogic-advantage-series-user-manual.pdf",
+            "url": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "manual",
+            "label": "enlogicadvsecure-user-guide.pdf",
+            "url": "https://nvent.widen.net/content/exjyd1rejc/original/enlogicadvsecure-user-guide.pdf?asset_type=Installation",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "cad",
+            "label": "EN1350-WXYZ_DA_E1_Released.pdf 12.05 MB English EN1350-WXYZ_DA_E1_Released.pdf",
+            "url": "https://nvent.widen.net/content/g02p5aehar/original/en1350-wxyz_da_e1_released.pdf?asset_type=Drawing%20Document",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "cad",
+            "label": "en1350-wxyz_da_e1_released.pdf",
+            "url": "https://nvent.widen.net/content/g02p5aehar/original/en1350-wxyz_da_e1_released.pdf?asset_type=Drawing",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "image",
+            "label": "EN1350_0000.tif",
+            "url": "https://www.nvent.com/sites/default/files/styles/product_and_sku_image_582x334_no_crop/public/dam/l3vbfdyokk/en1350_0000.png.webp?itok=PTDYhvp7",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350/",
+            "candidateUrls": [],
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019122941\\images\\NVE.EN1350.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "PCT Config Tool English PCT Config Tool",
+            "url": "https://nvent.widen.net/content/u52msy7aai/original/pct-config-tool.zip?asset_type=Firmware",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "cad",
+            "label": "Secure Series Firmware English Secure Series Firmware",
+            "url": "https://nvent.widen.net/content/mubbwb1j4u/original/secure-series-firmware.zip?asset_type=Firmware",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "cad",
+            "label": "Enlogic_2.0.mib English Enlogic_2.0.mib",
+            "url": "https://nvent.widen.net/content/oppjyv3uzk/original/enlogic_2.0.mib.zip?asset_type=Firmware",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent RoHS SCHROFF 125 KB English nVent RoHS SCHROFF",
+            "url": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019122941\\documents\\EN1350-certificate-nVent-RoHS-SCHROFF-125-KB-English-nVent-RoHS-SCHROFF.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "certificate",
+            "label": "nVent TSCA SCHROFF 159 KB English nVent TSCA SCHROFF",
+            "url": "https://nvent.widen.net/content/npuwepnivu/original/nvent-tsca-declaration_schroff.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent REACH SCHROFF 140 KB English nVent REACH SCHROFF",
+            "url": "https://nvent.widen.net/content/s4jwrkzc46/original/nvent-reach-declaration_schroff.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent Prop 65 SCHROFF 139 KB English nVent Prop 65 SCHROFF",
+            "url": "https://nvent.widen.net/content/joe4rc8c8j/original/nvent-prop-65-declaration_schroff.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.nvent.com/en-us/schroff/products/encen1350",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T12:29:52.008Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T12:29:59.223Z"
+          },
+          {
+            "url": "https://nvent.widen.net/content/2gptitgldr/original/en1350-spec-sheet.pdf?asset_type=Data",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T12:29:59.747Z"
+          },
+          {
+            "url": "https://nvent.widen.net/content/3ogfhlellk/original/enlogic-advantage-series-user-manual.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-19T12:30:04.567Z"
+          },
+          {
+            "url": "https://nvent.widen.net/content/yuk9ejwiwl/original/nvent-rohs-declaration-_schroff.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-19T12:30:04.995Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "nvent-direct",
+              "url": "https://www.nvent.com/en-us/schroff/products/encen1350",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "nvent-direct",
+              "statusCode": 200,
+              "attributeCount": 160,
+              "documentCount": 21,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

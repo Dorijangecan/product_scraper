@@ -16,6 +16,7 @@ import { buildPdtRepairResult } from "./pdt/ai-cleanup.js";
 import { electricalFieldsForDeviceType } from "./pdt/device-type-profiles.js";
 import { classifyDeviceTypeCached as classifyDeviceType } from "./scrapers/device-type.js";
 import { buildLocalizedProductUrls } from "./scrapers/localized-urls.js";
+import { fieldMatchesLabel, type RegistryFieldKey } from "./scrapers/field-registry.js";
 import { cleanText, normalizeFields } from "./scrapers/normalizer.js";
 import { listTechnicalAttributeAliases, suggestTechnicalAttributeAlias } from "./scrapers/technical-attribute-aliases.js";
 import { proposeUnmappedLabelMappings, type UnmappedLabelTeachListEntry } from "./scrapers/llm-label-proposals.js";
@@ -939,6 +940,111 @@ export async function exportRunWorkbook(input: {
   await fs.promises.rm(outputPath, { force: true });
   await fs.promises.rename(partPath, outputPath);
   await fs.promises.rm(checkpointDir, { recursive: true, force: true });
+  return outputPath;
+}
+
+/** A compact, handoff-ready workbook for an Only selected info run. */
+export async function exportOnlySelectedInfoWorkbook(input: {
+  run: RunRecord;
+  manufacturer: ManufacturerConfig;
+  items: RunItemRecord[];
+  outputDir: string;
+}): Promise<string> {
+  const builtinFields = [
+    { key: "weight", label: "Weight" },
+    { key: "certificates", label: "Certificates" },
+    { key: "dimensions", label: "Dimensions" },
+    { key: "material", label: "Material" },
+    { key: "voltage", label: "Voltage" },
+    { key: "current", label: "Current" }
+  ];
+  const hidden = new Set(input.run.options?.hiddenCoverageFields ?? []);
+  const fields: Array<{ key: string; label: string; pattern?: RegExp }> = builtinFields
+    .filter((field) => !hidden.has(field.key))
+    .map((field) => field);
+  const customFields = input.run.options?.customCoverageFields ?? input.manufacturer.customCoverageFields ?? [];
+  for (const field of customFields) {
+    if (!field.id || !field.label.trim() || !field.pattern.trim() || hidden.has(`custom:${field.id}`)) continue;
+    try {
+      fields.push({ key: `custom:${field.id}`, label: field.label.trim(), pattern: new RegExp(field.pattern, "i") });
+    } catch {
+      // Invalid custom patterns are ignored, matching coverage evaluation behavior.
+    }
+  }
+
+  const outputName = `Only-Selected-Info-${safeWorkbookPart(input.manufacturer.shortName)}-${safeWorkbookPart(input.run.id)}`;
+  const outputPath = path.join(input.outputDir, `${outputName}.xlsx`);
+  const partPath = `${outputPath}.part`;
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Product Scraper";
+  workbook.created = new Date();
+  workbook.modified = new Date();
+  const sheet = workbook.addWorksheet("Selected Info", {
+    views: [{ showGridLines: false, state: "frozen", xSplit: 2, ySplit: 4, zoomScale: 90 }]
+  });
+  const seenHeaders = new Map<string, number>();
+  const fieldHeaders = fields.map((field, index) => {
+    const base = (field.label.trim() || `Field ${index + 1}`).slice(0, 180);
+    const occurrence = (seenHeaders.get(base.toLocaleLowerCase()) ?? 0) + 1;
+    seenHeaders.set(base.toLocaleLowerCase(), occurrence);
+    return occurrence === 1 ? base : `${base} (${occurrence})`;
+  });
+  const headers = ["Manufacturer", "Catalog Number", ...fieldHeaders, "Product Source"];
+  const lastColumn = headers.length;
+  sheet.mergeCells(1, 1, 1, lastColumn);
+  sheet.getCell(1, 1).value = "Selected Product Information";
+  sheet.getCell(1, 1).font = { bold: true, size: 18, color: { argb: "FFFFFFFF" } };
+  sheet.getCell(1, 1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF17365D" } };
+  sheet.getRow(1).height = 32;
+  sheet.mergeCells(2, 1, 2, lastColumn);
+  sheet.getCell(2, 1).value = `Only selected info · ${input.manufacturer.canonicalName} · ${input.run.createdAt.slice(0, 10)}`;
+  sheet.getCell(2, 1).font = { italic: true, color: { argb: "FF52657A" }, size: 10 };
+  sheet.getRow(2).height = 21;
+
+  const rows = input.items.map((item) => {
+    const result = item.result;
+    const values: unknown[] = [input.manufacturer.canonicalName, item.catalogNumber];
+    for (const field of fields) {
+      if (field.pattern) {
+        const matches = (result?.attributes ?? [])
+          .filter((attribute) => field.pattern!.test(attribute.name) && attribute.value.trim())
+          .map((attribute) => [attribute.value.trim(), attribute.unit?.trim()].filter(Boolean).join(" "));
+        values.push([...new Set(matches)].join("; "));
+      } else {
+        const normalizedValue = result?.normalized[field.key as keyof ProductResult["normalized"]];
+        const attributeValues = (result?.attributes ?? [])
+          .filter((attribute) => fieldMatchesLabel(field.key as RegistryFieldKey, attribute.name) && attribute.value.trim())
+          .map((attribute) => [attribute.value.trim(), attribute.unit?.trim()].filter(Boolean).join(" "));
+        values.push(normalizedValue || [...new Set(attributeValues)].join("; "));
+      }
+    }
+    const sourceUrl = result?.productUrl ?? item.productUrl ?? result?.sources.find((source) => /^https?:\/\//i.test(source.url))?.url;
+    values.push(sourceUrl && /^https?:\/\//i.test(sourceUrl) ? { text: sourceUrl, hyperlink: sourceUrl, tooltip: "Open the source product page" } : "");
+    return values;
+  });
+
+  sheet.addTable({
+    name: "SelectedInfo",
+    ref: "A4",
+    headerRow: true,
+    totalsRow: false,
+    style: { theme: "TableStyleMedium2", showRowStripes: true, showColumnStripes: false },
+    columns: headers.map((name) => ({ name, filterButton: true })),
+    rows
+  });
+  headers.forEach((header, index) => {
+    const column = sheet.getColumn(index + 1);
+    const valuesLength = Math.max(header.length, ...rows.map((row) => String(row[index] ?? "").length));
+    column.width = Math.min(58, Math.max(index === lastColumn - 1 ? 42 : 16, valuesLength + 2));
+  });
+  sheet.getColumn(lastColumn).font = { color: { argb: "FF0563C1" }, underline: "single" };
+  sheet.pageSetup = { orientation: lastColumn > 6 ? "landscape" : "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+
+  await fs.promises.mkdir(input.outputDir, { recursive: true });
+  await fs.promises.rm(partPath, { force: true });
+  await workbook.xlsx.writeFile(partPath);
+  await fs.promises.rm(outputPath, { force: true });
+  await fs.promises.rename(partPath, outputPath);
   return outputPath;
 }
 

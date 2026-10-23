@@ -18,6 +18,21 @@ const ROCKWELL_SEARCH_API = "https://api.rockwellautomation.com/ra-eapi-cx-publi
 const ROCKWELL_SEARCH_CLIENT_ID = "fb000cbbe476420b9e70be741abd7a63";
 const ROCKWELL_SEARCH_CLIENT_SECRET = "Db420ae8BAdD47ADA4E12cE90Fb1b747";
 const ROCKWELL_SEARCH_CORRELATION_ID = "prod_ra_com_search";
+const ROCKWELL_140G_INDEX_PAGE_SIZE = 500;
+const ROCKWELL_140G_INDEX_CACHE_TTL_MS = 15 * 60 * 1000;
+const ROCKWELL_140G_INDEX_MAX_RECORDS = 50_000;
+
+interface RockwellProductIndexSnapshot {
+  complete: boolean;
+  total: number;
+  catalogNumbers: Set<string>;
+  byCatalogNumber: Map<string, string[]>;
+  error?: string;
+}
+
+let rockwell140gIndexCache:
+  | { expiresAt: number; promise: Promise<RockwellProductIndexSnapshot> }
+  | undefined;
 
 export class RockwellConnector implements ManufacturerConnector {
   readonly id = "rockwell";
@@ -25,24 +40,30 @@ export class RockwellConnector implements ManufacturerConnector {
   async scrape(catalogNumber: string, context: ScrapeContext): Promise<ProductResult> {
     const results: ProductResult[] = [];
     const urls = rockwellPrimaryUrls(catalogNumber);
-    const attemptedUrls: string[] = [...urls];
+    const is140g = /^140G-/i.test(catalogNumber.trim());
+    const directPdpUrls = is140g
+      ? urls.filter((url) => /\/en-us\/products\/details\./i.test(new URL(url).pathname))
+      : urls;
+    const supplementalUrls = is140g ? urls.filter((url) => !directPdpUrls.includes(url)) : [];
+    const attemptedUrls: string[] = [];
+    let directPdpPageVerified = false;
     let localizedDescriptionPromise: Promise<NonNullable<ProductResult["localizedDescriptions"]>["de"] | undefined> | undefined;
 
-    // Start parsing each response as soon as it arrives. The old two-phase flow waited for the
-    // slowest source (often the cutsheet/DPP) before beginning the expensive generic PDP parse,
-    // serializing otherwise independent network and CPU work. Promise.all preserves URL order so
-    // merge precedence and evidence ordering remain stable.
-    const primaryStartedAt = Date.now();
-    const primaryResults = await Promise.all(urls.map(async (url) => {
+    const fetchPrimaryUrls = async (primaryUrls: string[]) => {
+      if (!primaryUrls.length) return;
+      attemptedUrls.push(...primaryUrls);
+      // Start parsing each response as soon as it arrives. Promise.all preserves URL order so
+      // merge precedence and evidence ordering remain stable.
+      const primaryStartedAt = Date.now();
+      const primaryResults = await Promise.all(primaryUrls.map(async (url) => {
       const fetched = await fetchRockwellOptional(url, context);
       if (!fetched) return undefined;
       const parseStartedAt = Date.now();
       let parsedResult: ProductResult | undefined;
-      if (
-        !context.imageOnly &&
-        /\/en-us\/products\/details\./i.test(new URL(url).pathname) &&
-        matchesRockwellCatalogStrict(fetched.text, catalogNumber)
-      ) {
+      const isExactDetailsPage = /\/en-us\/products\/details\./i.test(new URL(url).pathname) &&
+        matchesRockwellCatalogStrict(fetched.text, catalogNumber);
+      if (isExactDetailsPage) directPdpPageVerified = true;
+      if (!context.imageOnly && isExactDetailsPage) {
         const germanUrl = buildLocalizedProductUrls("rockwell", catalogNumber, fetched.effectiveUrl).de;
         if (germanUrl && !sameRockwellUrl(germanUrl, fetched.effectiveUrl)) {
           // Start the optional localized copy once the exact English PDP is confirmed. It runs
@@ -77,15 +98,82 @@ export class RockwellConnector implements ManufacturerConnector {
 
       debugRockwellTiming(`parse ${new URL(url).hostname}${new URL(url).pathname} ${Date.now() - parseStartedAt}ms`);
       return parsedResult;
-    }));
-    results.push(...primaryResults.filter((result): result is ProductResult => Boolean(result)));
-    debugRockwellTiming(`primary-fetch-parse-set ${Date.now() - primaryStartedAt}ms`);
+      }));
+      results.push(...primaryResults.filter((result): result is ProductResult => Boolean(result)));
+      debugRockwellTiming(`primary-fetch-parse-set ${Date.now() - primaryStartedAt}ms`);
+    };
+
+    // For 140G, the exact PDP is the decisive existence check. Delay cutsheet, DPP, and family
+    // requests until it is known that the product exists or the complete family index contains it.
+    await fetchPrimaryUrls(directPdpUrls);
+    let preloaded140gIndex: RockwellProductIndexSnapshot | undefined;
+    const directPageProvesIdentity = results.some((result) =>
+      result.status !== "failed" && rockwellResultHasExactIdentity(result)
+    ) || directPdpPageVerified;
+    if (is140g && !directPageProvesIdentity) {
+      preloaded140gIndex = await rockwell140gProductIndex(context);
+      const key = normalizeRockwellIndexCatalog(catalogNumber);
+      if (preloaded140gIndex.complete && !preloaded140gIndex.catalogNumbers.has(key)) {
+        const reason = `Rockwell returned no exact 140G product page for ${catalogNumber}; the direct details page was not verified and the complete official 140G product index has no exact catalog record.`;
+        const unavailable = emptyResult("rockwell", catalogNumber, reason);
+        return {
+          ...unavailable,
+          diagnostics: {
+            attemptedUrls,
+            notes: [
+              `Complete Rockwell 140G product index (${preloaded140gIndex.total} records) contains no exact catalog record for ${catalogNumber}.`,
+              "Skipped secondary Rockwell endpoints and generic product-site discovery after exact direct-page and complete-index checks."
+            ],
+            terminal: { reason: "official-catalog-exact-record-not-found", skipNetworkFallback: true }
+          }
+        };
+      }
+    }
+    await fetchPrimaryUrls(supplementalUrls);
 
     // Rockwell's current search page resolves many real PDPs through its product index rather
     // than through the simple details.<SKU>.html pattern. Ask that official index before generic
     // discovery; only exact catalogNumber records are accepted and the returned PDP is fetched and
     // identity-checked before it can contribute a result.
-    const indexedUrls = results.length ? [] : await rockwellSearchProductUrls(catalogNumber, context);
+    // Primary endpoints can return a parsed-but-failed placeholder (for example, an empty DPP
+    // response). That must not suppress the official product index: use it until a primary result
+    // proves this exact catalog identity.
+    const hasExactPrimaryIdentity = results.some((result) =>
+      result.status !== "failed" && rockwellResultHasExactIdentity(result)
+    ) || directPdpPageVerified;
+    let searchIndex: { urls: string[]; notes: string[] } | undefined;
+    if (!hasExactPrimaryIdentity) {
+      if (/^140G-/i.test(catalogNumber.trim())) {
+        const snapshot = preloaded140gIndex ?? await rockwell140gProductIndex(context);
+        if (snapshot.complete) {
+          const key = normalizeRockwellIndexCatalog(catalogNumber);
+          const urls = snapshot.byCatalogNumber.get(key) ?? [];
+          const exactIndexRecordExists = snapshot.catalogNumbers.has(key);
+          searchIndex = {
+            urls,
+            notes: [
+              urls.length
+                ? `Complete Rockwell 140G product index contains an exact catalog record for ${catalogNumber}.`
+                : exactIndexRecordExists
+                  ? `Complete Rockwell 140G product index contains exact catalog ${catalogNumber}, but no validated official PDP URL.`
+                  : `Complete Rockwell 140G product index (${snapshot.total} records) contains no exact catalog record for ${catalogNumber}.`
+            ]
+          };
+        } else {
+          const fallbackIndex = await rockwellSearchProductUrls(catalogNumber, context);
+          searchIndex = {
+            ...fallbackIndex,
+            notes: [
+              `Complete Rockwell 140G index could not be verified${snapshot.error ? `: ${snapshot.error}` : "."}`,
+              ...fallbackIndex.notes
+            ]
+          };
+        }
+      } else {
+        searchIndex = await rockwellSearchProductUrls(catalogNumber, context);
+      }
+    }
+    const indexedUrls = searchIndex?.urls ?? [];
     for (const url of indexedUrls) {
       if (attemptedUrls.includes(url)) continue;
       attemptedUrls.push(url);
@@ -143,7 +231,8 @@ export class RockwellConnector implements ManufacturerConnector {
         ...withLocalizedDescription,
         diagnostics: {
           ...merged.diagnostics,
-          attemptedUrls: [...(merged.diagnostics?.attemptedUrls ?? []), ...attemptedUrls]
+          attemptedUrls: [...(merged.diagnostics?.attemptedUrls ?? []), ...attemptedUrls],
+          notes: [...(merged.diagnostics?.notes ?? []), ...(searchIndex?.notes ?? [])]
         }
       };
     }
@@ -173,7 +262,8 @@ export class RockwellConnector implements ManufacturerConnector {
         ...fallbackResult,
         diagnostics: {
           ...fallbackResult.diagnostics,
-          attemptedUrls: [...(fallbackResult.diagnostics?.attemptedUrls ?? []), ...attemptedUrls]
+          attemptedUrls: [...(fallbackResult.diagnostics?.attemptedUrls ?? []), ...attemptedUrls],
+          notes: [...(fallbackResult.diagnostics?.notes ?? []), ...(searchIndex?.notes ?? [])]
         }
       },
       discovery
@@ -1554,7 +1644,10 @@ function preferredRockwellProductUrl(result: ProductResult): string | undefined 
   return undefined;
 }
 
-async function rockwellSearchProductUrls(catalogNumber: string, context: ScrapeContext): Promise<string[]> {
+async function rockwellSearchProductUrls(
+  catalogNumber: string,
+  context: ScrapeContext
+): Promise<{ urls: string[]; notes: string[] }> {
   const query = new URLSearchParams({
     query: catalogNumber,
     tab: "products",
@@ -1562,7 +1655,8 @@ async function rockwellSearchProductUrls(catalogNumber: string, context: ScrapeC
     size: "100",
     locale: "en-US"
   });
-  const fetched = await context.http.fetchText(`${ROCKWELL_SEARCH_API}?${query.toString()}`, {
+  const searchUrl = `${ROCKWELL_SEARCH_API}?${query.toString()}`;
+  const fetched = await context.http.fetchText(searchUrl, {
     timeoutMs: 15000,
     cacheTtlMs: ROCKWELL_CACHE_TTL_MS,
     maxAttempts: 1,
@@ -1574,19 +1668,135 @@ async function rockwellSearchProductUrls(catalogNumber: string, context: ScrapeC
       "client_secret": ROCKWELL_SEARCH_CLIENT_SECRET,
       correlation_id: ROCKWELL_SEARCH_CORRELATION_ID
     }
-  }).catch(() => undefined);
-  if (!fetched || fetched.statusCode >= 400) return [];
+  }).catch((error: unknown) => ({ error: error instanceof Error ? error.message : String(error) }));
+  if ("error" in fetched) {
+    return { urls: [], notes: [`Rockwell product index request failed for exact catalog ${catalogNumber}: ${fetched.error}`] };
+  }
+  if (fetched.statusCode >= 400) {
+    return { urls: [], notes: [`Rockwell product index returned HTTP ${fetched.statusCode} for exact catalog ${catalogNumber}.`] };
+  }
   try {
-    const payload = JSON.parse(fetched.text) as { docs?: unknown };
-    if (!Array.isArray(payload.docs)) return [];
-    return payload.docs
+    const payload = JSON.parse(fetched.text) as { total?: unknown; docs?: unknown };
+    if (!Array.isArray(payload.docs)) {
+      return { urls: [], notes: [`Rockwell product index returned an unexpected response for exact catalog ${catalogNumber}.`] };
+    }
+    const exactDocs = payload.docs
       .filter(isRecord)
-      .filter((doc) => typeof doc.catalogNumber === "string" && matchesRockwellCatalogStrict(doc.catalogNumber, catalogNumber))
+      .filter((doc) => typeof doc.catalogNumber === "string" && matchesRockwellCatalogStrict(doc.catalogNumber, catalogNumber));
+    const urls = exactDocs
       .map((doc) => typeof doc.url === "string" ? doc.url : undefined)
       .filter((url): url is string => Boolean(url && /^https?:\/\/(?:www\.)?rockwellautomation\.com\//i.test(url)))
       .slice(0, 5);
+    const total = typeof payload.total === "number" ? payload.total : undefined;
+    const totalNote = total === undefined ? "" : ` (${total} search results total)`;
+    const notes = exactDocs.length
+      ? [`Rockwell product index returned ${exactDocs.length} exact catalog match(es)${totalNote} for ${catalogNumber}.`]
+      : [`Rockwell product index returned ${payload.docs.length} result(s)${totalNote}, but no exact catalog match for ${catalogNumber}.`];
+    return { urls, notes };
   } catch {
-    return [];
+    return { urls: [], notes: [`Rockwell product index returned invalid JSON for exact catalog ${catalogNumber}.`] };
+  }
+}
+
+function normalizeRockwellIndexCatalog(value: string): string {
+  return value.trim().toUpperCase();
+}
+
+async function rockwell140gProductIndex(context: ScrapeContext): Promise<RockwellProductIndexSnapshot> {
+  if (rockwell140gIndexCache && rockwell140gIndexCache.expiresAt > Date.now()) {
+    return rockwell140gIndexCache.promise;
+  }
+
+  const promise = loadRockwell140gProductIndex(context);
+  rockwell140gIndexCache = { expiresAt: Date.now() + ROCKWELL_140G_INDEX_CACHE_TTL_MS, promise };
+  const clearIncompleteCache = (snapshot: RockwellProductIndexSnapshot) => {
+    if (!snapshot.complete && rockwell140gIndexCache?.promise === promise) rockwell140gIndexCache = undefined;
+    return snapshot;
+  };
+  return promise.then(clearIncompleteCache, (error: unknown) => {
+    if (rockwell140gIndexCache?.promise === promise) rockwell140gIndexCache = undefined;
+    return {
+      complete: false,
+      total: 0,
+      catalogNumbers: new Set(),
+      byCatalogNumber: new Map(),
+      error: error instanceof Error ? error.message : String(error)
+    };
+  });
+}
+
+async function loadRockwell140gProductIndex(context: ScrapeContext): Promise<RockwellProductIndexSnapshot> {
+  const fetchPage = async (from: number): Promise<{ total: number; docs: Record<string, unknown>[] }> => {
+    const query = new URLSearchParams({
+      query: "140G",
+      tab: "products",
+      from: String(from),
+      size: String(ROCKWELL_140G_INDEX_PAGE_SIZE),
+      locale: "en-US"
+    });
+    const fetched = await context.http.fetchText(`${ROCKWELL_SEARCH_API}?${query.toString()}`, {
+      timeoutMs: 20000,
+      cacheTtlMs: ROCKWELL_140G_INDEX_CACHE_TTL_MS,
+      maxAttempts: 1,
+      signal: context.signal,
+      headers: {
+        "user-agent": ROCKWELL_USER_AGENT,
+        accept: "application/json,text/plain,*/*;q=0.8",
+        client_id: ROCKWELL_SEARCH_CLIENT_ID,
+        client_secret: ROCKWELL_SEARCH_CLIENT_SECRET,
+        correlation_id: ROCKWELL_SEARCH_CORRELATION_ID
+      }
+    });
+    if (fetched.statusCode >= 400) throw new Error(`HTTP ${fetched.statusCode} at offset ${from}`);
+    const payload = JSON.parse(fetched.text) as { total?: unknown; docs?: unknown };
+    const total = Number(payload.total);
+    if (!Number.isSafeInteger(total) || total < 0 || total > ROCKWELL_140G_INDEX_MAX_RECORDS || !Array.isArray(payload.docs)) {
+      throw new Error(`Invalid index page metadata at offset ${from}`);
+    }
+    return { total, docs: payload.docs.filter(isRecord) };
+  };
+
+  try {
+    const first = await fetchPage(0);
+    const allDocs = [...first.docs];
+    const offsets = [];
+    for (let from = ROCKWELL_140G_INDEX_PAGE_SIZE; from < first.total; from += ROCKWELL_140G_INDEX_PAGE_SIZE) offsets.push(from);
+    const rest = await Promise.all(offsets.map(fetchPage));
+    for (const page of rest) {
+      if (page.total !== first.total) throw new Error("Product index total changed during pagination");
+      allDocs.push(...page.docs);
+    }
+    if (allDocs.length !== first.total) {
+      throw new Error(`Incomplete product index: received ${allDocs.length} of ${first.total} records`);
+    }
+
+    const catalogNumbers = new Set<string>();
+    const byCatalogNumber = new Map<string, string[]>();
+    for (const doc of allDocs) {
+      if (typeof doc.catalogNumber !== "string") continue;
+      const key = normalizeRockwellIndexCatalog(doc.catalogNumber);
+      catalogNumbers.add(key);
+      if (typeof doc.url !== "string") continue;
+      let url: URL;
+      try {
+        url = new URL(doc.url);
+      } catch {
+        continue;
+      }
+      if (url.protocol !== "https:" || !/(?:^|\.)rockwellautomation\.com$/i.test(url.hostname)) continue;
+      const urls = byCatalogNumber.get(key) ?? [];
+      if (!urls.includes(url.toString())) urls.push(url.toString());
+      byCatalogNumber.set(key, urls);
+    }
+    return { complete: true, total: first.total, catalogNumbers, byCatalogNumber };
+  } catch (error) {
+    return {
+      complete: false,
+      total: 0,
+      catalogNumbers: new Set(),
+      byCatalogNumber: new Map(),
+      error: error instanceof Error ? error.message : String(error)
+    };
   }
 }
 

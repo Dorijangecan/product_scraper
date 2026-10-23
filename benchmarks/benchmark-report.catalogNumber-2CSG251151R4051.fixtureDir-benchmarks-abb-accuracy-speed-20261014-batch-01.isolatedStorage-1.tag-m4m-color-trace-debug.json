@@ -1,0 +1,2700 @@
+{
+  "generatedAt": "2026-10-14T10:34:46.520Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014103421",
+  "filters": {
+    "catalogNumber": "2CSG251151R4051",
+    "fixtureDir": "benchmarks/abb-accuracy-speed-20261014/batch-01",
+    "isolatedStorage": "1",
+    "tag": "m4m-color-trace-debug"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 1,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": false,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "abb": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "cold",
+            "m4m",
+            "network-analyzer"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Power Meter": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "el. mesurement devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Meter"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "abb"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": true,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "2CSG251151R4051",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Meter",
+      "actualDeviceType": "Power Meter",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "m4m",
+        "network-analyzer"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 22050,
+      "productUrl": "https://new.abb.com/products/2CSG251151R4051",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014103421\\pdt\\abb-2CSG251151R4051-pdt_pdt-audit.json",
+      "pdtWrittenCells": 41,
+      "pdtBlankCells": 74,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "M4M 20 Network analyzer",
+        "description": "M4M 20 is a network analyzer with 2 digital outputs, aux supply 48-240 V AC/DC and Bluetooth",
+        "productUrl": "https://new.abb.com/products/2CSG251151R4051",
+        "localizedUrls": {
+          "en": "https://new.abb.com/products/2CSG251151R4051",
+          "de": "https://new.abb.com/products/de/2CSG251151R4051"
+        },
+        "localizedDescriptions": {
+          "de": {
+            "title": "Netzanalysegerät, Basis-Funktionen",
+            "description": "M4M 20 ist ein Multimessgerät für den Türeinbau (96x96x57) mit 4 programmierbaren E/A, Spannungsversorgung 48-240V AC/DC, Bluetooth"
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Power Meter",
+          "confidence": 0.98,
+          "evidence": "Products Path: Products > Low Voltage Products and Systems > Modular DIN Rail Products > Energy Efficiency Devices > Network Analyzers and Multimeters",
+          "alternatives": [
+            {
+              "type": "Mounting Accessory",
+              "score": 1420,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Transformer",
+              "score": 1340,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 330
+        },
+        "normalized": {
+          "weight": "308 g (0.308 kg)",
+          "dimensions": "96 x 96 x 77 mm",
+          "voltage": "46...400 (Un) N-L V; 80...690 (Un) L-L V",
+          "current": "6 A",
+          "protection": "IP54",
+          "certificates": "CE",
+          "color": "display"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "ABB Product Data",
+            "name": "Extended Product Type",
+            "value": "M4M 20",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Product ID",
+            "value": "2CSG251151R4051",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "EAN",
+            "value": "8012542511519",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Catalog Description",
+            "value": "M4M 20 Network analyzer",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Long Description",
+            "value": "M4M 20 is a network analyzer with 2 digital outputs, aux supply 48-240 V AC/DC and Bluetooth",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Display Name",
+            "value": "M4M 20",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Carbon Footprint",
+            "value": "Full Lifecycle 97.4 kg CO₂ eq",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "ABB EcoSolutions Profile",
+            "value": "9AKK108470A1669",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Recyclability Rate of the Product acc. to EN45555",
+            "value": "Design for Closing Resource Loops - Standard EN45555 - 54.85 %",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Material Resource Reduction (wt. %)",
+            "value": "Design for Reduced Resource Consumption - 22 %",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "ABB Site Meeting Group Waste To Landfill Target",
+            "value": "No non-hazardous waste is sent to a landfill; UL 2799 Zero Waste To Landfill Validation available",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Imp Ene Eff For Cus",
+            "value": "Product Efficiency - Product considered more energy-efficient compared to similar product on market or older products from the same line; Product Efficiency - Product requires less energy to operate compared to similar product on market or older products from the same line; Process Efficiency - Product improves/optimizes process; Process Efficiency - Product contribute to making customer’s operations more resilient and reliable; Process Efficiency - Product contribute to reducing customer operations environmental footprint; Digital Efficiency - Product is digitally-supported to optimize usage and eventually optimize customer asset",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Extended Product Lifetime",
+            "value": "Product is Upgradable; Lifetime extension of customer’s assets is made possible thanks to offering and the supporting services",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "End Of Life Disassembling Instructions",
+            "value": "9AKK108470A0840",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Environmental Product Declaration - EPD",
+            "value": "9AKK108469A8099",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Current Rating",
+            "value": "5 A",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Accuracy",
+            "value": "Active Energy ±0.5%",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Mea Ins Con",
+            "value": "Domestic",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Meter Tariff Control",
+            "value": "Internal; External",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Meter Tariff Rating",
+            "value": "Multi-Tariff",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Pulse Output Rate",
+            "value": "1 … 999999",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Model Number",
+            "value": "Measurement transformer",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Number of Poles",
+            "value": "3P or 4P",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Number of Phases",
+            "value": "3-phase",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Number of Counter Positions",
+            "value": "8",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Number of Digital In/Outputs",
+            "value": "2 Digital Outputs",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Energy Meter Type",
+            "value": "Effective Power; Blind Power",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Pulse Output Type",
+            "value": "Electrical",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Type of Indicator",
+            "value": "Digital",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Additional Information",
+            "value": "CT (1A, 5A)",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Communication",
+            "value": "Bluetooth",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Electrical",
+            "name": "Rated Voltage (U r )",
+            "value": "46 … 400 (Un) N-L V; 80 ... 690 (Un) L-L V",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Electrical",
+            "name": "Voltage Range",
+            "value": "50 … 400 V",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Electrical",
+            "name": "Rated Current",
+            "value": "6 A",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Electrical",
+            "name": "Frequency",
+            "value": "175 … 60 Hz",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Electrical",
+            "name": "Power Consumption (@P cons )",
+            "value": "10 W",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "RoHS Declaration",
+            "value": "9AKK107680A0174",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "RoHS Information",
+            "value": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "RoHS Date",
+            "value": "20250314",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "REACH Declaration",
+            "value": "9AKK108467A9482",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "REACH Information",
+            "value": "True - contains substances > 0.1 mass percentage",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "REACH Date",
+            "value": "20230117",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "Conflict Minerals Reporting Template (CMRT)",
+            "value": "9AKK108468A3363",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "WEEE Category",
+            "value": "5. Small Equipment (No External Dimension More Than 50 cm)",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "WEEE B2C / B2B",
+            "value": "Business To Consumer",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Environmental",
+            "name": "Amb Air Tem",
+            "value": "Operation -25 ... 70 °C",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Environmental",
+            "name": "Degree of Protection",
+            "value": "IP54",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Width in Number of Modular Spacings",
+            "value": "5.5",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Width",
+            "value": "96 mm",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Height",
+            "value": "96 mm",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Depth / Length",
+            "value": "77 mm",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Weight",
+            "value": "308 g",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Engineering",
+            "name": "CAD Dimensional Drawing",
+            "value": "9AKK107492A5447",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "Package Level 1 Units",
+            "value": "box 1 piece",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "Package Level 1 Gross Weight",
+            "value": "0.565 kg",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "E-Number (Finland)",
+            "value": "6701071",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "E-Number (Norway)",
+            "value": "8002550",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "Declaration of Conformity - CE",
+            "value": "9AKK108467A6267",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "EU Data Act Compliance Declaration",
+            "value": "9AKK108471A5057",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Installation",
+            "name": "Instructions and Manuals",
+            "value": "2CSG445030D0201",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Installation",
+            "name": "Mounting Type",
+            "value": "Front Panel",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Popular Downloads",
+            "name": "Data Sheet, Technical Information",
+            "value": "9AKK107992A0896",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "Etim9",
+            "value": "EC001506 - Kilowatt-hour meter",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "Etim10",
+            "value": "EC001506 - Electricity meter",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "eClass",
+            "value": "V11.0 : 27142316",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "Object Classification Code",
+            "value": "P",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Accessories",
+            "name": "Accessory",
+            "value": "2CCG000242R0001 - SCU100 InSite pro M compact (Type: SCU100) (Qty: 1 piece)",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model-relationships",
+            "confidence": 0.9
+          },
+          {
+            "group": "ABB Product Classification",
+            "name": "Products Path",
+            "value": "Products > Low Voltage Products and Systems > Modular DIN Rail Products > Energy Efficiency Devices > Network Analyzers and Multimeters",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model-classification",
+            "confidence": 0.88
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Extended Product Type",
+            "value": "M4M 20",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product ID",
+            "value": "2CSG251151R4051",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "EAN",
+            "value": "8012542511519",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Catalog Description",
+            "value": "M4M 20 Network analyzer",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Long Description",
+            "value": "M4M 20 is a network analyzer with 2 digital outputs, aux supply 48-240 V AC/DC and Bluetooth",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Width",
+            "value": "96 mm",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Height",
+            "value": "96 mm",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Depth / Length",
+            "value": "77 mm",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Weight",
+            "value": "308 g",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051"
+          },
+          {
+            "group": "ABB PDT Derived",
+            "name": "Derived Voltage Range",
+            "value": "48-240",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-derived-electrical",
+            "confidence": 0.82
+          },
+          {
+            "group": "ABB PDT Derived",
+            "name": "Derived Voltage Type",
+            "value": "AC/DC",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-derived-electrical",
+            "confidence": 0.82
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "ground current to avoid overloads and outages.",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "TRMS current • •",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "TRMS voltage • •",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Neutral current Calculated Measured",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "new.abb.com/low-voltage",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data Sheet, Technical Information: 9AKK107992A0896",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "002– 003",
+            "value": "Give Your Buildings a New",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "004 – 005",
+            "value": "4M Network Analyzers M",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "006 – 007",
+            "value": "Full Connectivity",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "008– 009",
+            "value": "Simple and intuitive",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "010 – 011",
+            "value": "Energy efficiency",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "012 – 013",
+            "value": "Real-time supervision",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "016 – 017",
+            "value": "Connectivity tools",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "018 – 019",
+            "value": "Applications",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "of low-voltage",
+            "value": "devices with intelligent",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ACB",
+            "value": "Digital Unit | IoT Gateways",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MCCB",
+            "value": "Energy",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EMBEDDED",
+            "value": "EXTERNAL",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Web server",
+            "value": "Web server",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "to compact dimensions,",
+            "value": "all-removable terminals",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "M4M NET WORK ANALY ZERS",
+            "value": "5",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "to a single ABB solution",
+            "value": "Quick installation",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "accuracy standard",
+            "value": "requirements.",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rogowski coils, while touchscreen color",
+            "value": "display",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Touchscreen color",
+            "value": "graphic display and easy-to",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Color",
+            "value": "graphic HMI and EPiC software for stand-",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Graphic color",
+            "value": "display",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "including Modbus RTU, Modbus TCP/IP,",
+            "value": "Profibus DP-V0 and",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EQUIPPED WITH GR APHIC COLOR",
+            "value": "DISPL AY",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "M4M 20",
+            "value": "4M 30 M",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Individual Harmonics",
+            "value": "/ | 40th",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Neutral current",
+            "value": "Calculated | Measured",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Color",
+            "value": "Graphic",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Color",
+            "value": "touchscreen",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "IP, Profibus",
+            "value": "DP-V0, BACnet/IP",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "monitoring of all the energy assets",
+            "value": "industrial and",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ARTICLE OR CHAPTER TITLE",
+            "value": "19",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Weight",
+            "value": "313g",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Copper 22,7 7,3%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Steel 1,0 0,3%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "End Of Life Disassembling Instructions: 9AKK108470A0840",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "21.2. Main board 2CSP020003A1001",
+            "value": "35,0 g...cuvuuruuruemremrniniinisississiseesesssssessssssssesnsns 9",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "1.",
+            "value": "Purpose and Basic Description",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "2.",
+            "value": "Dismantling instructions",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "First step",
+            "value": "push the linchpin inside the product, than remove the cover acting on the hooks",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Second step",
+            "value": "Dismantling the Base assembly:",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "2.1.",
+            "value": "PCBAs",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "2.1.1.",
+            "value": "Power Supply board 2CSP000001A1002: 93,7 g",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "2.1.2.",
+            "value": "Main board 2CSP000003A1002: 36,8 g",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "2.1.3.",
+            "value": "BH Confing. I/O RTU 2CSP020005A1003 2CSP000005A1004: 23,7 g",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "3.",
+            "value": "Constituent materials",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "weight (g)",
+            "value": "% of the weight",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "PC",
+            "value": "122,9 | 39,3%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "PE",
+            "value": "4,7 | 1,5%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "PA",
+            "value": "3,8 | 1,2%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Silicone",
+            "value": "1,9 | 0,6%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Glass fibre",
+            "value": "0,9 | 0,3%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Copper",
+            "value": "22,7 | 7,3%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Ferrite",
+            "value": "1,9 | 0,6%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Bronze",
+            "value": "1,9 | 0,6%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Steel",
+            "value": "1,0 | 0,3%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "PCBA",
+            "value": "124,8 | 39,9%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "LCD",
+            "value": "26,5 | 8,5%",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4.",
+            "value": "Additional Information",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Weight",
+            "value": "313g",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Overall dimensions (H x D x W)",
+            "value": "96 x 77 x 96mm",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data Sheet, Technical Information: 9AKK107992A0896",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014103421\\documents\\2CSG251151R4051-datasheet-Data-Sheet,-Technical-Information--9AKK107992A0896.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "End Of Life Disassembling Instructions: 9AKK108470A0840",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014103421\\documents\\2CSG251151R4051-manual-End-Of-Life-Disassembling-Instructions--9AKK108470A0840.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Instructions and Manuals: 2CSG445030D0201",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=2CSG445030D0201&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "cad",
+            "label": "CAD Dimensional Drawing: 9AKK107492A5447",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107492A5447&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014103421\\documents\\2CSG251151R4051-cad-CAD-Dimensional-Drawing--9AKK107492A5447.aspx",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "Product image 400x400",
+            "url": "https://cdn.productimages.abb.com/9PAA00000243755_400x400.jpg",
+            "candidateUrls": [
+              "https://cdn.productimages.abb.com/9PAA00000243756_400x400.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000243756_master.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000243756_100x100.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000243757_400x400.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000243757_master.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000243757_100x100.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000243920_400x400.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000243920_master.gif",
+              "https://cdn.productimages.abb.com/9PAA00000243920_100x100.jpg"
+            ],
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-model-image",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014103421\\images\\ABB.2CSG251151R4051.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "Environmental Product Declaration - EPD: 9AKK108469A8099",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108469A8099&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014103421\\documents\\2CSG251151R4051-certificate-Environmental-Product-Declaration---EPD--9AKK108469A8099.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "RoHS Declaration: 9AKK107680A0174",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107680A0174&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "REACH Declaration: 9AKK108467A9482",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108467A9482&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "Conflict Minerals Reporting Template (CMRT): 9AKK108468A3363",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A3363&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "Declaration of Conformity - CE: 9AKK108467A6267",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108467A6267&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "EU Data Act Compliance Declaration: 9AKK108471A5057",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108471A5057&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://new.abb.com/products/2CSG251151R4051",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "parserVersion": "abb-v2",
+            "fetchedAt": "2026-10-14T10:34:23.782Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK107992A0896&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-14T10:34:38.940Z"
+          },
+          {
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108470A0840&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-14T10:34:42.542Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "abb-product-page",
+              "url": "https://new.abb.com/products/2CSG251151R4051",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "abb-product-page",
+              "statusCode": 200,
+              "attributeCount": 79,
+              "documentCount": 11,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

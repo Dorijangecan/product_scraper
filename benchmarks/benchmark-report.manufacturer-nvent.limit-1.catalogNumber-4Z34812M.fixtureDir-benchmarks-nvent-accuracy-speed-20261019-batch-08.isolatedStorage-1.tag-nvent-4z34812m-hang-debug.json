@@ -1,0 +1,2528 @@
+{
+  "generatedAt": "2026-10-19T12:31:05.128Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019123030",
+  "filters": {
+    "manufacturer": "nvent",
+    "limit": "1",
+    "catalogNumber": "4Z34812M",
+    "fixtureDir": "benchmarks/nvent-accuracy-speed-20261019/batch-08",
+    "isolatedStorage": "1",
+    "tag": "nvent-4z34812m-hang-debug"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "nvent": {
+          "total": 1,
+          "caseTypes": [
+            "accessory"
+          ],
+          "riskTags": [
+            "caddy",
+            "exact-image",
+            "snap-close-conduit-to-rod-clip"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Mounting Accessory": {
+          "total": 1,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "accessory"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "cable ducts mounting rails": {
+          "total": 1,
+          "deviceTypes": [
+            "Mounting Accessory"
+          ],
+          "manufacturers": [
+            "nvent"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "nvent"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Key Transfer Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "SVE",
+              "deviceType": "Key Transfer Switch",
+              "notes": "Schmersal key-selector interlocking devices"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Air Conditioner",
+            "Fan Assembly",
+            "Filter Fan",
+            "Heat Exchanger",
+            "Heater",
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Alu Connection Angle",
+            "Bag Cutter",
+            "Ball Catch",
+            "Bottle Holder",
+            "Broom Holder",
+            "Cable Binder",
+            "Compression Latch",
+            "Control Compartment",
+            "Cover / Door Accessory",
+            "Cube Connector",
+            "Door Latch",
+            "Door Stop",
+            "Enclosure",
+            "Fixed Caster",
+            "Gland Plate",
+            "Handle",
+            "Hinge",
+            "Keyboard Housing",
+            "Label Holder",
+            "Leveling Foot",
+            "Magnetic Catch",
+            "Mechanical Interlock Kit",
+            "Monitor Mount",
+            "Mounting Bracket",
+            "Over-Center Draw Latch",
+            "Plinth Base",
+            "Pull-Out Shelf",
+            "Quarter Turn Lock",
+            "Rain Hood",
+            "Slam Latch",
+            "Subpanel",
+            "Suspension System Component",
+            "Swivel Caster",
+            "Tool Hook",
+            "Tool Tray",
+            "Window Kit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Pull-wire Emergency Stop Switch",
+            "Safety Hinge Switch",
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS655",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS656",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "TV8S",
+              "deviceType": "Safety Hinge Switch",
+              "notes": "Schmersal TV8S hinge safety switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "4Z34812M",
+      "caseType": "accessory",
+      "expectedDeviceType": "Mounting Accessory",
+      "actualDeviceType": "Mounting Accessory",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "caddy",
+        "snap-close-conduit-to-rod-clip",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.4,
+      "elapsedMs": 31518,
+      "scrapeElapsedMs": 8802,
+      "productUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019123030\\pdt\\nvent-4Z34812M-pdt_pdt-audit.json",
+      "pdtWrittenCells": 23,
+      "pdtBlankCells": 63,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Snap Close Conduit to Rod/Wire Clip 1/2\"-3/4\" EMT 0.71–1.18\"OD 1/4\" Rod #12 Wire",
+        "description": "",
+        "productUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+        "localizedUrls": {
+          "en": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+          "de": "https://www.nvent.com/de-de/caddy/products/efs4z34812m"
+        },
+        "deviceTypeClassification": {
+          "type": "Mounting Accessory",
+          "confidence": 0.98,
+          "evidence": "category: Snap Close Conduit to Rod/Wire Clip",
+          "scoreMargin": 1635
+        },
+        "normalized": {
+          "material": "Spring Steel",
+          "wallThickness": "9.5 mm",
+          "finish": "nVent CADDY Armour",
+          "certificates": "UL 2239, cUL, CSA C22.2 No. 18.4, RoHS, Prop 65, REACH Regulation, TSCA"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Material",
+            "value": "Spring Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Finish",
+            "value": "nVent CADDY Armour",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "EMT Conduit Size",
+            "value": "1/2\";3/4\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Rod Size",
+            "value": "1/4\";5/16\";3/8\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Rod Size",
+            "value": "4;6;8;10",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Wire Size",
+            "value": "#12 - #8",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Wire Size",
+            "value": "3.9 - 4.8 mm",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Flange Thickness",
+            "value": "1/8\" - 3/8\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Flange Thickness",
+            "value": "3.0 - 9.5 mm",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Standard Packaging Quantity",
+            "value": "100",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Outer Diameter",
+            "value": "0.710\" - 1.18\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Outer Diameter",
+            "value": "18 - 30 mm",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "UPC",
+            "value": "782856502104",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "EAN",
+            "value": "8711893710632",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Packing Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "name",
+            "value": "Snap Close Conduit to Rod/Wire Clip 1/2\"-3/4\" EMT 0.71–1.18\"OD 1/4\" Rod #12 Wire",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "category",
+            "value": "Snap Close Conduit to Rod/Wire Clip",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "description",
+            "value": "Easy to use, tool free installation for plain rod and drop wire applications. Quickly install conduit and adjust supports as needed in the field.",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "sku",
+            "value": "4Z34812M",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "Brand",
+            "value": "CADDY",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Material",
+            "value": "Spring Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Finish",
+            "value": "nVent CADDY Armour",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "EMT Conduit Size",
+            "value": "1/2\";3/4\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Rod Size",
+            "value": "1/4\";5/16\";3/8\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Wire Size",
+            "value": "#12 - #8",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Flange Thickness",
+            "value": "1/8\" - 3/8\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Standard Packaging Quantity",
+            "value": "100",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "UL",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "cUL",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "UL DWMU.E165703 ANSI/UL 2239 cUL DWMU7.E165703 CAN/CSA C22.2 No. 18.4-04",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Certifications",
+            "value": "UL DWMU.E165703 ANSI/UL 2239 cUL DWMU7.E165703 CAN/CSA C22.2 No. 18.4-04",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Current Selected Country",
+            "value": "United States | English",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Identity",
+            "name": "Catalog Number",
+            "value": "4Z34812M",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Outer Diameter",
+            "value": "0.710\" - 1.18\"",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "UPC",
+            "value": "782856502104",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "EAN",
+            "value": "8711893710632",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Table",
+            "name": "Packing Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Provides attachment of conduit and cable",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Increased capability and application options by combining 4Z and 6Z products into one enhanced and efficient offering",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Improved multi-function clip allows for optimized inventory while reducing job site scheduling risks associated with multiple SKUs",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "4Z34812M",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text",
+            "name": "version",
+            "value": "2.1,",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "The following company delivered coated steel panels (DC01, blank steel) coated with CADDY |",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "CADDY ARMOUR is a coating system for fastening components made of steel by the company i",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "4 Test Results and Requirements of ISO 12944-6 (for DFT < 250 um on steel substrates) |",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Institut fur Korrosionschutz Dresden GMBH, Test Report PB300/101/16 366 KB English Institut fur Korrosionschutz Dresden GMBH, Test Report PB300/101/16",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "DAkkS-Registrierungsnummer",
+            "value": "D-PL-19138-01-00 Fax 03518717150 H",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 Scope of the Coating",
+            "value": "System to be Tested",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "CADDY ARMOUR is a coating",
+            "value": "system for fastening components made of steel by the company i",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Coating",
+            "value": "systems pass the assessment constituted in ISO 12944-6, if two out of three test panels meet :",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "The following company delivered coated steel panels (DC01, blank steel) coated with CADDY |",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "CADDY ARMOUR is a coating system for fastening components made of steel by the company i",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "4 Test Results and Requirements of ISO 12944-6 (for DFT < 250 um on steel substrates) |",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "pb300-101-16.pdf",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "DAkkS-Registrierungsnummer",
+            "value": "D-PL-19138-01-00 Fax 03518717150 H",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 Scope of the Coating",
+            "value": "System to be Tested",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "CADDY ARMOUR is a coating",
+            "value": "system for fastening components made of steel by the company i",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Coating",
+            "value": "systems pass the assessment constituted in ISO 12944-6, if two out of three test panels meet :",
+            "sourceUrl": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "4Z34812M",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "171060 1/2\" [13] - 3/4\" [19] Conduit; #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "4Z34812M 171060 1/2\" [13] - 3/4\" [19] Conduit; #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Multi-Function Clip 679 KB English Multi-Function Clip",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "No Description",
+            "value": "Flange Size",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z34",
+            "value": "170650 | 1 | #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z346M",
+            "value": "171050",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z34812M",
+            "value": "171060 | 1/2\" [13] - 3/4\" [19] Conduit; #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z3416M",
+            "value": "N/A | 3/4\" [19] - 1\" [25] Conduit; #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z348P",
+            "value": "N/A",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z3412P",
+            "value": "N/A | 3/4\" [19] EMT Conduit; #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z3416P",
+            "value": "N/A | 1\" [25] EMT Conduit; #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z34CTS",
+            "value": "172950 | 6 | Cable tray to rod clip, M4, M6, M8 rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4Z4S",
+            "value": "N/A | 4 | With stud, #12 Wire thru 1/4\" [6] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z34",
+            "value": "170720 | 1 | 3/8\" [10] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z346M",
+            "value": "171080",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z34812M",
+            "value": "171090 | 1/2\" [13] or 3/4\" [19] Conduit; 3/8\" [10] Plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z3416M",
+            "value": "N/A | 3/4\" [19] - 1\" [25] Conduit; 3/8\" [10] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z348P",
+            "value": "N/A",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z3412P",
+            "value": "N/A | 3/4\" [19] EMT conduit; 3/8\" [10] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z3416P",
+            "value": "N/A | 1\" [25] EMT conduit; 3/8\" [10 plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z34CTS",
+            "value": "172960 | 6 | Cable tray to rod clip, M8, M10, M12 rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z4S",
+            "value": "N/A | 4 | With stud; 3/8\" [10] plain or threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6Z34J2",
+            "value": "N/A | 5 | 3/8\" plain or threaded rod, C purlin hammer-on",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8Z34",
+            "value": "N/A | 1 | 1/2\" [13] or 5/8\" [16] threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8Z34812M",
+            "value": "N/A | 2 | 1/2\" [13] or 3/4\" [19] Conduit; 1/2\" [13] or 5/8\" [16] threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8Z4S",
+            "value": "N/A | 4 | With stud, 1/2\" [13] or 5/8\" [16] threaded rod",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "c. Using appropriate industry standard",
+            "value": "hardware as noted above.",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Wire size",
+            "value": "(RS) Flange",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Thickness",
+            "value": "(FT)",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "**8Z34",
+            "value": "N/A | 1/2\" [M12] - 5/8\" [M16] | 50 [222]",
+            "sourceUrl": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "ERICO Distributor Statement - China 757 KB Chinese, English ERICO Distributor Statement - China",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Company Telephone Number",
+            "value": "86-21-24121688",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "iE",
+            "value": "86-21-24121688",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Hhhik",
+            "value": "ARE LE TARIC XCEL BE 1009 5 60H HE 21 2",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "ARE",
+            "value": "www erico.com mm",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "\\",
+            "value": "DN",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "WI TAREE KE A RAR Sr ERR SS WSR FE ERIE R,",
+            "value": "LAIRER SE 0 2 A REL HT RH 4",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "iif",
+            "value": "86-21-24121688",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Hubb",
+            "value": "AE LE HARICX BBE 1009 5605 AE 21 2",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "|“",
+            "value": "ERICOLTD",
+            "sourceUrl": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data And Networking Solutions 7.13 MB English Data And Networking Solutions",
+            "url": "https://nvent.widen.net/content/jpaqyx5uo7/original/h86504-usen.pdf?asset_type=Brochure",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "datasheet",
+            "label": "nVent CADDY Spring Steel Fasteners 2.56 MB English nVent CADDY Spring Steel Fasteners",
+            "url": "https://nvent.widen.net/content/zwnrqur2av/original/f1298b-usen.pdf?asset_type=Brochure",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "datasheet",
+            "label": "Institut fur Korrosionschutz Dresden GMBH, Test Report PB300/101/16 366 KB English Institut fur Korrosionschutz Dresden GMBH, Test Report PB300/101/16",
+            "url": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019123030\\documents\\4Z34812M-datasheet-Institut-fur-Korrosionschutz-Dresden-GMBH,-Test-Report-PB300-101-16-366-KB-Engli.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "pb300-101-16.pdf",
+            "url": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019123030\\documents\\4Z34812M-datasheet-pb300-101-16.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "pdf",
+            "url": "https://www.nvent.com/en-us/caddy/products/efs4z34812m/pdf?measure_system=imperial",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "manual",
+            "label": "nVent CADDY Fixing, Fastening And Support Products for Electrical Installation and Datacom And Telecom Applications 131.2 MB English nVent CADDY Fixing, Fastening And Support Products for Electrical Installation and Datacom And Telecom Applications",
+            "url": "https://nvent.widen.net/content/5bcmsdunmj/original/cfc-usen.pdf?asset_type=Catalog",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "manual",
+            "label": "Multi-Function Clip 679 KB English Multi-Function Clip",
+            "url": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019123030\\documents\\4Z34812M-manual-Multi-Function-Clip-679-KB-English-Multi-Function-Clip.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "cfs116.pdf",
+            "url": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "image",
+            "label": "PH5977.jpg image",
+            "url": "https://www.nvent.com/sites/default/files/styles/product_and_sku_image_582x334_no_crop/public/dam/gb4omagiqh/ph5977.png.webp?itok=uPG5S-Lb",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m/",
+            "candidateUrls": [],
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019123030\\images\\NVE.4Z34812M.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "ERICO Distributor Statement - China 757 KB Chinese, English ERICO Distributor Statement - China",
+            "url": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019123030\\documents\\4Z34812M-certificate-ERICO-Distributor-Statement---China-757-KB-Chinese,-English-ERICO-Distributor-St.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "certificate",
+            "label": "nVent Prop 65 Declaration EFS 89230493 381 KB English nVent Prop 65 Declaration EFS 89230493",
+            "url": "https://nvent.widen.net/content/ritypsq3mn/original/nvent-prop-65-declaration-efs-89230493.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent REACH Declaration EFS 89230491 248 KB English nVent REACH Declaration EFS 89230491",
+            "url": "https://nvent.widen.net/content/uqwze94ffx/original/nvent-reach-declaration-efs-89230491.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent RoHS Declaration EFS 89230492 290 KB English nVent RoHS Declaration EFS 89230492",
+            "url": "https://nvent.widen.net/content/jg25umgswm/original/nvent-rohs-declaration-efs-89230492.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent TSCA Declaration EFS 89230477 185 KB English nVent TSCA Declaration EFS 89230477",
+            "url": "https://nvent.widen.net/content/nqvvxsew7o/original/nvent-tsca-declaration-efs-89230477.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T12:30:38.865Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test%20Report",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T12:30:53.490Z"
+          },
+          {
+            "url": "https://nvent.widen.net/content/dbnzj9kzmf/original/pb300-101-16.pdf?asset_type=Test",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-19T12:30:50.071Z"
+          },
+          {
+            "url": "https://nvent.widen.net/content/jljvgcrix8/original/cfs116.pdf?asset_type=Installation%20Manual%20/%20Instruction%20Sheet",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-19T12:30:54.098Z"
+          },
+          {
+            "url": "https://nvent.widen.net/content/vvwcm1xrmk/original/erico-distributor-statement---china.pdf?asset_type=Declaration",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-19T12:31:00.867Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "nvent-direct",
+              "url": "https://www.nvent.com/en-us/caddy/products/efs4z34812m",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "nvent-direct",
+              "statusCode": 200,
+              "attributeCount": 44,
+              "documentCount": 17,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

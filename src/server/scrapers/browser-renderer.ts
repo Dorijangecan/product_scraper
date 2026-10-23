@@ -614,6 +614,37 @@ export class BrowserRenderSession {
     } catch (error) {
       if (signal?.aborted) throw new Error("Cancelled by user.");
       const message = error instanceof Error ? error.message : "Browser render failed";
+      // Some catalogues redirect their search URL to an exact product page while later browser
+      // interactions are still running. A navigation can destroy that evaluation context and
+      // throw after the useful PDP has already loaded. Preserve the landed page as evidence instead
+      // of discarding it with the render error; the caller still validates the final URL and SKU.
+      if (page) {
+        try {
+          await page.waitForLoadState("domcontentloaded", { timeout: 2500 }).catch(() => undefined);
+          const effectiveUrl = finalRenderedUrl(page, url);
+          if (effectiveUrl && effectiveUrl !== url && effectiveUrl !== "about:blank") {
+            const text = await page.content();
+            if (text.trim()) {
+              debugRenderTiming(`recovered landed page after interaction error: ${message}`);
+              return {
+                fetched: {
+                  requestedUrl: url,
+                  effectiveUrl,
+                  statusCode: 200,
+                  contentType: "text/html; rendered=playwright",
+                  text,
+                  fetchedAt: new Date().toISOString(),
+                  fromCache: false
+                },
+                networkTexts: captured,
+                networkDiagnostics
+              };
+            }
+          }
+        } catch {
+          // Keep the original render error when the navigated page cannot be recovered.
+        }
+      }
       // If Playwright Chromium isn't installed/launchable, mark the session as unavailable
       // so subsequent calls return immediately instead of burning 5+ seconds per item.
       // Surface the underlying Playwright error so logs/UI show the actual root cause.

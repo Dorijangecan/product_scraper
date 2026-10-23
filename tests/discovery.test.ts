@@ -992,6 +992,48 @@ describe("official discovery scoring", () => {
     expect(stored.some((endpoint) => endpoint.urlTemplate === "https://example.test/api/search?query={part}")).toBe(true);
   });
 
+  it("routes Wöhner PIM searchPattern URLs through rendered search discovery", async () => {
+    const woehner = getManufacturerConfig("woehner")!;
+    const renderedUrls: string[] = [];
+    const productUrl = "https://pim.woehner.de/EN/US/System/CrossBoard/basic_systems/1000255602";
+    const discovered = await discoverOfficialProductCandidates("11800 000A", {
+      manufacturer: woehner,
+      http: {
+        fetchText: async (url: string) => ({
+          requestedUrl: url,
+          effectiveUrl: url,
+          statusCode: 200,
+          contentType: "text/html",
+          fetchedAt: "2026-01-01T00:00:00.000Z",
+          fromCache: false,
+          text: "<main>Search results are rendered by the PIM</main>"
+        })
+      },
+      browserRenderer: {
+        isUnavailable: () => false,
+        renderSearchPage: async (url: string) => {
+          renderedUrls.push(url);
+          return {
+            fetched: {
+              requestedUrl: url,
+              effectiveUrl: productUrl,
+              statusCode: 200,
+              contentType: "text/html; rendered=playwright",
+              fetchedAt: "2026-01-01T00:00:00.000Z",
+              fromCache: false,
+              text: "<main><h1>BASIC SYSTEM 250 A (11800000A)</h1><p>Part No.: 11800 000A</p></main>"
+            },
+            networkTexts: [],
+            networkDiagnostics: []
+          };
+        }
+      }
+    } as never);
+
+    expect(renderedUrls).toContain("https://pim.woehner.de/EN/US/suchergebnis?searchPattern=11800%20000A");
+    expect(discovered.candidates.some((candidate) => candidate.url === productUrl)).toBe(true);
+  });
+
   it("uses official discovery before generic scraping for manufacturers without a custom adapter", async () => {
     const requestedUrls: string[] = [];
     const genericManufacturer: ManufacturerConfig = {

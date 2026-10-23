@@ -1,0 +1,3282 @@
+{
+  "generatedAt": "2026-10-15T18:46:33.031Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015184210",
+  "filters": {
+    "manufacturer": "eta",
+    "limit": "5",
+    "fixtureDir": "benchmarks/eta-accuracy-speed-20261015/batch-03",
+    "isolatedStorage": "1",
+    "tag": "eta-batch03-initial-cold-01"
+  },
+  "summary": {
+    "foundRate": 20,
+    "officialUrlRate": 20,
+    "documentRate": 20,
+    "pdtAuditRate": 20,
+    "deviceTypeRate": 20,
+    "normalizedFieldsRate": 20,
+    "expectedAttributesRate": 0,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 1,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eta": {
+          "total": 5,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "controlplex-cpc20",
+            "dc-24v-40a",
+            "din-rail-power-distribution",
+            "eta-batch-03",
+            "high-current-vehicle-relay",
+            "mechanical-power-relay",
+            "modular-system",
+            "panel-or-socket-mount",
+            "profinet-bus-controller",
+            "thermal-magnetic-circuit-breaker",
+            "three-phase-smps"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Communication Gateway": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Power Distribution Unit": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Relay": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Power Supply": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "contactor a. fuses": {
+          "total": 2,
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Relay"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        },
+        "PLC": {
+          "total": 1,
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        },
+        "RS232 interfaces": {
+          "total": 1,
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        },
+        "energy distribution system": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Distribution Unit"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        },
+        "power supply devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Supply"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 5,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "2210-S2",
+      "caseType": "electrical",
+      "expectedDeviceType": "Circuit Breaker",
+      "actualDeviceType": "Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eta-batch-03",
+        "thermal-magnetic-circuit-breaker",
+        "panel-or-socket-mount"
+      ],
+      "status": "found",
+      "confidence": 0.71,
+      "elapsedMs": 20148,
+      "scrapeElapsedMs": 4365,
+      "productUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": false,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015184210\\pdt\\eta-2210-S2-pdt_pdt-audit.json",
+      "pdtWrittenCells": 36,
+      "pdtBlankCells": 60,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Type 2210-S2",
+        "description": "Thermal-magnetic overcurrent circuit breakers designed by E-T-A providing protection against overcurrent and short circuits in electrical equipment requiring high precision performance",
+        "productUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+        "localizedUrls": {
+          "en": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/"
+        },
+        "deviceTypeClassification": {
+          "type": "Circuit Breaker",
+          "confidence": 0.99,
+          "evidence": "description: Thermal-magnetic overcurrent circuit breakers designed by E-T-A providing protection against overcurrent and short circuits in electrical equipment requiring high precision performance",
+          "scoreMargin": 3455
+        },
+        "normalized": {
+          "voltage": "65 V DC",
+          "certificates": "UL, CSA, WEEE, RoHS, Declaration of Conformity - Railway Applications, REACH Regulation, TSCA, VDE",
+          "dimensions": "D 5.8 mm x L 5.8 mm",
+          "current": "0.1...25 A",
+          "operatingTemperatureMin": "-30",
+          "operatingTemperatureMax": "60",
+          "weight": "approx. 50 g per pole (0.05 kg)"
+        },
+        "requiredElectricalFields": [
+          "voltage"
+        ],
+        "attributes": [
+          {
+            "group": "Accessories",
+            "name": "17-P10-Si/-20025",
+            "value": "sockets",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "17-P10-Si/-20025",
+            "value": "sockets",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "17-P70-Si/-20025",
+            "value": "sockets",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "17-P70-Si/-20025",
+            "value": "sockets",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "17plus",
+            "value": "power distribution system",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "17plus",
+            "value": "power distribution system",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "63-P10-Si",
+            "value": "socket",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "63-P10-Si",
+            "value": "socket",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X20040901",
+            "value": "adapter for socket 16 for track mounting",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X20040901",
+            "value": "adapter for socket 16 for track mounting",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X21111702",
+            "value": "splash cover transparent for 1-pole types",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X21111702",
+            "value": "splash cover transparent for 1-pole types",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X21111801",
+            "value": "splash cover transparent for 2- and 3-pole types",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X21111801",
+            "value": "splash cover transparent for 2- and 3-pole types",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22161701",
+            "value": "toggle guard",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22161701",
+            "value": "toggle guard",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22176001",
+            "value": "busbar 50 A, 6-way for socket 17-P10-Si",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22176001",
+            "value": "busbar 50 A, 6-way for socket 17-P10-Si",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22176011",
+            "value": "busbar 50 A, 6-way for socket 63-P10-Si",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22176011",
+            "value": "busbar 50 A, 6-way for socket 63-P10-Si",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22254001",
+            "value": "busbar",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "X22254001",
+            "value": "busbar",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "Y30297421",
+            "value": "retaining clip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "Y30297421",
+            "value": "retaining clip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "Y30382401",
+            "value": "insulation sleeving for busbar",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Accessories",
+            "name": "Y30382401",
+            "value": "insulation sleeving for busbar",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "WEEE",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "WEEE",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Interrupting capacity",
+            "value": "0.1...5 A",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Interrupting capacity",
+            "value": "0.1...5 A",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Voltage rating",
+            "value": "433 V / 250 V DC / 65 V",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Voltage rating",
+            "value": "433 V / 250 V DC / 65 V",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Thermal-magnetic overcurrent circuit breakers designed by E-T-A providing protection against overcurrent and short circuits in electrical equipment requiring high precision performance",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Thermal-magnetic overcurrent circuit breakers designed by E-T-A providing protection against overcurrent and short circuits in electrical equipment requiring high precision performance",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Conformity",
+            "value": "Railway Applications 78.5 KB",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Conformity",
+            "value": "Railway Applications 78.5 KB",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Actuation",
+            "value": "manual release toggle/baton",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Actuation",
+            "value": "manual release toggle/baton",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Certificates",
+            "value": "GL, VDE, CSA, UL",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Certificates",
+            "value": "GL, VDE, CSA, UL",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Illumination",
+            "value": "without illumination",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Illumination",
+            "value": "without illumination",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Interrupting capacity Icn",
+            "value": "0.1...5 A: 400 A 6...25 A: 800 A 0.1...16 A 2 500 A (DC 32 v)",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Interrupting capacity Icn",
+            "value": "0.1...5 A: 400 A 6...25 A: 800 A 0.1...16 A 2 500 A (DC 32 v)",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Mounting method",
+            "value": "socket",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Mounting method",
+            "value": "socket",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Number of poles",
+            "value": "double pole single pole three pole",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Number of poles",
+            "value": "double pole single pole three pole",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Terminal design",
+            "value": "blade terminals",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Terminal design",
+            "value": "blade terminals",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Typical life",
+            "value": "10,000 operations at 1 x IN, inductive",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Typical life",
+            "value": "10,000 operations at 1 x IN, inductive",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Voltage rating",
+            "value": "3 AC 433 V (50/60 Hz) AC 250 V DC 65 V (higher voltage to special order)UL: AC 277 / 480 V",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Technical Data",
+            "name": "Voltage rating",
+            "value": "3 AC 433 V (50/60 Hz) AC 250 V DC 65 V (higher voltage to special order)UL: AC 277 / 480 V",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Text",
+            "name": "Bus",
+            "value": "Transit & School",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Text",
+            "name": "Bus",
+            "value": "Transit & School",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Text",
+            "name": "Mobility & Transport Overview Aerospace Agriculture Equipment Automotive Bus",
+            "value": "Transit & School Commercial Trucks Construction & Forestry Emergency Vehicles Marine Work Trucks",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Text",
+            "name": "Mobility & Transport Overview Aerospace Agriculture Equipment Automotive Bus",
+            "value": "Transit & School Commercial Trucks Construction & Forestry Emergency Vehicles Marine Work Trucks",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Text",
+            "name": "UL",
+            "value": "AC 277 / 480 V",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "Text",
+            "name": "UL",
+            "value": "AC 277 / 480 V",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated voltage",
+            "value": "65 V DC",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated current",
+            "value": "2,000 A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-30...60 °C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Tightening torque",
+            "value": "max. 0.5 Nm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Length",
+            "value": "5.8 mm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "2210-S2",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "1 1 - P1 F1 - H 1 1 1 - 10 A ordering example",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "P1, F1",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "11-… (1-pole)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "21-… (2-pole) and",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "31-… (3-pole)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Thermal-Magnetic Circuit Breaker 2210-S2...",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "2210-S2..",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "2210-S211-P1F1-H111- x x x x x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "2210-S211-P1M1-H111- x x x x x x x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "2210-S211-P1M1-Z111- x x x x x x x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "2210-S221-P1M1-H111- x x x x x x x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "2210-S221-P1M1-H211- x x x x x x x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "Current ratings",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "2210 - S 2 1 1 - P1 F1 - H 1 1 1 - 10 A ordering example",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Authority Standard Rated voltage Current ratings",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "VDE IEC/EN",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "The time/current characteristic curve depends on the ambient temperature",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "breaker current ratings by the derating factor shown below. See also section",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "current rating",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "… times rated current",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Typical time/current characteristics",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "type 2210-S231-… (3-pole)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Voltage rating AC 250 V*; 3 AC 433 V (50-60Hz); DC 65 V",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "(*UL: AC 277/480 V; DC 65 V)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Current rating range 0.1...25 A for curves M1, T1",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Ambient temperature -30...+60 °C (-22...+140 °F) T 60",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "(IEC 60664 and 60664A) withstand voltage degree",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Standard current ratings and typical internal resistance values",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Current",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "rating (A)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Internal connection diagrams Typical time/current characteristics",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data sheet",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "1-pole:",
+            "value": "1 | 2 | 4 | 6 | 8 | 10 | 16",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "2210-S211-P1F1-H111-",
+            "value": "x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "2210-S211-P1M1-H111-",
+            "value": "x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "2210-S211-P1M1-Z111-",
+            "value": "x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "2210-S221-P1M1-H111-",
+            "value": "x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "2210-S221-P1M1-H211-",
+            "value": "x",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Current ratings",
+            "value": "0.1...25 A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "VDE",
+            "value": "IEC/EN",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "breaker current",
+            "value": "ratings by the derating factor shown below. See also section",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "temp.",
+            "value": "°C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Derating factor",
+            "value": "0.76 0.79 0.83 0.88 | 1 | 1.04 1.11 | 1.19 1.29",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "(curves F2, M1, M3).",
+            "value": "Ambient °F",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Typical time/current",
+            "value": "characteristics",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "mounting hole",
+            "value": "fixing plate",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Mounting",
+            "value": "dimensions:",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Mounting",
+            "value": "holes",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Voltage rating",
+            "value": "AC 250 V*; 3 AC 433 V (50-60Hz); DC 65 V",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Current rating range",
+            "value": "0.1...25 A for curves M1, T1",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Auxiliary circuit",
+            "value": "1 A, AC 240 V/DC 65 V, resistive",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Typical life",
+            "value": "10,000 operations at 1 x IN, inductive",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Ambient temperature",
+            "value": "-30...+60 °C (-22...+140 °F) T 60",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "(IEC 60664 and 60664A)",
+            "value": "withstand voltage | degree",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "2.5 kV",
+            "value": "2",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Humidity",
+            "value": "240 hours at 95 % RH",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Mass",
+            "value": "approx. 50 g per pole",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "IN",
+            "value": "0.1...16 A | 20...25 A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "AC 277 V 1-pole",
+            "value": "5,000 A | 2,000 A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "AC 277/480 V 2-/3-pole",
+            "value": "5,000 A | 2,000 A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "DC 65 V",
+            "value": "2,000 A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Standard current",
+            "value": "ratings and typical internal resistance values",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Current",
+            "value": "rating (A)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Mounting",
+            "value": "thread M3",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "max. screw length",
+            "value": "5.8 mm (.228 in.)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Tightening torque",
+            "value": "max. 0.5 Nm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Mounting",
+            "value": "area",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "CQC",
+            "value": "GB 17701 | AC 250/433 V",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "-F2 8…16 A",
+            "value": "AC/ DC 1)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "-F2 0.1…7.5 A",
+            "value": "AC/ DC 1)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Internal connection diagrams",
+            "value": "Typical time/current characteristics",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "2210-S2XXX-XXXX-XXA,",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_410-218-1008-02_2210.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Declaration of Conformity - Railway Applications",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_410-218-1008-02_2210.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Wir",
+            "value": "E-T-A Elektrotechnische Apparate GmbH",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_410-218-1008-02_2210.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015184210\\documents\\2210-S2-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "Brochure",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Broschures_Magazines_etc/Broschures/Broschures_en/B_TM-Schutzschalter_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/#productDownloads",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015184210\\documents\\2210-S2-datasheet-Data-sheet-2.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "failed",
+            "parseError": "Invalid PDF structure."
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "javascript:;",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "Find Reps & Distributors E-T-A's sales network stretches across North America- providing customers with convenient and local access to E-T-A products and services.",
+            "url": "https://www.e-t-a.com/contact/e_t_a_sales_network/",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "datasheet",
+            "label": "Technical Information",
+            "url": "https://www.e-t-a.com/footer_navigation/technical_information/",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7#productDownloads",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "type": "manual",
+            "label": "Datasheets, CAD, Manuals, etc. Looking for CAD drawings, technical documentation, and more? Visit the download center for everything you need to specify E-T-A products.",
+            "url": "https://www.e-t-a.com/resource_center/download_center/",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015184210\\documents\\2210-S2-manual-Datasheets,-CAD,-Manuals,-etc.-Looking-for-CAD-drawings,-technical-documentation.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://www.e-t-a.com/fileadmin/_processed_/5/f/csm_18Plus_ESS30_ESX10_2210_16d6e7bd7c.png",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015184210\\images\\ETA.2210-S2.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_S21_stp.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S21/2210_S21_stp.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "210_S21_igs.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S21/210_S21_igs.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_S21_dxf.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S21/2210_S21_dxf.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_S21_pdf.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S21/2210_S21_pdf.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_S22_stp.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S22/2210_S22_stp.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_S22_igs.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S22/2210_S22_igs.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_S22_dxf.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S22/2210_S22_dxf.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_S22_pdf.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S22/2210_S22_pdf.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_s231.dxf.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S231/2210_s231.dxf.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_s231.igs.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S231/2210_s231.igs.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_s231.pdf.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S231/2210_s231.pdf.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210_s231.stp.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/2210_S231/2210_s231.stp.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S210-P1F1-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S210-P1F1-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S210-P1F2-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S210-P1F2-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S210-P1M1-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S210-P1M1-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S210-P1M3-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S210-P1M3-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S210-P1T1-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S210-P1T1-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S210-P1T2-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S210-P1T2-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S211-P1F1-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S211-P1F1-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S211-P1M1-H111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S211-P1M1-H111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "2210-S211-P1M1-Z111.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/E-Plan-Makros-ZIP-Data/2210-S2/2210-S211-P1M1-Z111.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Interactive Virtual Sample Kit Filter products, 360° CAD product viewer, request samples all from the comfort of your desk with E-T-A's new interactive sample kit.",
+            "url": "https://www.e-t-a.com/resource_center/interactive_virtual_sample_kit/",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "Declaration of Conformity - Railway Applications",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_410-218-1008-02_2210.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015184210\\documents\\2210-S2-certificate-Declaration-of-Conformity---Railway-Applications.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "certificate",
+            "label": "Declaration of Conformity",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB-Konformitaetserklaerung_410_218_1007_x05_220923.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "type": "certificate",
+            "label": "REACH",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          },
+          {
+            "type": "certificate",
+            "label": "TSCA Letter of Confirmation",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/TSCA_Letter_of_Confirmation_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "confidence": 0.86
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-15T18:42:14.716Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/?tx_etaproducts_mainplugin%5Bproduct%5D=69&cHash=c55fa5196cd54588b3d8ecf1ef17bea7",
+            "sourceType": "official-fallback",
+            "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-15T18:42:13.669Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_2210-S2_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T18:42:24.286Z"
+          },
+          {
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_EU/TB_Konformitaetserklaerung_410-218-1008-02_2210.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-15T18:42:29.198Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+              "url": "https://www.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/2210_s2/",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "ETA official configured source: E-T-A product pages confirmed by fetch (HTTP 200, catalog in document title, catalog in H1)",
+              "statusCode": 200,
+              "attributeCount": 64,
+              "documentCount": 36,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "CPC20PN-T2",
+      "caseType": "electrical",
+      "expectedDeviceType": "Communication Gateway",
+      "deviceTypeMatched": false,
+      "riskTags": [
+        "eta-batch-03",
+        "controlplex-cpc20",
+        "profinet-bus-controller"
+      ],
+      "status": "error",
+      "confidence": 0,
+      "elapsedMs": 60015,
+      "scrapeElapsedMs": 0,
+      "identityConfirmed": false,
+      "wrongProduct": false,
+      "officialUrlMatched": false,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": false,
+      "pdtAuditMatched": false,
+      "pdtWrittenCells": 0,
+      "pdtBlankCells": 0,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "error"
+      ],
+      "resultEvidence": {
+        "deviceTypeClassification": {},
+        "normalized": {},
+        "requiredElectricalFields": [],
+        "attributes": [],
+        "documents": [],
+        "sources": []
+      },
+      "error": "Generic discovery fallback for CPC20PN-T2 timed out after 60s"
+    },
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "Module 18plus",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Distribution Unit",
+      "deviceTypeMatched": false,
+      "riskTags": [
+        "eta-batch-03",
+        "din-rail-power-distribution",
+        "modular-system"
+      ],
+      "status": "error",
+      "confidence": 0,
+      "elapsedMs": 60006,
+      "scrapeElapsedMs": 0,
+      "identityConfirmed": false,
+      "wrongProduct": false,
+      "officialUrlMatched": false,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": false,
+      "pdtAuditMatched": false,
+      "pdtWrittenCells": 0,
+      "pdtBlankCells": 0,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "error"
+      ],
+      "resultEvidence": {
+        "deviceTypeClassification": {},
+        "normalized": {},
+        "requiredElectricalFields": [],
+        "attributes": [],
+        "documents": [],
+        "sources": []
+      },
+      "error": "Generic discovery fallback for Module 18plus timed out after 60s"
+    },
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "MPR20",
+      "caseType": "electrical",
+      "expectedDeviceType": "Relay",
+      "deviceTypeMatched": false,
+      "riskTags": [
+        "eta-batch-03",
+        "mechanical-power-relay",
+        "high-current-vehicle-relay"
+      ],
+      "status": "error",
+      "confidence": 0,
+      "elapsedMs": 60015,
+      "scrapeElapsedMs": 0,
+      "identityConfirmed": false,
+      "wrongProduct": false,
+      "officialUrlMatched": false,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": false,
+      "pdtAuditMatched": false,
+      "pdtWrittenCells": 0,
+      "pdtBlankCells": 0,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "error"
+      ],
+      "resultEvidence": {
+        "deviceTypeClassification": {},
+        "normalized": {},
+        "requiredElectricalFields": [],
+        "attributes": [],
+        "documents": [],
+        "sources": []
+      },
+      "error": "Generic discovery fallback for MPR20 timed out after 60s"
+    },
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "PFA10-T 40 A, DC 24 V",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "deviceTypeMatched": false,
+      "riskTags": [
+        "eta-batch-03",
+        "three-phase-smps",
+        "dc-24v-40a"
+      ],
+      "status": "error",
+      "confidence": 0,
+      "elapsedMs": 60014,
+      "scrapeElapsedMs": 0,
+      "identityConfirmed": false,
+      "wrongProduct": false,
+      "officialUrlMatched": false,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": false,
+      "pdtAuditMatched": false,
+      "pdtWrittenCells": 0,
+      "pdtBlankCells": 0,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "error"
+      ],
+      "resultEvidence": {
+        "deviceTypeClassification": {},
+        "normalized": {},
+        "requiredElectricalFields": [],
+        "attributes": [],
+        "documents": [],
+        "sources": []
+      },
+      "error": "Generic discovery fallback for PFA10-T 40 A, DC 24 V timed out after 60s"
+    }
+  ]
+}

@@ -1,0 +1,2635 @@
+{
+  "generatedAt": "2026-10-15T16:48:59.523Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015164844",
+  "filters": {
+    "manufacturer": "eta",
+    "limit": "1",
+    "catalogNumber": "X3130",
+    "fixtureDir": "benchmarks/eta-accuracy-speed-20261015/batch-01",
+    "isolatedStorage": "1",
+    "tag": "eta-x3130-exact-pdp-cold-01"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 0,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 2,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eta": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "c14",
+            "eta-batch-01",
+            "power-entry-module"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Power Entry Module": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "contactor a. fuses": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Entry Module"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "eta"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "X3130",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Entry Module",
+      "actualDeviceType": "Power Entry Module",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eta-batch-01",
+        "power-entry-module",
+        "c14"
+      ],
+      "status": "found",
+      "confidence": 0.73,
+      "elapsedMs": 14382,
+      "scrapeElapsedMs": 2206,
+      "productUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015164844\\pdt\\eta-X3130-pdt_pdt-audit.json",
+      "pdtWrittenCells": 34,
+      "pdtBlankCells": 61,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Type X3130",
+        "description": "C14 power entry module for 3130 circuit breakers",
+        "productUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+        "localizedUrls": {
+          "en": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/"
+        },
+        "deviceTypeClassification": {
+          "type": "Power Entry Module",
+          "confidence": 0.99,
+          "evidence": "Family X3130 (E-T-A power entry module with integral circuit protection)",
+          "alternatives": [
+            {
+              "type": "Circuit Breaker",
+              "score": 1525,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 2060
+        },
+        "normalized": {
+          "voltage": "250 V AC",
+          "current": "0.1...16 A",
+          "certificates": "UL, CSA, RoHS, REACH Regulation, TSCA, TÜV, VDE",
+          "dimensions": "6.3 x 0.8 mm",
+          "wallThickness": "2.5 mm",
+          "operatingTemperatureMin": "-25",
+          "operatingTemperatureMax": "70"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Voltage rating",
+            "value": "250 VAC",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Current ratings",
+            "value": "10 A (IEC/EN)",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Certificates",
+            "value": "Approvals appliance inlet: VDE/TÜV, UL, CSA",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Voltage rating",
+            "value": "250 VAC",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "C14 power entry module for 3130 circuit breakers",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Actuation",
+            "value": "rocker",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Terminal design",
+            "value": "blade terminals",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Worldwide approvals",
+            "value": "Get information on our international product approvals and certifications.",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "Mobility & Transport Trucks Bus",
+            "value": "Transit and School Automotive Construction machinery Agricultural and forestry machinery Motor Home Specialty vehicles Rail Vehicles",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "Bus",
+            "value": "Transit and School",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "spaceBetween",
+            "value": "40,",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "1,",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "2,",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "3,",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "slidesPerView",
+            "value": "4,",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "stroke",
+            "value": "#009fe4;",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated voltage",
+            "value": "250 V",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated current",
+            "value": "10 A / 15 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-25 °C / 70 °C",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Tightening torque",
+            "value": "max. 0.8 Nm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Length",
+            "value": "180 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Thickness",
+            "value": "1...2.5 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Thickness",
+            "value": "1.5...3.2 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "6.3 x 0.8 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "2.8 x 0.8 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "X3130",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "Power Entry Module with double pole",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "A 04 00 01 - M Ordering example",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "A also available with approval according",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "X3130-FA.A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "A version for X3130",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "A 2-pole, version for X3130",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Illumination voltage range(1)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Current ratings",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "Mounting hole X3130",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "The space-saving X3130 Power Entry Module with double pole",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "X3130 Power Entry Module for circuit breaker type 3130-FA.A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "X3130 - A 04 00 01 - M Ordering example",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "Rated voltage AC 250 V",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "Rated current 10 A (IEC)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "15 A (UL/CSA)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "Ambient temperature -25 °C ... 70 °C",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "X3130-A – C14-appliance inlet",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Authority Standard Rated voltage Current ratings",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "the max. current of the appliance inlet, depending on approval.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Complete module X3130-A also available with approval according",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Voltage rating AC 240 V; 3 AC 415 V; DC 50 V",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "(UL: AC 250 V; 3 AC 250 V; DC 50 V)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Current ratings 0.1...20 A 1-pole",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Current",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "rating (A)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "The time/current characteristic curve depends on the ambient",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "multiply the circuit breaker current ratings by the derating factor shown",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "… times rated current",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data sheet",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "F Snap-in frame",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "1 Standard,",
+            "value": "panel cut-out size depending on no. of poles",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Number of poles",
+            "value": "2 2-pole thermally protected",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "T1",
+            "value": "thermal",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "01 Q",
+            "value": "black",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "02 Q",
+            "value": "white",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "04 Q",
+            "value": "red",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Current ratings",
+            "value": "0.1...16 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Mounting",
+            "value": "hole X3130",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "40.2",
+            "value": "36.5",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "component",
+            "value": "A C14 appliance inlet and rocker switch with resettable",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "overcurrent protection;",
+            "value": "screw mounting from the front or the rear.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "X3130 - A",
+            "value": "04 00 01 - M Ordering example",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Rated voltage",
+            "value": "AC 250 V",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Rated current",
+            "value": "10 A (IEC)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Ambient temperature",
+            "value": "-25 °C ... 70 °C",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Number of poles",
+            "value": "L, N + ground",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Cable cross section",
+            "value": "max. 1.5 mm2",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Degree of protection",
+            "value": "Class I",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Mounting method",
+            "value": "screw-type mounting (front or rear)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Terminal design",
+            "value": "blade terminals 6.3 x 0.8 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Switch",
+            "value": "circuit breaker type 3130, 2-pole",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "AC 250 V",
+            "value": "15 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "CQC",
+            "value": "CCC | AC 250 V | 10 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Complete module X3130-A also available with approval",
+            "value": "according",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Technical data",
+            "value": "Technical data",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Voltage rating",
+            "value": "AC 240 V; 3 AC 415 V; DC 50 V",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Current ratings",
+            "value": "0.1...20 A | 1-pole",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "0.1...16 A",
+            "value": "2- and 3-pole",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "AC 240 V:",
+            "value": "0.1...20 A 30,000 operations at 1 x IN, inductive",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "DC 50 V:",
+            "value": "0.1...4 A | 30,000 operations at 1 x IN, inductive",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "DC 28 V:",
+            "value": "0.1...20 A 30,000 operations at 1 x IN, inductive",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "1 pole",
+            "value": "2.5…20 A | AC 240 V | 200 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "2 pole",
+            "value": "2.5…16 A | AC 240 V | 300 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "3 pole",
+            "value": "2.5…12 A | 3 AC 415 V | 150 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "3 pole",
+            "value": "14…16 A | 3 AC 415 V | 130 A",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "1, 2-pole",
+            "value": "0.1...16 A | AC 250 V | 3 500 A, C, 1",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "3-pole",
+            "value": "0.1...12 A | 3 AC 250 V | 5 000 A, C, 1",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "1, 2-pole",
+            "value": "0.1…16 A | AC 277 V | 2 000 A, C, 1",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "1,2-pole",
+            "value": "0.1...16 A | DC 50 V | 2 000 A, C, 1",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "1 Standard,",
+            "value": "panel cut-out 14.6 x 34 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "For Frame 1, snap-in, panel thickness",
+            "value": "1.0-2.5 mm, color",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "For Frame 3, snap-in, panel thickness",
+            "value": "1.5-3.2 mm, color",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "3130 - F 1 1 0 - P7 T1 - W 14 Q R",
+            "value": "3 - 5 A | ordering example",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Tightening torque",
+            "value": "max. 0.8 Nm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Length",
+            "value": "180 mm",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "tightening torque max. 0.8 Nm",
+            "value": "Panel cut-out",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Current",
+            "value": "rating (A)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "multiply the circuit breaker current",
+            "value": "ratings by the derating factor shown",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Ambient",
+            "value": "°F",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "substances above the limit values listed in the current Annex XIV of the REACH Regulation, the so-",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "the chemical substances listed in the Annex XVII of the REACH Regulation above the applicable limits.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Chemicals Agency ECHA. For specific products, exemptions 6a., 6b., 6c., 7a. and 7c. I of the RoHS",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Declaration of Conformity – REACH 253 (04-Feb-2026)",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "REACH and actively request related information. At present, we are not aware of any products supplied",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "REACH Regulation.",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "as specified in the REACH",
+            "value": "Regulation. According to the European Chemicals Agency ECHA, we are",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "E-Mail",
+            "value": "compliance@e-t-a.de",
+            "sourceUrl": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015164844\\documents\\X3130-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "Document",
+            "url": "https://global.e-t-a.com/support/downloads/whitepapers/",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/#productDownloads",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015164844\\documents\\X3130-datasheet-Data-sheet-2.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "failed",
+            "parseError": "Invalid PDF structure."
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "javascript:;",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://global.e-t-a.com/fileadmin/_processed_/5/4/csm_X38_X3130_ee0d3ff679.png",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015164844\\images\\ETA.X3130.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Download Centre Find all relevant documents, e.g. data sheets, CAD files, etc. here.",
+            "url": "https://global.e-t-a.com/support/downloads/download_center/",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015164844\\documents\\X3130-cad-Download-Centre-Find-all-relevant-documents,-e.g.-data-sheets,-CAD-files,-etc.-h.bin",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "X3130.zip",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/X3130/X3130.zip",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015164844\\documents\\X3130-certificate-REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "certificate",
+            "label": "TSCA Letter of Confirmation",
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/TSCA_Letter_of_Confirmation_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "International locations We guarantee customer proximity and reliable deliveries in more than 60 countries worldwide.",
+            "url": "https://global.e-t-a.com/contact/worldwide_locations/",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "Worldwide approvals Get information on our international product approvals and certifications.",
+            "url": "https://global.e-t-a.com/footer_navigation/quality_certification/worldwide_approvals/",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "stage": "ETA power entry module product page",
+            "confidence": 0.88
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+            "sourceType": "official-fallback",
+            "parser": "ETA power entry module product page",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-15T16:48:45.493Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Thermisch/2_en/D_3130_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T16:48:57.144Z"
+          },
+          {
+            "url": "https://global.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-15T16:48:57.526Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "ETA power entry module product page",
+              "url": "https://global.e-t-a.com/products/circuit_protection_devices_thermal_thermal_magnetic_magnetic_high_performance_electronic/power_entry_modules/p/x3130/",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "ETA power entry module product page",
+              "statusCode": 200,
+              "attributeCount": 18,
+              "documentCount": 11,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

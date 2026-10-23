@@ -1,0 +1,64 @@
+[
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "8618330",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Hinge",
+    "riskTags": ["rittal-batch-04", "180-degree-vx-hinge"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=8618330(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material", "protection"],
+    "expectedNormalizedPatterns": {"weight": "0[.]74 kg", "material": "Precision-cast steel", "protection": "IP ?55"},
+    "expectedAttributePatterns": ["180°", "900 N", "IP 55", "Precision-cast steel"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "8618200",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Handle",
+    "riskTags": ["rittal-batch-04", "comfort-handle-vx"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=8618200(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material", "color"],
+    "expectedNormalizedPatterns": {"weight": "0[.]6 kg", "material": "Die-cast zinc", "color": "RAL 7035"},
+    "expectedAttributePatterns": ["for lock inserts", "Type 4", "26[.]5 mm"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "2830410",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Plinth Base",
+    "riskTags": ["rittal-batch-04", "ax-base-plinth-side-components"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=2830410(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material", "color"],
+    "expectedNormalizedFields": ["dimensions"],
+    "expectedNormalizedPatterns": {"weight": "2[.]516 kg", "dimensions": "H 100 mm", "material": "Sheet steel.*Plastic", "color": "RAL 9005"},
+    "expectedAttributePatterns": ["Height.*100 mm", "Depth.*400 mm", "2 base/plinth components", "2[.]516 kg"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "5051378",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Subpanel",
+    "riskTags": ["rittal-batch-04", "ax-mounting-plate"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=5051378(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material", "wallThickness", "dimensions"],
+    "expectedNormalizedPatterns": {"weight": "6[.]36 kg", "dimensions": "H 575 mm x W 550 mm", "material": "Sheet steel", "wallThickness": "2[.]5 mm"},
+    "expectedAttributePatterns": ["Width.*550 mm", "Height.*575 mm", "Material thickness.*2[.]5 mm", "To fit.*600 mm"]
+  },
+  {
+    "manufacturerId": "rittal",
+    "catalogNumber": "4612000",
+    "caseType": "mechanical",
+    "expectedDeviceType": "Leveling Foot",
+    "riskTags": ["rittal-batch-04", "m12-leveling-feet"],
+    "expectedOfficialUrlPatterns": ["rittal\\.com/.+variantId=4612000(?:$|[&#])"],
+    "requiredDocuments": ["image"],
+    "expectedNormalizedFields": ["weight", "material"],
+    "expectedBlankNormalizedFields": ["dimensions", "voltage", "current"],
+    "expectedNormalizedPatterns": {"weight": "0[.]212 kg", "material": "Sheet steel"},
+    "expectedAttributePatterns": ["M12 x 40", "18.*43 mm", "3,000 N", "4 pc"]
+  }
+]

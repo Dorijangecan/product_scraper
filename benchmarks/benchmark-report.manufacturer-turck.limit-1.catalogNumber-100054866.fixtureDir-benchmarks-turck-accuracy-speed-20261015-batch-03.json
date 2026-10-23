@@ -1,0 +1,2501 @@
+{
+  "generatedAt": "2026-10-15T12:58:15.207Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015125755",
+  "filters": {
+    "manufacturer": "turck",
+    "limit": "1",
+    "catalogNumber": "100054866",
+    "fixtureDir": "benchmarks/turck-accuracy-speed-20261015/batch-03"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 2,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "turck": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "4-to-20-ma-output",
+            "cold",
+            "condition-monitoring",
+            "stainless-steel-m8",
+            "vibration-sensor"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Vibration Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "turck"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "electronic sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Vibration Sensor"
+          ],
+          "manufacturers": [
+            "turck"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "turck"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter",
+            "Signal Conditioner"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "turck",
+      "catalogNumber": "100054866",
+      "caseType": "electrical",
+      "expectedDeviceType": "Vibration Sensor",
+      "actualDeviceType": "Vibration Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "vibration-sensor",
+        "condition-monitoring",
+        "4-to-20-ma-output",
+        "stainless-steel-m8"
+      ],
+      "status": "found",
+      "confidence": 0.59,
+      "elapsedMs": 19762,
+      "scrapeElapsedMs": 1153,
+      "productUrl": "https://www.turck.com/de/en/shop/others/100054866",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015125755\\pdt\\turck-100054866-pdt_pdt-audit.json",
+      "pdtWrittenCells": 34,
+      "pdtBlankCells": 99,
+      "pdtSkippedCells": 7,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "CMVT-M8TA1D-LI28-H1141",
+        "productUrl": "https://www.turck.com/de/en/shop/others/100054866",
+        "localizedUrls": {
+          "en": "https://www.turck.com/de/en/shop/others/100054866"
+        },
+        "deviceTypeClassification": {
+          "type": "Vibration Sensor",
+          "confidence": 0.98,
+          "evidence": "Function: Vibration sensor",
+          "alternatives": [
+            {
+              "type": "Sensor",
+              "score": 1445,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 270
+        },
+        "normalized": {
+          "dimensions": "72,5 mm x 23,8 mm",
+          "material": "Stainless steel",
+          "protection": "IP66, IP67",
+          "operatingTemperatureMin": "-40",
+          "operatingTemperatureMax": "80",
+          "voltage": "18...30 V DC",
+          "current": "< 100 mA"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Definition List",
+            "name": "Ambient temperature max. (°C)",
+            "value": "80",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Definition List",
+            "name": "Ambient temperature min. (°C)",
+            "value": "-40",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Definition List",
+            "name": "Dimensions (L x W x H)",
+            "value": "72,5 mm x 23,8 mm",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Definition List",
+            "name": "Housing material",
+            "value": "Stainless steel",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Definition List",
+            "name": "Protection class",
+            "value": "IP66, IP67",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Ambient temperature max. (°C)",
+            "value": "80",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Ambient temperature min. (°C)",
+            "value": "-40",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Housing material",
+            "value": "Stainless steel",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Protection class",
+            "value": "IP66, IP67",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "4…20 mA",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Definition List",
+            "name": "Connector type",
+            "value": "M12 x 1",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Definition List",
+            "name": "Design",
+            "value": "Cylinder, threaded",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Definition List",
+            "name": "Electrical connection",
+            "value": "Connector",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Definition List",
+            "name": "Function",
+            "value": "Vibration sensor",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Identity",
+            "name": "Catalog Number",
+            "value": "100054866",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Connector type",
+            "value": "M12 x 1",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Electrical connection",
+            "value": "Connector",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Function",
+            "value": "Vibration sensor",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78
+          },
+          {
+            "group": "Turck Product Data",
+            "name": "Catalog Number",
+            "value": "100054866",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.86
+          },
+          {
+            "group": "Turck Product Data",
+            "name": "Type Code",
+            "value": "CMVT-M8TA1D-LI28-H1141",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.86
+          },
+          {
+            "group": "Turck Product Data",
+            "name": "Order ID",
+            "value": "100054866",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.86
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Umgebungstemperatur",
+            "value": "-40...80 °C",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "72.5 mm x 23.8 mm",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ident-No. 100054866",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Hohe Schutzart IP66/IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Schutzart IP66 IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "EDB_100054866_ger_de.pdf",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TURCK GmbH | 45472 Mülheim an der Ruhr, Germany | T +49 208 4952-0 | more@turck.com | www.turck.com",
+            "value": "1 | 4",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Typenbezeichnung",
+            "value": "CMVT-M8TA1D-LI28-H1141",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ident-No.",
+            "value": "100054866",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Betriebsspannung UB",
+            "value": "18...30 VDC",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Stromaufnahme",
+            "value": "< 100 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Restwelligkeit",
+            "value": "≤ 10 % Uss",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Stromausgang",
+            "value": "4...20 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Lastwiderstand Stromausgang",
+            "value": "≤0,5 kΩ",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Bauform",
+            "value": "zylindrisch/Gewinde",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Abmessungen",
+            "value": "72,5 mm x 23,8 mm",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Gehäusewerkstoff",
+            "value": "Edelstahl",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Elektrischer Anschluss",
+            "value": "Steckverbinder, M12 x 1",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Umgebungstemperatur",
+            "value": "-40...+80 °C",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Schockfestigkeit (EN 60068-2-27)",
+            "value": "60 g, 6 ms",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Hohe Schutzart",
+            "value": "IP66/IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "| 04-09-2026 11",
+            "value": "09 | Technische Änderungen vorbehalten |",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TURCK GmbH | 45472 Mülheim an der Ruhr, Germany | T +49 208 4952-0 | more@turck.com | www.turck.com",
+            "value": "2 | 4",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Schutzart",
+            "value": "IP66 IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MTTF",
+            "value": "164 Years nach SN 29500 (Ed. 99) 40",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TURCK GmbH | 45472 Mülheim an der Ruhr, Germany | T +49 208 4952-0 | more@turck.com | www.turck.com",
+            "value": "3 | 4",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MA-M8-1/2-BSPT",
+            "value": "100050775 | MA-M8-1/4-NPT | 100050776",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MA-M8-1/4-UNF28G",
+            "value": "100050777 | MA-M8-3/8-24UNF2A | 100050778",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MA-M8-M6",
+            "value": "100050779 | MA-M8-M10 | 100050780",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Montageadapter, M8 auf M6",
+            "value": "Montageadapter, M8 auf M10",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MA-M8-M12",
+            "value": "100050781 | MA-M8-M16 | 100050782",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Montageadapter, M8 auf M12",
+            "value": "Montageadapter, M8 auf M16",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MA-M8-M20",
+            "value": "100050783 | MA-M8-M24 | 100050784",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Montageadapter, M8 auf M20",
+            "value": "Montageadapter, M8 auf M24",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TURCK GmbH | 45472 Mülheim an der Ruhr, Germany | T +49 208 4952-0 | more@turck.com | www.turck.com",
+            "value": "4 | 4",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MA-M8-M30",
+            "value": "100050785 | MAGKIT-M8T | 100055273",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Montageadapter, M8 auf M30",
+            "value": "Befestigungsmagnet zur",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Operating voltage",
+            "value": "18...30 V DC",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Current output",
+            "value": "4...20 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Current consumption",
+            "value": "< 100 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-40...80 °C",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Dimension Text",
+            "name": "Dimensions",
+            "value": "72.5 mm x 23.8 mm",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ident-No. 100054866",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "Operating voltage UB 18...30 VDC",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Electrical data",
+            "name": "Feature",
+            "value": "Current consumption < 100 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Electrical data",
+            "name": "Feature",
+            "value": "Current output 4...20 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Electrical data",
+            "name": "Feature",
+            "value": "Load resistance current output ≤0,5 kΩ",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Feature",
+            "value": "Housing material Stainless steel",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Feature",
+            "value": "Ambient temperature -40...+80 °C",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Feature",
+            "value": "Stainless steel housing with M8 screw-in",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Feature",
+            "value": "High protection class IP66/IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Feature",
+            "value": "Protection class IP66 IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "EDB_100054866_gbr_en.pdf",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TURCK GmbH | 45472 Mülheim an der Ruhr, Germany | T +49 208 4952-0 | more@turck.com | www.turck.com",
+            "value": "1 | 3",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Type designation",
+            "value": "CMVT-M8TA1D-LI28-H1141",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ident-No.",
+            "value": "100054866",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Operating voltage UB",
+            "value": "18...30 VDC",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Electrical data",
+            "name": "Current consumption",
+            "value": "< 100 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Electrical data",
+            "name": "Residual ripple",
+            "value": "≤ 10 % Uss",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Electrical data",
+            "name": "Current output",
+            "value": "4...20 mA",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Electrical data",
+            "name": "Load resistance current output",
+            "value": "≤0,5 kΩ",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Design",
+            "value": "Cylinder, threaded",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Dimensions",
+            "value": "72,5 mm x 23,8 mm",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Housing material",
+            "value": "Stainless steel",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Electrical connection",
+            "value": "Connector, M12 x 1",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Ambient temperature",
+            "value": "-40...+80 °C",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "Shock resistance (EN 60068-2-27)",
+            "value": "60 g, 6 ms",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "High protection",
+            "value": "class IP66/IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "| 04-09-2026 11",
+            "value": "09 | Subject to technical changes |",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Mechanical data",
+            "name": "TURCK GmbH | 45472 Mülheim an der Ruhr, Germany | T +49 208 4952-0 | more@turck.com | www.turck.com",
+            "value": "2 | 3",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Protection class",
+            "value": "IP66 IP67",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "MTTF",
+            "value": "164 Years acc. to SN 29500 (Ed. 99)",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "| 04-09-2026 11",
+            "value": "09 | Subject to technical changes |",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "TURCK GmbH | 45472 Mülheim an der Ruhr, Germany | T +49 208 4952-0 | more@turck.com | www.turck.com",
+            "value": "3 | 3",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "Mounting",
+            "value": "accessories",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "MA-M8-1/2-BSPT",
+            "value": "100050775 | MA-M8-1/4-NPT | 100050776",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "M8 to 1/2″ BSPT",
+            "value": "8 to 1/4″ NPT M",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "MA-M8-1/4-UNF28G",
+            "value": "100050777 | MA-M8-3/8-24UNF2A | 100050778",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "M8 to 1/4″ UNF 28 G",
+            "value": "8 to 3/8″ 24 UNF 2A M",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "MA-M8-M6",
+            "value": "100050779 | MA-M8-M10 | 100050780",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "M8 to M6",
+            "value": "8 to M10 M",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "MA-M8-M12",
+            "value": "100050781 | MA-M8-M16 | 100050782",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "M8 to M12",
+            "value": "8 to M16 M",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "MA-M8-M20",
+            "value": "100050783 | MA-M8-M24 | 100050784",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "M8 to M20",
+            "value": "8 to M24 M",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "MA-M8-M30",
+            "value": "100050785 | MAGKIT-M8T | 100055273",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical data",
+            "name": "M8 to M30",
+            "value": "Mounting magnet for installing",
+            "sourceUrl": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "EDB_100054866_ger_de.pdf",
+            "url": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015125755\\documents\\100054866-datasheet-EDB_100054866_ger_de.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "EDB_100054866_gbr_en.pdf",
+            "url": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015125755\\documents\\100054866-datasheet-EDB_100054866_gbr_en.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "Thumbnail for CMVT-M8TA1D-LI28-H1141",
+            "url": "https://hansturck.azureedge.net/azurecdn_640x640_72dpi/117004_v0_azurecdn_640x640_72dpi.png",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015125755\\images\\TUR.100054866.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "100050420.prj}",
+            "url": "https://webapi.partcommunity.com/cgi-bin/cgi2pview.exe?firm=turck_online\\u0026apikey=96badd6752d64b9eb2cc50f81f1150b9\\u0026firm=turck\\u0026SERVER_TYPE=SUPPLIER_EXTERNAL_TURCK\\u0026zipfilename=TURCK_CAD_100054866\\u0026downloadflags=ZIP\\u0026cgiaction=download\\u0026part={turck_online/parts_pool/pns_rfid/further_block_sensors/100050420.prj}",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "stage": "turck-shop",
+            "confidence": 0.78,
+            "downloadStatus": "failed",
+            "downloadError": "Download failed with HTTP 401; curl fallback failed: Command failed: curl.exe -L --fail --retry 2 --retry-delay 2 --max-time 120 -A Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 --ssl-no-revoke -o D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015125755\\documents\\100054866-cad-100050420.prj}.exe https://webapi.partcommunity.com/cgi-bin/cgi2pview.exe?firm=turck_online\\u0026apikey=96badd6752d64b9eb2cc50f81f1150b9\\u0026firm=turck\\u0026SERVER_TYPE=SUPPLIER_EXTERNAL_TURCK\\u0026zipfilename=TURCK_CAD_100054866\\u0026downloadflags=ZIP\\u0026cgiaction=download\\u0026part={turck_online/parts_pool/pns_rfid/further_block_sensors/100050420.prj}\n  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current\r\n                                 Dload  Upload  Total   Spent   Left   Speed\r\n\r  0      0   0      0   0      0      0      0                              0\r\ncurl: (22) The requested URL returned error: 401\r\n"
+          },
+          {
+            "type": "certificate",
+            "label": "Approvals/Declarations",
+            "url": "https://certificates.digital.aws.turck.com/documents/100054866",
+            "sourceUrl": "https://www.turck.com/de/en/shop/others/100054866",
+            "downloadStatus": "failed",
+            "downloadError": "Download failed with HTTP 500; curl fallback failed: Command failed: curl.exe -L --fail --retry 2 --retry-delay 2 --max-time 120 -A Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36 --ssl-no-revoke -o D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015125755\\documents\\100054866-certificate-Approvals-Declarations.pdf https://certificates.digital.aws.turck.com/documents/100054866\n  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current\r\n                                 Dload  Upload  Total   Spent   Left   Speed\r\n\r  0      0   0      0   0      0      0      0                              0\r\ncurl: (22) The requested URL returned error: 500\r\nWarning: Problem : HTTP error. Retrying in 2 seconds. 2 retries left.\r\n\r  0      0   0      0   0      0      0      0                              0\r\ncurl: (22) The requested URL returned error: 500\r\nWarning: Problem : HTTP error. Retrying in 2 seconds. 1 retry left.\r\n\r  0      0   0      0   0      0      0      0                              0\r\ncurl: (22) The requested URL returned error: 500\r\n"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.turck.com/de/en/shop/search?q=100054866",
+            "sourceType": "official",
+            "parser": "turck-search",
+            "parserVersion": "turck-v1",
+            "stage": "turck-search",
+            "reason": "Turck official shop search result.",
+            "fetchedAt": "2026-10-15T12:56:23.300Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.turck.com/de/de/shop/search?q=100054866",
+            "sourceType": "official",
+            "parser": "turck-search",
+            "parserVersion": "turck-v1",
+            "stage": "turck-search",
+            "reason": "Turck official shop search result.",
+            "fetchedAt": "2026-10-15T12:56:23.878Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.turck.com/de/en/shop/others/100054866",
+            "sourceType": "official",
+            "parser": "turck-shop",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-15T12:56:25.415Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://hansturck.azureedge.net/edb/de_DE/EDB_100054866_ger_de.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T12:58:12.130Z"
+          },
+          {
+            "url": "https://hansturck.azureedge.net/edb/en_US_HQ/EDB_100054866_gbr_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T12:58:12.482Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "turck-search",
+              "url": "https://www.turck.com/de/en/shop/others/100054866",
+              "status": "partial",
+              "score": 100,
+              "missing": [
+                "normalized:voltage",
+                "normalized:current"
+              ],
+              "reason": "Missing required product data: normalized:voltage; normalized:current",
+              "sourceType": "official",
+              "parser": "turck-search",
+              "statusCode": 200,
+              "attributeCount": 21,
+              "documentCount": 8,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "turck-search",
+              "url": "https://www.turck.com/de/en/shop/others/100054866",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "turck-search",
+              "statusCode": 200,
+              "attributeCount": 108,
+              "documentCount": 5,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

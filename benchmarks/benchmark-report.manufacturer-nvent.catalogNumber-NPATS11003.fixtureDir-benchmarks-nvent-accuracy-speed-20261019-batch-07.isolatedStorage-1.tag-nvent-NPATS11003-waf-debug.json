@@ -1,0 +1,2082 @@
+{
+  "generatedAt": "2026-10-19T10:53:47.511Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019105340",
+  "filters": {
+    "manufacturer": "nvent",
+    "catalogNumber": "NPATS11003",
+    "fixtureDir": "benchmarks/nvent-accuracy-speed-20261019/batch-07",
+    "isolatedStorage": "1",
+    "tag": "nvent-NPATS11003-waf-debug"
+  },
+  "summary": {
+    "foundRate": 0,
+    "officialUrlRate": 100,
+    "documentRate": 0,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "nvent": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "automatic-transfer-switch",
+            "hoffman",
+            "rack-power"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Automatic Transfer Switch": {
+          "total": 1,
+          "manufacturers": [
+            "nvent"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {},
+      "thinManufacturers": [
+        "nvent"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Key Transfer Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "SVE",
+              "deviceType": "Key Transfer Switch",
+              "notes": "Schmersal key-selector interlocking devices"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Air Conditioner",
+            "Fan Assembly",
+            "Filter Fan",
+            "Heat Exchanger",
+            "Heater",
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Alu Connection Angle",
+            "Bag Cutter",
+            "Ball Catch",
+            "Bottle Holder",
+            "Broom Holder",
+            "Cable Binder",
+            "Compression Latch",
+            "Control Compartment",
+            "Cover / Door Accessory",
+            "Cube Connector",
+            "Door Latch",
+            "Door Stop",
+            "Enclosure",
+            "Fixed Caster",
+            "Gland Plate",
+            "Handle",
+            "Hinge",
+            "Keyboard Housing",
+            "Label Holder",
+            "Leveling Foot",
+            "Magnetic Catch",
+            "Mechanical Interlock Kit",
+            "Monitor Mount",
+            "Mounting Bracket",
+            "Over-Center Draw Latch",
+            "Plinth Base",
+            "Pull-Out Shelf",
+            "Quarter Turn Lock",
+            "Rain Hood",
+            "Slam Latch",
+            "Subpanel",
+            "Suspension System Component",
+            "Swivel Caster",
+            "Tool Hook",
+            "Tool Tray",
+            "Window Kit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Pull-wire Emergency Stop Switch",
+            "Safety Hinge Switch",
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS655",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS656",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "TV8S",
+              "deviceType": "Safety Hinge Switch",
+              "notes": "Schmersal TV8S hinge safety switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 0,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "nvent",
+      "catalogNumber": "NPATS11003",
+      "caseType": "electrical",
+      "expectedDeviceType": "Automatic Transfer Switch",
+      "actualDeviceType": "Automatic Transfer Switch",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "hoffman",
+        "rack-power",
+        "automatic-transfer-switch"
+      ],
+      "status": "partial",
+      "confidence": 0.4,
+      "elapsedMs": 4818,
+      "scrapeElapsedMs": 2599,
+      "productUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019105340\\pdt\\nvent-NPATS11003-pdt_pdt-audit.json",
+      "pdtWrittenCells": 19,
+      "pdtBlankCells": 20,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "document:image"
+      ],
+      "resultEvidence": {
+        "title": "RackPower Automatic Transfer Switch, 110V 20A 16 Rec, Black, Steel",
+        "description": "The Rack Automatic Transfer Switches provide power redundancy to rack-mount IT devices that are not designed to take advantage of data centers’ second power...",
+        "productUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+        "localizedUrls": {
+          "en": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+          "de": "https://www.nvent.com/de-de/hoffman/products/encnpats11003"
+        },
+        "deviceTypeClassification": {
+          "type": "Automatic Transfer Switch",
+          "confidence": 0.98,
+          "evidence": "Exact nVent PDP category: RackPower Automatic Transfer Switch",
+          "alternatives": [
+            {
+              "type": "Switch",
+              "score": 1985,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 2515
+        },
+        "normalized": {
+          "weight": "31lb (14.06136347 kg)",
+          "dimensions": "3.46 x 17.72 x 17.4 in (87.884 x 450.088 x 441.96 mm)",
+          "material": "Mild Steel",
+          "finish": "Powder Coated",
+          "color": "Jet Black",
+          "voltage": "110 V",
+          "current": "20 A",
+          "certificates": "CE, RoHS, Prop 65, REACH Regulation, TSCA",
+          "operatingTemperatureMin": "-5",
+          "operatingTemperatureMax": "60"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Height",
+            "value": "3.46in",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Height",
+            "value": "88mm",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Width",
+            "value": "17.72in",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Width",
+            "value": "450mm",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Depth",
+            "value": "17.4in",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Depth",
+            "value": "442mm",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Nominal Voltage",
+            "value": "110V",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Material",
+            "value": "Mild Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Finish",
+            "value": "Powder Coated",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Color",
+            "value": "Jet Black",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Color Code",
+            "value": "RAL 9005",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Cable Length",
+            "value": "10ft",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Cable Length",
+            "value": "3m",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Weight",
+            "value": "31lb",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Standard Packaging Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Article Number",
+            "value": "39398",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Frequency",
+            "value": "50 - 60 Hz",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Electrical Load Rating",
+            "value": "20A",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Socket Quantity",
+            "value": "16",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Socket Type",
+            "value": "(10) NEMA",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Plug Type",
+            "value": "NEMA L5-20P",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Rack Unit Quantity",
+            "value": "2",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "UPC",
+            "value": "783510393984",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Embedded Spec Rows",
+            "name": "Packing Quantity",
+            "value": "1",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "name",
+            "value": "RackPower Automatic Transfer Switch, 110V 20A 16 Rec, Black, Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "category",
+            "value": "RackPower Automatic Transfer Switch",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "description",
+            "value": "Rack Automatic Transfer Switches provide power redundancy to IT devices for second power source.",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "sku",
+            "value": "NPATS11003",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Structured Data",
+            "name": "Brand",
+            "value": "HOFFMAN",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "scope": "variant",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Industry Standards",
+            "name": "Industry Standard",
+            "value": "CE / EMC Certified LVD Certified 9001 / 14001 Certified RoHS3 and REACH Compliant",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Industry Standards",
+            "value": "CE / EMC Certified LVD Certified 9001 / 14001 Certified RoHS3 and REACH Compliant",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Current Selected Country",
+            "value": "United States | English",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Industry Standards",
+            "name": "CE / EMC Certified",
+            "value": "LVD Certified | 9001 / 14001 Certified | RoHS3 and REACH Compliant",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Overload protection",
+            "value": "Hydraulic-magnetic Miniature Circuit Breaker (MCB)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Operating temperature",
+            "value": "23-140 F (-5-60 C)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Voltage",
+            "value": "110V",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "20A",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Material",
+            "value": "Steel",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Color",
+            "value": "Black",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Text",
+            "name": "Overload protection",
+            "value": "Hydraulic-magnetic Miniature Circuit Breaker (MCB)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Text",
+            "name": "Operating temperature",
+            "value": "23-140 F (-5-60 C)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Protection",
+            "value": "Hydraulic-magnetic Miniature Circuit Breaker (MCB)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Operating temperature",
+            "value": "23-140 F (-5-60 C)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Identity",
+            "name": "Catalog Number",
+            "value": "NPATS11003",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Provides power redundancy to single-corded IT devices, ensuring there is no downtime that could be caused by power interruptions",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Devices automatically and seamlessly switch power sources when power loss is detected from the primary input",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Power inputs can be switched at the rack on the ATS itself or remotely over IP, saving time and resources",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Power metrics can be monitored remotely over IP to assist with capacity planning and improve overall efficiency",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Provide remote on/off outlet switching over network IP",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Free management software provided to remotely manage the ATS",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "All units include monitoring, circuit monitoring and outlet switching",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Local meter is field replaceable 2.00 (51mm) color LCD",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Overload protection: Hydraulic-magnetic Miniature Circuit Breaker (MCB)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Transfer time: 10ms",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Features",
+            "name": "Feature",
+            "value": "Operating temperature: 23-140 F (-5-60 C)",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Catalog#",
+            "value": "NPATS11003",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Operating humidity",
+            "value": "0~95%, non-condensing",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Text",
+            "name": "Transfer time",
+            "value": "10ms",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Text",
+            "name": "Operating humidity",
+            "value": "0~95%, non-condensing",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "group": "Plain Text",
+            "name": "version",
+            "value": "2.1,",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "RackPower Automatic Transfer Switch Spec Sheet 237 KB English RackPower Automatic Transfer Switch Spec Sheet",
+            "url": "https://nvent.widen.net/content/efegvtmd9b/original/spec-01456.pdf?asset_type=Data%20Sheet",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "datasheet",
+            "label": "89187029.pdf",
+            "url": "https://nvent.widen.net/content/dbnbhh69wa/original/89187029.pdf?asset_type=Data",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "datasheet",
+            "label": "spec-01456.pdf",
+            "url": "https://nvent.widen.net/content/efegvtmd9b/original/spec-01456.pdf?asset_type=Data",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "datasheet",
+            "label": "pdf",
+            "url": "https://www.nvent.com/en-us/hoffman/products/encnpats11003/pdf",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "manual",
+            "label": "What supports repeatable wiring and installation?",
+            "url": "https://www.nvent.com/en-us/search?brand=HOFFMAN&q=What%20supports%20repeatable%20wiring%20and%20installation%3F",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "cad",
+            "label": "NPATS11003 Spec Drawing 197 KB English NPATS11003 Spec Drawing",
+            "url": "https://nvent.widen.net/content/dbnbhh69wa/original/89187029.pdf?asset_type=Data%20Sheet",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent TSCA Hoffman 201 KB English nVent TSCA Hoffman",
+            "url": "https://nvent.widen.net/content/ksprcbjt57/original/nvent-tsca-declaration-hoffman.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent REACH Hoffman 214 KB English nVent REACH Hoffman",
+            "url": "https://nvent.widen.net/content/17qcbvobtr/original/nvent-reach-declaration_hoffman.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent Prop 65 Hoffman 220 KB English nVent Prop 65 Hoffman",
+            "url": "https://nvent.widen.net/content/fazbn0zh40/original/nvent-prop-65-declaration_hoffman.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          },
+          {
+            "type": "certificate",
+            "label": "nVent RoHS Hoffman 160 KB English nVent RoHS Hoffman",
+            "url": "https://nvent.widen.net/content/4bjsswgtty/original/nvent-rohs-declaration_hoffman.pdf?asset_type=Declaration",
+            "sourceUrl": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "stage": "nvent-direct",
+            "confidence": 0.68
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+            "sourceType": "official",
+            "parser": "nvent-direct",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-19T10:53:44.191Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": false,
+          "identityConfirmed": true,
+          "score": 94,
+          "missing": [
+            "document:image"
+          ],
+          "reason": "Missing required product data: document:image",
+          "attempts": [
+            {
+              "stage": "nvent-direct",
+              "url": "https://www.nvent.com/en-us/hoffman/products/encnpats11003",
+              "status": "partial",
+              "score": 94,
+              "missing": [
+                "document:image"
+              ],
+              "reason": "Missing required product data: document:image",
+              "sourceType": "official",
+              "parser": "nvent-direct",
+              "statusCode": 200,
+              "attributeCount": 62,
+              "documentCount": 10,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

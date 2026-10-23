@@ -203,6 +203,9 @@ export class BalluffConnector implements ManufacturerConnector {
         });
         if (process.env.DEBUG_BENCHMARK) console.log(`[balluff:debug] ${catalogNumber} primary-parse ${Date.now() - primaryParseStartedAt}ms attrs=${primaryResult.attributes.length}`);
         partialResults.push(primaryResult);
+        if (context.onlySelectedInfo && context.shouldStopSelectedInfoSearch?.(primaryResult)) {
+          return primaryResult;
+        }
         // Images-only fast path: as soon as the primary page yields a product image, return.
         // Skips ~5-10s of supplemental fetches + Playwright modal sequence per item.
         if (

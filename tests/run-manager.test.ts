@@ -12,6 +12,10 @@ import {
   isDownloadablePdfDocument,
   notApplicableFieldsFromHiddenCoverage,
   RunManager,
+  hasOnlySelectedInfoValues,
+  scopeOnlySelectedInfo,
+  shouldStopOnlySelectedInfoSearch,
+  withOnlySelectedInfoPolicy,
   shouldSkipNetworkFallback,
   shouldShortCircuitCustomerFirst,
   shouldDownloadDocumentsForRun,
@@ -32,6 +36,74 @@ describe("hidden coverage tiles become a not-applicable policy", () => {
   it("returns nothing when the user hid no tile", () => {
     expect(notApplicableFieldsFromHiddenCoverage(undefined)).toEqual([]);
     expect(notApplicableFieldsFromHiddenCoverage([])).toEqual([]);
+  });
+});
+
+describe("Only selected info mode", () => {
+  const baseResult: ProductResult = {
+    manufacturerId: "abb",
+    catalogNumber: "1SBL131001R5501",
+    status: "found",
+    confidence: 0.95,
+    productUrl: "https://example.test/products/1SBL131001R5501",
+    qualityGate: { passed: true, identityConfirmed: true, score: 1, missing: [], reason: "Exact SKU", attempts: [] },
+    title: "Contactor title",
+    description: "Extra description",
+    normalized: { weight: "0.2 kg", voltage: "24 V" },
+    attributes: [
+      { name: "Weight", value: "0.2 kg", sourceUrl: "https://example.test/products/1SBL131001R5501" },
+      { name: "Rated voltage", value: "24 V", sourceUrl: "https://example.test/products/1SBL131001R5501" },
+      { name: "Other specification", value: "extra", sourceUrl: "https://example.test/products/1SBL131001R5501" }
+    ],
+    documents: [{ type: "datasheet", label: "Datasheet", url: "https://example.test/spec.pdf" }],
+    sources: [
+      { url: "https://example.test/products/1SBL131001R5501", sourceType: "official", parser: "test", fetchedAt: "2026-10-23T00:00:00Z" },
+      { url: "https://example.test/spec.pdf", sourceType: "official", parser: "test", fetchedAt: "2026-10-23T00:00:00Z" }
+    ],
+    diagnostics: { fieldHealth: [{ field: "voltage", label: "Voltage", status: "found", value: "24 V" }] }
+  };
+
+  it("keeps only the selected value and product link in the saved result", () => {
+    expect(hasOnlySelectedInfoValues(baseResult, ["weight"], [])).toBe(true);
+    expect(scopeOnlySelectedInfo(baseResult, ["weight"], [])).toMatchObject({
+      status: "found",
+      productUrl: "https://example.test/products/1SBL131001R5501",
+      title: undefined,
+      description: undefined,
+      normalized: { weight: "0.2 kg" },
+      attributes: [{ name: "Weight", value: "0.2 kg", sourceUrl: "https://example.test/products/1SBL131001R5501" }],
+      documents: [],
+      diagnostics: undefined
+    });
+  });
+
+  it("requires only the selected built-in field and makes other final fields not applicable", () => {
+    const configured = withOnlySelectedInfoPolicy(getManufacturerConfig("abb")!, ["weight"]);
+    expect(configured.scrapeRecipe?.qualityPolicy?.requiredFinalFields).toEqual(["weight"]);
+    expect(configured.scrapeRecipe?.qualityPolicy?.requiredNormalizedFields).toEqual(["weight"]);
+    expect(configured.scrapeRecipe?.qualityPolicy?.notApplicableFields).toContain("voltage");
+  });
+
+  it("stops a single-field run after the initial scrape when that field is missing", () => {
+    const missingWeight = {
+      ...baseResult,
+      normalized: { voltage: "24 V" },
+      attributes: baseResult.attributes.filter((attribute) => attribute.name !== "Weight")
+    };
+    expect(shouldStopOnlySelectedInfoSearch(missingWeight, ["weight"], [])).toBe(true);
+    expect(scopeOnlySelectedInfo(missingWeight, ["weight"], []).status).toBe("partial");
+  });
+
+  it("keeps the focused search alive for multiple selected fields until all are found", () => {
+    expect(shouldStopOnlySelectedInfoSearch(baseResult, ["weight", "voltage"], [])).toBe(true);
+    const missingVoltage = { ...baseResult, normalized: { weight: "0.2 kg" }, attributes: baseResult.attributes.filter((attribute) => attribute.name !== "Rated voltage") };
+    expect(shouldStopOnlySelectedInfoSearch(missingVoltage, ["weight", "voltage"], [])).toBe(false);
+  });
+
+  it("does not short-circuit or mark a value found when the product identity is unconfirmed", () => {
+    const unconfirmed = { ...baseResult, qualityGate: { ...baseResult.qualityGate!, identityConfirmed: false } };
+    expect(hasOnlySelectedInfoValues(unconfirmed, ["weight"], [])).toBe(false);
+    expect(scopeOnlySelectedInfo(unconfirmed, ["weight"], []).status).toBe("partial");
   });
 });
 

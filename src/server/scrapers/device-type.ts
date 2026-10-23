@@ -286,7 +286,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   // their descriptions must not demote them to the generic door accessory category.
   rule("Enclosure", /\b(?:console,?\s+(?:dual|single)\s+access|operator console enclosure|control console enclosure)\b/i, 890),
   rule("Gland Plate", /\bgland plates?\b/i, 880),
-  rule("Plinth Base", /\b(?:plinth bases?|base,\s*(?:ims\s+)?plinth)\b/i, 880),
+  rule("Plinth Base", /\b(?:plinth bases?|base\s*\/\s*plinth components?|base,\s*(?:ims\s+)?plinth)\b/i, 880),
   rule("Keyboard Housing", /\b(?:keyboard housings?|housing,\s*keyboard)\b/i, 880),
   rule("Control Compartment", /\b(?:control compartments?|compartment,\s*control)\b/i, 880),
   rule("Fan Assembly", /\b(?:fan housing assembly|assembly,\s*fan housing|fan package|fan tray|pusher fan|fan unit)\b/i, 880),
@@ -343,7 +343,7 @@ const DEVICE_TYPE_RULES: DeviceTypeRule[] = [
   rule("Cube Connector", /\bcube\s+connectors?\b/i, 870),
   rule("Label Holder", /\blabel\s+holders?\b/i, 850),
   rule("Hinge", /\bhinges?\b/i, 840),
-  rule("Handle", /\b(?:machine|system|strip|folding|flush\s+pocket|u[-\s]?shaped)?\s*handles?\b/i, 830),
+  rule("Handle", /\b(?:comfort|machine|system|strip|folding|flush\s+pocket|u[-\s]?shaped)?\s*handles?\b/i, 830),
   rule("Mounting Accessory", /\b(?:mounting accessory|mounting kit|mounting bracket|mounting foot|mounting plate|mounting flange|punched section|adapter plate|anti[-\s]?slip plate|level(?:ing|ling) feet?|pivot feet?|bell feet?|positioning tool|assembly tool|din rail|\brail\b|\bbracket\b)\b/i, 610),
   rule("Cover / Door Accessory", /\b(?:cover|door|hinge|latch|handle|gasket|window kit|spray[-\s]?water hood|hose[-\s]?proof hood)\b/i, 600),
   rule("Accessory", /\b(?:accessory|spare part|replacement part|cleaner|\bkit\b)\b/i, 560)
@@ -485,16 +485,6 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
 
   const signals: DeviceTypeSignal[] = [];
 
-  if (exactWoehnerTitle && !exactWoehnerTitleRule &&
-      (/\bCrossMT\b/i.test(exactWoehnerTitle) || /\/Measurement_technique\/[^/]*\/CrossMT\//i.test(result.productUrl ?? ""))) {
-    signals.push({
-      type: "Current Sensor",
-      score: 2_100 * CHANNEL_WEIGHTS.text,
-      channel: "text",
-      evidence: `Exact Wöhner CrossMT article title: ${exactWoehnerTitle}`
-    });
-  }
-
   // --- Channel 1: text rules (title, attributes, description) ---
   const candidates = deviceTypeCandidates(result);
   const textMatches: DeviceTypeMatch[] = candidates.flatMap((candidate) =>
@@ -558,6 +548,36 @@ export function classifyDeviceType(result: ProductResult | undefined): DeviceTyp
         score: 2_100 * CHANNEL_WEIGHTS.text,
         channel: "text",
         evidence: `Exact nVent PDP category: ${exactNventCategory.value}`
+      });
+    }
+  }
+
+  const exactRittalTitle = exactRittalPdpTitle(result);
+  if (exactRittalTitle) {
+    const titleRule = strongestDeviceTypeRule(exactRittalTitle);
+    if (titleRule) {
+      signals.push({
+        type: titleRule.type,
+        score: 2_100 * CHANNEL_WEIGHTS.text,
+        channel: "text",
+        evidence: `Exact Rittal PDP title: ${exactRittalTitle}`
+      });
+    }
+  }
+
+  if (exactWoehnerTitle) {
+    const titleRule = strongestDeviceTypeRule(exactWoehnerTitle);
+    const type = titleRule?.type ?? (
+      /\bCrossMT\b/i.test(exactWoehnerTitle) || /\/Measurement_technique\/[^/]*\/CrossMT\//i.test(result.productUrl ?? "")
+        ? "Current Sensor"
+        : undefined
+    );
+    if (type) {
+      signals.push({
+        type,
+        score: 2_100 * CHANNEL_WEIGHTS.text,
+        channel: "text",
+        evidence: `Exact Wöhner CrossMT article title: ${exactWoehnerTitle}`
       });
     }
   }
@@ -1026,6 +1046,26 @@ function exactNventPdpCategory(result: ProductResult): AttributeRecord | undefin
   );
 }
 
+function exactRittalPdpTitle(result: ProductResult): string | undefined {
+  if (result.manufacturerId !== "rittal") return undefined;
+  const productUrl = result.productUrl ?? result.localizedUrls?.en;
+  const exactIdentity = result.attributes.some((attribute) =>
+    attribute.parser === "rittal-order-resolver" &&
+    attribute.sourceType === "official" &&
+    attribute.sourceUrl === productUrl &&
+    /^article\s+no\.?\s*:?$/i.test(attribute.name.trim()) &&
+    catalogTextMatches(attribute.value, result.catalogNumber)
+  );
+  if (!exactIdentity) return undefined;
+  const title = result.title?.trim() || result.attributes.find((attribute) =>
+    attribute.parser === "rittal-order-resolver" &&
+    attribute.sourceType === "official" &&
+    attribute.sourceUrl === productUrl &&
+    /^product description$/i.test(attribute.name.trim())
+  )?.value.trim();
+  return title && strongestDeviceTypeRule(title) ? title : undefined;
+}
+
 function exactWoehnerPdpTitle(result: ProductResult): string | undefined {
   if (result.manufacturerId !== "woehner") return undefined;
   const productUrl = result.productUrl ?? result.localizedUrls?.en;
@@ -1039,6 +1079,7 @@ function exactWoehnerPdpTitle(result: ProductResult): string | undefined {
   const title = result.title?.trim();
   return title || undefined;
 }
+
 function strongestDeviceTypeRule(value: string): DeviceTypeRule | undefined {
   return DEVICE_TYPE_RULES
     .filter((definition) => definition.pattern.test(value))

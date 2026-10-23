@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import ExcelJS from "exceljs";
-import { exportRunWorkbook } from "../src/server/excel.js";
+import { exportOnlySelectedInfoWorkbook, exportRunWorkbook } from "../src/server/excel.js";
 import type { ManufacturerConfig, RunItemRecord, RunRecord } from "../src/shared/types.js";
 
 function cellText(cell: ExcelJS.Cell): string {
@@ -11,6 +11,77 @@ function cellText(cell: ExcelJS.Cell): string {
 }
 
 describe("excel export", () => {
+  it("writes a compact selected-info workbook with only chosen fields and a clickable product URL", async () => {
+    const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-selected-xlsx-"));
+    try {
+      const run: RunRecord = {
+        id: "selected-run",
+        manufacturerId: "abb",
+        createdAt: "2026-10-23T00:00:00.000Z",
+        updatedAt: "2026-10-23T00:00:00.000Z",
+        status: "completed",
+        total: 1,
+        processed: 1,
+        found: 1,
+        partial: 0,
+        failed: 0,
+        options: {
+          onlySelectedInfo: true,
+          hiddenCoverageFields: ["certificates", "dimensions", "material", "voltage", "current", "image", "enUrl", "deUrl"],
+          customCoverageFields: []
+        }
+      };
+      const manufacturer: ManufacturerConfig = {
+        id: "abb",
+        canonicalName: "ABB",
+        shortName: "ABB",
+        rateLimitMs: 100,
+        officialBaseUrls: [],
+        fallbackSources: []
+      };
+      const url = "https://example.test/products/1SBL131001R5501";
+      const outputPath = await exportOnlySelectedInfoWorkbook({
+        run,
+        manufacturer,
+        outputDir,
+        items: [{
+          id: 1,
+          runId: run.id,
+          rowIndex: 1,
+          catalogNumber: "1SBL131001R5501",
+          status: "found",
+          updatedAt: run.updatedAt,
+          result: {
+            manufacturerId: "abb",
+            catalogNumber: "1SBL131001R5501",
+            status: "found",
+            confidence: 0.95,
+            productUrl: url,
+            normalized: { weight: "0.2 kg", voltage: "24 V" },
+            attributes: [
+              { name: "Weight", value: "0.2 kg", sourceUrl: url },
+              { name: "Rated voltage", value: "24 V", sourceUrl: url }
+            ],
+            documents: [],
+            sources: []
+          }
+        }]
+      });
+
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(outputPath);
+      expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(["Selected Info"]);
+      const sheet = workbook.getWorksheet("Selected Info")!;
+      expect(sheet.getRow(4).values).toEqual([undefined, "Manufacturer", "Catalog Number", "Weight", "Product Source"]);
+      expect(sheet.getCell("B5").value).toBe("1SBL131001R5501");
+      expect(sheet.getCell("C5").value).toBe("0.2 kg");
+      expect(sheet.getCell("D5").value).toMatchObject({ text: url, hyperlink: url });
+      expect(sheet.getCell("A1").value).toBe("Selected Product Information");
+    } finally {
+      await fs.rm(outputDir, { recursive: true, force: true });
+    }
+  });
+
   it("writes a workbook for run results", async () => {
     const outputDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-xlsx-"));
     const run: RunRecord = {

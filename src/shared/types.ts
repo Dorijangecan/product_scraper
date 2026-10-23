@@ -816,6 +816,23 @@ export interface RunRecord {
   error?: string;
 }
 
+export interface PdtGroupDefinition {
+  id: string;
+  name: string;
+  fileName: string;
+  sheetName: string;
+  /** Exact catalog numbers. Matching is case-insensitive and ignores surrounding whitespace. */
+  catalogNumbers: string[];
+}
+
+export interface PdtGroupExportRecord {
+  groupId: string;
+  name: string;
+  path: string;
+  productCount: number;
+  generatedAt: string;
+}
+
 export interface RunOptions {
   downloadDocuments?: boolean;
   /** Save PDF-like manufacturer documents such as datasheets, manuals and certificates. */
@@ -837,6 +854,8 @@ export interface RunOptions {
    * Can be used alone for a links-only run or together with other outputs.
    */
   generateLinksFile?: boolean;
+  /** Only pursue the coverage fields left enabled for this run and keep only those values plus the product URL. */
+  onlySelectedInfo?: boolean;
   /**
    * Per-run override for the manufacturer's custom coverage tiles. When set (even to an
    * empty array, meaning "no custom tiles"), this replaces the manufacturer default for
@@ -868,6 +887,10 @@ export interface RunOptions {
    * A matrix chosen later in the PDT panel replaces this one for that export.
    */
   accessoryMatrix?: CustomerDocumentRecord;
+  /** Last explicitly configured PDT groups for repeatable exports from this run. */
+  pdtGroups?: PdtGroupDefinition[];
+  /** Separate PDT workbooks created by the grouped export flow. */
+  pdtExports?: PdtGroupExportRecord[];
 }
 
 export interface CustomerDocumentRecord {
@@ -993,6 +1016,8 @@ export interface PdtRoutingPreview {
   items: PdtRoutingItemPreview[];
   /** All device-specific sheets the user can pick from (constants like MMD are always written). */
   availableSheets: string[];
+  /** The previous exact grouping saved with this run, when available. */
+  savedGroups?: PdtGroupDefinition[];
 }
 
 /** Map of itemId → chosen device sheet(s). If present for an item, replaces auto-suggestion. */

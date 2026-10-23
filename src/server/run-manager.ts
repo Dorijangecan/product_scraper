@@ -31,6 +31,7 @@ import { CachedHttpClient, delay } from "./scrapers/http-client.js";
 import { getConnector } from "./scrapers/index.js";
 import type { ScrapeContext } from "./scrapers/types.js";
 import { emptyResult } from "./scrapers/normalizer.js";
+import { fieldMatchesLabel } from "./scrapers/field-registry.js";
 import { classifyDeviceType } from "./scrapers/device-type.js";
 import { finalizeQualityGate } from "./scrapers/quality-gate.js";
 import {
@@ -283,15 +284,19 @@ export class RunManager {
       const run = this.db.getRun(runId);
       if (!run) return;
       if (run.status === "paused") return;
+      // run_items is authoritative. Reconcile the denormalized counters once on startup/resume
+      // so older runs and interrupted counter updates cannot show misleading progress.
+      this.db.recountRun(runId);
       const rawManufacturer = getManufacturerConfig(run.manufacturerId);
       if (!rawManufacturer) throw new Error(`Unknown manufacturer ${run.manufacturerId}`);
       const connector = getConnector(run.manufacturerId);
-      const downloadPdfsEnabled = run.options?.downloadPdfs ?? run.options?.downloadDocuments ?? false;
-      const downloadCadEnabled = run.options?.downloadCad ?? run.options?.downloadDocuments ?? false;
+      const onlySelectedInfo = run.options?.onlySelectedInfo === true;
+      const downloadPdfsEnabled = onlySelectedInfo ? false : run.options?.downloadPdfs ?? run.options?.downloadDocuments ?? false;
+      const downloadCadEnabled = onlySelectedInfo ? false : run.options?.downloadCad ?? run.options?.downloadDocuments ?? false;
       const downloadDocumentsEnabled = downloadPdfsEnabled || downloadCadEnabled;
-      const downloadImagesEnabled = run.options?.downloadImages !== false;
-      const finalCompletenessOptions = { requireImage: downloadImagesEnabled };
-      const generateExcelEnabled = run.options?.generateExcel !== false;
+      const downloadImagesEnabled = onlySelectedInfo ? false : run.options?.downloadImages !== false;
+      const finalCompletenessOptions = { requireImage: !onlySelectedInfo && downloadImagesEnabled };
+      const generateExcelEnabled = onlySelectedInfo || run.options?.generateExcel !== false;
       const generateLinksFileEnabled = run.options?.generateLinksFile === true;
       const localDownloads: LocalDownloadSelection = {
         images: downloadImagesEnabled,
@@ -313,17 +318,34 @@ export class RunManager {
       // When the user disables document downloads, the quality gate must not demand non-image
       // documents (datasheet/manual/etc.) — otherwise it always "fails", spawning fallback work
       // that re-fetches and re-renders pages to look for a PDF we never intend to download.
-      const manufacturer = withNotApplicableFields(
+      const customOnlyFields = run.options?.customCoverageFields ?? rawManufacturer.customCoverageFields ?? [];
+      const onlySelectedFieldKeys = onlySelectedInfo
+        ? [
+            ...["weight", "certificates", "dimensions", "material", "voltage", "current"].filter(
+              (field) => !(run.options?.hiddenCoverageFields ?? []).includes(field)
+            ),
+            ...customOnlyFields.filter((field) => field.id && field.label.trim() && field.pattern.trim()).map((field) => `custom:${field.id}`)
+          ]
+        : [];
+      const selectedBuiltInFields = onlySelectedFieldKeys.filter((field) => !field.startsWith("custom:")) as FinalCompletenessPolicyField[];
+      const baseRunManufacturer = withNotApplicableFields(
         documentDownloadsForEnrichmentEnabled ? rawManufacturer : withoutNonImageRequiredDocuments(rawManufacturer),
-        notApplicableFieldsFromHiddenCoverage(run.options?.hiddenCoverageFields)
+        onlySelectedInfo
+          ? onlySelectedInfoPolicyFields(selectedBuiltInFields)
+          : notApplicableFieldsFromHiddenCoverage(run.options?.hiddenCoverageFields)
       );
+      const manufacturer = onlySelectedInfo
+        ? withOnlySelectedInfoPolicy(baseRunManufacturer, selectedBuiltInFields)
+        : baseRunManufacturer;
       layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, run);
       await ensureRunOutputLayout(layout);
       // Move any staged customer-provided documents into the run folder so the
       // authoritative source-of-truth lives next to the scraped output. The persisted
       // RunOptions get rewritten with the new paths so downstream code (parser, debug
       // bundle) always reads from the final location.
-      const customerDocuments = await this.relocateCustomerDocuments(run.options?.customerDocuments ?? [], layout.customerDocumentsDir);
+      const customerDocuments = onlySelectedInfo
+        ? []
+        : await this.relocateCustomerDocuments(run.options?.customerDocuments ?? [], layout.customerDocumentsDir);
       if (customerDocuments.length) {
         this.db.updateRunOptions(run.id, { customerDocuments });
       }
@@ -375,7 +397,15 @@ export class RunManager {
       const pending = this.db.getPendingRunItems(run.id);
       const { GenericFallbackScraper } = await import("./scrapers/generic.js");
       const { runDeterministicScrapePipeline } = await import("./scrapers/deterministic-pipeline.js");
-      const fallback = new GenericFallbackScraper(run.manufacturerId, http, manufacturer);
+      const selectedInfoStop = onlySelectedInfo
+        ? (candidate: ProductResult) => shouldStopOnlySelectedInfoSearch(finalizeQualityGate(candidate, manufacturer), onlySelectedFieldKeys, customOnlyFields)
+        : undefined;
+      const fallback = new GenericFallbackScraper(
+        run.manufacturerId,
+        http,
+        manufacturer,
+        selectedInfoStop ? { shouldStopSelectedInfoSearch: selectedInfoStop } : undefined
+      );
 
       const layoutRef = layout!;
       const processItemCore = async (item: typeof pending[number]): Promise<void> => {
@@ -437,7 +467,10 @@ export class RunManager {
                 ),
                 manufacturer
               );
-              if (shouldShortCircuitCustomerFirst(customerOnlyResult, customerExtractionFirst)) {
+              if (
+                shouldShortCircuitCustomerFirst(customerOnlyResult, customerExtractionFirst) &&
+                (!onlySelectedInfo || hasOnlySelectedInfoValues(customerOnlyResult, onlySelectedFieldKeys, customOnlyFields))
+              ) {
                 customerFirstShortCircuit = true;
                 enriched = customerOnlyResult;
                 fallbackStages = enriched.diagnostics?.fallbackStages;
@@ -485,6 +518,8 @@ export class RunManager {
             downloadDocuments: documentDownloadsForEnrichmentEnabled,
             saveDocuments: downloadDocumentsEnabled,
             imageOnly: imageOnlyMode,
+            onlySelectedInfo,
+            shouldStopSelectedInfoSearch: selectedInfoStop,
             ...this.learningContext(),
             fallback: {
               scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
@@ -523,6 +558,20 @@ export class RunManager {
           }
           this.updateItemStage(item.id, "quality-gate", "Checking required fields from official result");
           const initiallyGated = finalizeQualityGate(result, manufacturer);
+          if (onlySelectedInfo) {
+            enriched = scopeOnlySelectedInfo(initiallyGated, onlySelectedFieldKeys, customOnlyFields);
+            initialAttributeCount = enriched.attributes.length;
+            await this.appendRunLog(layoutRef, hasOnlySelectedInfoValues(initiallyGated, onlySelectedFieldKeys, customOnlyFields)
+              ? "ONLY_SELECTED_INFO_COMPLETE"
+              : "ONLY_SELECTED_INFO_STOPPED_EARLY", {
+              catalogNumber: item.catalogNumber,
+              selectedFields: onlySelectedFieldKeys,
+              sourceUrl: enriched.productUrl,
+              reason: hasOnlySelectedInfoValues(initiallyGated, onlySelectedFieldKeys, customOnlyFields)
+                ? "Selected values were found in the initial official scrape; skipped remaining downloads, document enrichment, fallbacks, and retries."
+                : "The initial official scrape did not contain every selected value; skipped remaining downloads, document enrichment, fallbacks, and retries."
+            });
+          } else {
           // Persist the scrape result before any document/image download. If a later download
           // stalls or times out, the attributes, URL and source documents already found remain
           // available for partial Excel export instead of being lost with the in-flight stage.
@@ -583,7 +632,10 @@ export class RunManager {
                   if (message) this.updateItemStage(item.id, "customer-override", message);
                 }
               }));
-            if (customerExtractionEarly.attributes.length > 0) {
+            if (
+              customerExtractionEarly.attributes.length > 0 &&
+              (!onlySelectedInfo || hasOnlySelectedInfoValues(enriched, onlySelectedFieldKeys, customOnlyFields))
+            ) {
               customerEarlyShortCircuit = true;
               enriched = applyCustomerDocumentOverride(initiallyGated, customerExtractionEarly);
               fallbackStages = enriched.diagnostics?.fallbackStages;
@@ -669,6 +721,8 @@ export class RunManager {
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
               saveDocuments: downloadDocumentsEnabled,
               imageOnly: imageOnlyMode,
+              onlySelectedInfo,
+              shouldStopSelectedInfoSearch: selectedInfoStop,
               ...this.learningContext(),
               fallback: {
                 scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
@@ -790,6 +844,8 @@ export class RunManager {
               downloadDocuments: documentDownloadsForEnrichmentEnabled,
               saveDocuments: downloadDocumentsEnabled,
               imageOnly: imageOnlyMode,
+              onlySelectedInfo,
+              shouldStopSelectedInfoSearch: selectedInfoStop,
               ...this.learningContext(),
               fallback: {
                 scrape: (catalogNumber, sources) => fallback.scrape(catalogNumber, sources, itemSignal)
@@ -914,6 +970,7 @@ export class RunManager {
           }
           enriched = applyFinalCompletenessStatus(enriched, afterFinalCompleteness, manufacturer);
           } // end of fallback-chain else branch
+          } // end of Only selected info fast path / normal enrichment branch
           } // end of official-source branch
 
           if (!enriched) {
@@ -947,6 +1004,7 @@ export class RunManager {
             });
           }
           this.updateItemStage(item.id, "evidence", "Attaching source evidence");
+          if (onlySelectedInfo) enriched = scopeOnlySelectedInfo(enriched, onlySelectedFieldKeys, customOnlyFields);
           enriched = attachEvidence(enriched);
           if (this.db.isPauseRequested(run.id)) {
             await this.markItemPaused(run.id, item, layoutRef);
@@ -1052,7 +1110,6 @@ export class RunManager {
           clearTimeout(itemTimeoutHandle);
           controller.signal.removeEventListener("abort", onParentAbort);
         }
-        this.db.recountRun(run.id);
       };
 
       // Never let one connector/plugin promise hold the shared worker pool forever. The core
@@ -1085,7 +1142,6 @@ export class RunManager {
             10_000,
             "Timed out while recording item hard-stop."
           ).catch(() => undefined);
-          this.db.recountRun(run.id);
         }
       };
 
@@ -1221,6 +1277,7 @@ export class RunManager {
     const layout = buildRunOutputLayout(this.paths.outputDir, manufacturer, finalRun);
     await ensureRunOutputLayout(layout);
     const runItems = this.db.getRunItems(runId);
+    const onlySelectedInfoRun = finalRun.options?.onlySelectedInfo === true;
     const imageOnlyRun =
       finalRun.options?.generateExcel === false &&
       finalRun.options?.generateLinksFile !== true &&
@@ -1230,7 +1287,7 @@ export class RunManager {
     if (status === "completed" && !imageOnlyRun) this.applyCohortAnomalyDiagnostics(runItems);
     const fieldCoverageDrift = status === "completed" && !imageOnlyRun ? this.computeFieldCoverageDrift(finalRun.manufacturerId, runId, runItems) : [];
     // "Images only" mode skips workbook generation; everything else still produces one.
-    const shouldGenerateExcel = finalRun.options?.generateExcel !== false;
+    const shouldGenerateExcel = onlySelectedInfoRun || finalRun.options?.generateExcel !== false;
     const shouldGenerateLinksFile = finalRun.options?.generateLinksFile === true;
 
     // The scrape lifecycle ends when every run item has been durably persisted. Excel/PDT are
@@ -1260,9 +1317,14 @@ export class RunManager {
     let outputPath: string | undefined;
     let pdtPath: string | undefined;
     let exportWarning: string | undefined;
+    const pdtProductCount = runItems.reduce(
+      (count, item) => count + Number(Boolean(item.result) && (item.status === "found" || item.status === "partial")),
+      0
+    );
     // PDT is derived from the durable SQLite snapshot. Start it independently so Excel export
     // can be slow or locked without delaying the PDT artifact.
-    const pdtPromise = imageOnlyRun ? Promise.resolve() : (async () => {
+    const pdtPromise = imageOnlyRun || onlySelectedInfoRun ? Promise.resolve() : (async () => {
+      const pdtStartedAt = Date.now();
       try {
         const [{ exportRunPdt }, { resolveTemplatePath }] = await Promise.all([
           import("./pdt/exporter.js"),
@@ -1270,42 +1332,67 @@ export class RunManager {
         ]);
         const result = await exportRunPdt({
           manufacturer,
-          items: this.db.getRunItems(runId),
+          items: runItems,
           templatePath: resolveTemplatePath(),
           outputPath: path.join(layout.excelDir, `${runId}_PDT.xlsx`),
           accessoryMatrixPath: finalRun.options?.accessoryMatrix?.storedPath,
-          accessoryMatrixFileName: finalRun.options?.accessoryMatrix?.originalName
+          accessoryMatrixFileName: finalRun.options?.accessoryMatrix?.originalName,
+          onWorkbookReady: async (readyPath) => {
+            pdtPath = readyPath;
+            const completedAt = new Date().toISOString();
+            this.db.updateRun(runId, { pdtPath: readyPath });
+            this.db.saveRunCheckpoint(runId, "pdt", "final", {
+              path: readyPath,
+              productCount: pdtProductCount,
+              mainWorkbookReadyAt: completedAt,
+              mainWorkbookElapsedMs: Date.now() - pdtStartedAt
+            });
+            await this.appendRunLog(layout, "PDT_WORKBOOK_READY", {
+              productCount: pdtProductCount,
+              elapsedMs: Date.now() - pdtStartedAt,
+              path: readyPath
+            }).catch(() => undefined);
+          }
         });
         pdtPath = result.outputPath;
-        this.db.updateRun(runId, { pdtPath });
-        this.db.saveRunCheckpoint(runId, "pdt", "final", {
-          path: pdtPath,
+        await this.appendRunLog(layout, "PDT_CHECKPOINT", {
           productCount: result.productCount,
-          completedAt: new Date().toISOString()
-        });
-        await this.appendRunLog(layout, "PDT_CHECKPOINT", { productCount: result.productCount, path: pdtPath }).catch(() => undefined);
+          elapsedMs: Date.now() - pdtStartedAt,
+          path: pdtPath
+        }).catch(() => undefined);
       } catch (error) {
         await this.appendRunLog(layout, "RUN_EXPORT_WARNING", {
-          artifact: "PDT",
+          artifact: pdtPath ? "PDT companion files" : "PDT",
+          mainWorkbookReady: Boolean(pdtPath),
           error: error instanceof Error ? error.message : "PDT export failed."
         }).catch(() => undefined);
       }
     })();
     if (shouldGenerateExcel) {
       try {
-        const { exportRunWorkbook } = await import("./excel.js");
         this.updateRunActivity(runId, "workbook-build", "Preparing final Excel workbook.");
-        outputPath = await exportRunWorkbook({
-          run: this.db.getRun(runId)!,
-          manufacturer,
-          items: runItems,
-          fieldCoverageDrift,
-          outputDir: layout.excelDir,
-          onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message),
-          onCheckpoint: (checkpoint) => {
-            this.db.saveRunCheckpoint(runId, "excel-block", String(checkpoint.blockIndex), checkpoint);
-          }
-        });
+        if (onlySelectedInfoRun) {
+          const { exportOnlySelectedInfoWorkbook } = await import("./excel.js");
+          outputPath = await exportOnlySelectedInfoWorkbook({
+            run: this.db.getRun(runId)!,
+            manufacturer,
+            items: runItems,
+            outputDir: layout.excelDir
+          });
+        } else {
+          const { exportRunWorkbook } = await import("./excel.js");
+          outputPath = await exportRunWorkbook({
+            run: this.db.getRun(runId)!,
+            manufacturer,
+            items: runItems,
+            fieldCoverageDrift,
+            outputDir: layout.excelDir,
+            onActivity: (activity) => this.updateRunActivity(runId, activity.stage, activity.message),
+            onCheckpoint: (checkpoint) => {
+              this.db.saveRunCheckpoint(runId, "excel-block", String(checkpoint.blockIndex), checkpoint);
+            }
+          });
+        }
       } catch (error) {
         // Scraping is already complete at this point. A slow/locked workbook must not turn a
         // successful catalog run into RUN_FAILED or prevent the operator from generating PDT.
@@ -1841,6 +1928,10 @@ export function documentDownloadProfile(
   result: ProductResult,
   options: { saveDocuments?: boolean } = {}
 ): DocumentDownloadProfile {
+  // Wöhner's PIM lists generic technical-information PDFs beside exact article sheets. Parsing
+  // those shared references as SKU evidence introduces unrelated electrical ratings and geometry.
+  // Keep exact-page document links in the result, but do not download/enrich them in the fast path.
+  if (manufacturer.id === "woehner" && options.saveDocuments === false) return "images-only";
   if (manufacturer.id === "rittal" && hasCompleteRittalOfficialProductData(result)) return "images-only";
   if (options.saveDocuments === false) {
     if (hasCompleteAbbOfficialProductData(result)) return "images-only";
@@ -2574,6 +2665,118 @@ export function notApplicableFieldsFromHiddenCoverage(hiddenCoverageFields: stri
   ];
   const hidden = new Set((hiddenCoverageFields ?? []).map((field) => field.trim()));
   return policyFields.filter((field) => hidden.has(field));
+}
+
+const ONLY_SELECTED_INFO_POLICY_FIELDS: FinalCompletenessPolicyField[] = [
+  "image", "weight", "dimensions", "material", "certificates", "voltage", "current",
+  "color", "protection", "operatingTemperature", "typeCode"
+];
+
+function onlySelectedInfoPolicyFields(selected: FinalCompletenessPolicyField[]): FinalCompletenessPolicyField[] {
+  const selectedSet = new Set(selected);
+  return ONLY_SELECTED_INFO_POLICY_FIELDS.filter((field) => !selectedSet.has(field));
+}
+
+export function withOnlySelectedInfoPolicy(
+  manufacturer: ManufacturerConfig,
+  selected: FinalCompletenessPolicyField[]
+): ManufacturerConfig {
+  const selectedSet = new Set(selected);
+  const recipe = manufacturer.scrapeRecipe ?? {};
+  return {
+    ...manufacturer,
+    scrapeRecipe: {
+      ...recipe,
+      qualityPolicy: {
+        ...recipe.qualityPolicy,
+        requiredFinalFields: selected,
+        requiredNormalizedFields: selected.filter((field): field is Extract<FinalCompletenessPolicyField, keyof ProductResult["normalized"]> =>
+          field !== "image" && field !== "operatingTemperature" && field !== "typeCode"
+        ),
+        notApplicableFields: ONLY_SELECTED_INFO_POLICY_FIELDS.filter((field) => !selectedSet.has(field))
+      }
+    }
+  };
+}
+
+export function hasOnlySelectedInfoValues(
+  result: ProductResult,
+  selectedKeys: string[],
+  customFields: Array<{ id: string; label: string; pattern: string }>
+): boolean {
+  if (result.qualityGate?.identityConfirmed !== true) return false;
+  return selectedKeys.length > 0 && selectedKeys.every((key) => {
+    if (key.startsWith("custom:")) {
+      const field = customFields.find((entry) => `custom:${entry.id}` === key);
+      if (!field) return false;
+      try {
+        const pattern = new RegExp(field.pattern, "i");
+        return result.attributes.some((attribute) => pattern.test(attribute.name) && Boolean(attribute.value.trim()));
+      } catch {
+        return false;
+      }
+    }
+    return Boolean(result.normalized[key as keyof ProductResult["normalized"]]) ||
+      result.attributes.some((attribute) => fieldMatchesLabel(key as Parameters<typeof fieldMatchesLabel>[0], attribute.name) && Boolean(attribute.value.trim()));
+  });
+}
+
+/**
+ * A single requested field is intentionally a one-pass lookup: after the connector's initial
+ * official scrape, either the value is ready or this item is done. For multiple requested fields,
+ * keep the focused fallback path alive until all selected values are found.
+ */
+export function shouldStopOnlySelectedInfoSearch(
+  result: ProductResult,
+  selectedKeys: string[],
+  customFields: Array<{ id: string; label: string; pattern: string }>
+): boolean {
+  if (selectedKeys.length === 1) return result.qualityGate?.identityConfirmed === true;
+  return hasOnlySelectedInfoValues(result, selectedKeys, customFields);
+}
+
+export function scopeOnlySelectedInfo(
+  result: ProductResult,
+  selectedKeys: string[],
+  customFields: Array<{ id: string; label: string; pattern: string }>
+): ProductResult {
+  const selectedBuiltIns = selectedKeys.filter((key) => !key.startsWith("custom:"));
+  const customPatterns = customFields
+    .filter((field) => selectedKeys.includes(`custom:${field.id}`))
+    .flatMap((field) => {
+      try { return [new RegExp(field.pattern, "i")]; } catch { return []; }
+    });
+  const isSelectedAttribute = (name: string) =>
+    selectedBuiltIns.some((key) => fieldMatchesLabel(key as Parameters<typeof fieldMatchesLabel>[0], name)) ||
+    customPatterns.some((pattern) => pattern.test(name));
+  const attributes = result.attributes.filter((attribute) => isSelectedAttribute(attribute.name));
+  const normalized = Object.fromEntries(
+    Object.entries(result.normalized).filter(([key, value]) => value && selectedBuiltIns.includes(key))
+  ) as ProductResult["normalized"];
+  const sourceUrls = new Set([
+    result.productUrl,
+    ...attributes.map((attribute) => attribute.sourceUrl)
+  ].filter((url): url is string => Boolean(url)));
+  const sources = result.sources.filter((source) => sourceUrls.has(source.url));
+  const technicalAttributes = result.technicalAttributes?.filter((attribute) => isSelectedAttribute(attribute.originalName));
+  const complete = result.qualityGate?.identityConfirmed === true && hasOnlySelectedInfoValues(result, selectedKeys, customFields);
+  return {
+    ...result,
+    status: complete ? "found" : result.productUrl || attributes.length ? "partial" : "failed",
+    productUrl: result.productUrl ?? sources[0]?.url,
+    localizedUrls: undefined,
+    localizedDescriptions: undefined,
+    title: undefined,
+    description: undefined,
+    normalized,
+    attributes,
+    documents: [],
+    sources,
+    technicalAttributes,
+    evidence: undefined,
+    diagnostics: undefined,
+    error: complete ? undefined : result.error ?? "Selected field(s) were not found in the available source(s)."
+  };
 }
 
 function withNotApplicableFields(

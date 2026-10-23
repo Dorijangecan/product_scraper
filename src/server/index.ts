@@ -16,7 +16,9 @@ import type {
   LearnedExtractorApprovalRequest,
   ManufacturerId,
   ManufacturerOperationalSummary,
-  ManufacturerTestResult
+  ManufacturerTestResult,
+  PdtGroupDefinition,
+  PdtGroupExportRecord
 } from "../shared/types.js";
 import { buildRunOutputLayout, findRunLogPath, getAllowedRunOutputRoots, isPathInsideAny, runRootFromOutputPath } from "./run-output.js";
 import { CachedHttpClient } from "./scrapers/http-client.js";
@@ -30,7 +32,7 @@ initializeManufacturerConfig(appPaths.dataDir);
 const db = new ScraperDb(appPaths);
 const runManager = new RunManager(db, appPaths);
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
-// Customer-provided documents (PDF/XLSX/DOC etc.) can run a lot bigger than the catalog
+// Customer-provided documents (PDF/XLSX/DOC/7z etc.) can run a lot bigger than the catalog
 // CSV — Eaton's full e6 catalogue is ~3 MB and an Excel BOM workbook can easily exceed
 // 50 MB. Use a dedicated upload pipeline with a roomier per-file cap.
 const customerDocUpload = multer({
@@ -201,6 +203,7 @@ app.post(
   const generateExcel = String(req.body.generateExcel ?? "true") === "true";
   const generateLinksFile = String(req.body.generateLinksFile ?? "false") === "true";
   const forceFinalRetry = String(req.body.forceFinalRetry ?? "false") === "true";
+  const onlySelectedInfo = String(req.body.onlySelectedInfo ?? "false") === "true";
   // Per-run override of the manufacturer's custom coverage tiles. The client sends a JSON
   // string when the user touched the editor; `undefined` (missing field) means "fall back
   // to whatever the manufacturer has configured".
@@ -226,6 +229,18 @@ app.post(
   if (!manufacturer) {
     res.status(400).json({ error: "Unknown manufacturer." });
     return;
+  }
+  if (onlySelectedInfo) {
+    const hidden = new Set(hiddenCoverageFields ?? []);
+    const selectedBuiltIns = ["weight", "certificates", "dimensions", "material", "voltage", "current"]
+      .filter((field) => !hidden.has(field));
+    const selectedCustom = (customCoverageFields ?? manufacturer.customCoverageFields ?? []).filter(
+      (field) => field.id && field.label.trim() && field.pattern.trim()
+    );
+    if (selectedBuiltIns.length === 0 && selectedCustom.length === 0) {
+      res.status(400).json({ error: "Only selected info needs at least one enabled value field in Required fields." });
+      return;
+    }
   }
   if (inputFile && !columnName) {
     res.status(400).json({ error: "CSV column is required." });
@@ -264,6 +279,7 @@ app.post(
         generateExcel,
         generateLinksFile,
         forceFinalRetry,
+        onlySelectedInfo,
         ...(customCoverageFields !== undefined ? { customCoverageFields } : {}),
         ...(hiddenCoverageFields !== undefined ? { hiddenCoverageFields } : {}),
         ...(customerDocuments.length > 0 ? { customerDocuments } : {}),
@@ -476,7 +492,8 @@ app.get("/api/runs/:id/pdt-routing-preview", async (req, res) => {
     res.json({
       runId: run.id,
       items: previewItems,
-      availableSheets: knownDeviceSheets()
+      availableSheets: knownDeviceSheets(),
+      savedGroups: run.options?.pdtGroups
     });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : "Could not build routing preview." });
@@ -612,31 +629,135 @@ app.post("/api/runs/:id/pdt", async (req, res) => {
       baseDir = buildRunOutputLayout(appPaths.outputDir, manufacturer, run).excelDir;
       fs.mkdirSync(baseDir, { recursive: true });
     }
-    const outputPath = path.join(baseDir, `${run.id}_PDT.xlsx`);
     const sheetOverrides = parseSheetOverrides(req.body?.sheetOverrides);
     const accessoryMatrix = run.options?.accessoryMatrix;
     const accessoryMatrixPath =
       accessoryMatrix?.storedPath && fs.existsSync(accessoryMatrix.storedPath) ? accessoryMatrix.storedPath : undefined;
     const items = db.getRunItems(run.id);
-    const result = await exportRunPdt({
+    const requestedGroups = parsePdtGroups(req.body?.groups);
+    if (requestedGroups) {
+      const { knownDeviceSheets } = await import("./pdt/device-sheet-map.js");
+      const allowed = new Set(knownDeviceSheets().map((sheet) => sheet.toLocaleLowerCase("en-US")));
+      const invalid = requestedGroups.find((group) => !allowed.has(group.sheetName.toLocaleLowerCase("en-US")));
+      if (invalid) throw new Error(`'${invalid.sheetName}' is not a device sheet in the PDT template.`);
+    }
+    const commonInput = {
       manufacturer,
-      items,
       templatePath,
-      outputPath,
       aiCleanup: req.body?.aiCleanup === true,
-      sheetOverrides,
       accessoryMatrixPath,
       accessoryMatrixFileName: accessoryMatrixPath ? accessoryMatrix?.originalName : undefined,
       productsWorkbookPath: run.outputPath && fs.existsSync(run.outputPath) ? run.outputPath : undefined
-    });
-    if (result.productCount === 0) {
-      res.status(400).json({ error: "No found or partial products to import into the PDT." });
+    };
+    if (!requestedGroups) {
+      const result = await exportRunPdt({
+        ...commonInput,
+        items,
+        outputPath: path.join(baseDir, `${run.id}_PDT.xlsx`),
+        sheetOverrides
+      });
+      if (result.productCount === 0) {
+        res.status(400).json({ error: "No found or partial products to import into the PDT." });
+        return;
+      }
+      db.updateRun(run.id, { pdtPath: result.outputPath });
+      res.json({ ok: true, path: result.outputPath, stats: result });
       return;
     }
-    db.updateRun(run.id, { pdtPath: result.outputPath });
-    res.json({ ok: true, path: result.outputPath, stats: result });
+
+    const eligible = items.filter((item) => item.result && (item.status === "found" || item.status === "partial"));
+    const key = (value: string) => value.replace(/\s+/g, " ").trim().toLocaleLowerCase("en-US");
+    const eligibleByNumber = new Map(eligible.map((item) => [key(item.catalogNumber), item]));
+    const claimed = new Set<string>();
+    const resolvedGroups = requestedGroups.map((group) => {
+      const groupItems = group.catalogNumbers.map((catalogNumber) => {
+        const normalized = key(catalogNumber);
+        if (claimed.has(normalized)) throw new Error(`Catalog number ${catalogNumber} appears in more than one PDT group.`);
+        claimed.add(normalized);
+        const item = eligibleByNumber.get(normalized);
+        if (!item) throw new Error(`Catalog number ${catalogNumber} is not an exportable product in this run.`);
+        return item;
+      });
+      return { group, items: groupItems };
+    });
+    const remainder = eligible.filter((item) => !claimed.has(key(item.catalogNumber)));
+    const exports: PdtGroupExportRecord[] = [];
+    const stats: unknown[] = [];
+    const safeStem = (value: string) => {
+      const cleaned = value
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, "-")
+        .replace(/\s+/g, "-")
+        .replace(/[. ]+$/g, "")
+        .slice(0, 80)
+        .replace(/[. ]+$/g, "");
+      if (!cleaned) return "PDT";
+      return /^(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i.test(cleaned) ? `PDT-${cleaned}` : cleaned;
+    };
+    const jobs = [
+      ...(remainder.length ? [{ id: "main", name: "Main", fileName: `${run.id}_PDT`, sheetName: "", items: remainder, main: true }] : []),
+      ...resolvedGroups.map(({ group, items: groupItems }) => ({ ...group, items: groupItems, main: false }))
+    ];
+    if (jobs.length === 0) {
+      res.status(400).json({ error: "No products were assigned to a PDT group." });
+      return;
+    }
+    const fileStems = jobs.map((job) => safeStem(job.fileName.replace(/\.xlsx$/i, "")));
+    if (new Set(fileStems.map((value) => value.toLocaleLowerCase("en-US"))).size !== fileStems.length) {
+      throw new Error("PDT file names must be unique after removing characters that Windows does not allow.");
+    }
+    db.updateRunOptions(run.id, { pdtGroups: requestedGroups, pdtExports: [] });
+    const persistGroupExport = (record: PdtGroupExportRecord) => {
+      const existingIndex = exports.findIndex((entry) => entry.groupId === record.groupId);
+      if (existingIndex >= 0) exports[existingIndex] = record;
+      else exports.push(record);
+      const currentPdtPath = exports.find((entry) => entry.groupId === "main")?.path ?? exports[0]?.path;
+      if (currentPdtPath) db.updateRun(run.id, { pdtPath: currentPdtPath });
+      db.updateRunOptions(run.id, { pdtGroups: requestedGroups, pdtExports: [...exports] });
+    };
+    for (const [jobIndex, job] of jobs.entries()) {
+      const fileStem = fileStems[jobIndex];
+      const outputPath = path.join(baseDir, `${fileStem}.xlsx`);
+      const overrides: Record<number, string[]> = { ...(sheetOverrides ?? {}) };
+      if (!job.main) for (const item of job.items) overrides[item.id] = [job.sheetName];
+      const result = await exportRunPdt({
+        ...commonInput,
+        items: job.items,
+        outputPath,
+        sheetOverrides: overrides,
+        accessoryMatrixFilter: job.items.map((item) => item.catalogNumber),
+        accessoryMatrixRunCatalogNumbers: eligible.map((item) => item.catalogNumber),
+        productsWorkbookPath: jobIndex === 0 ? commonInput.productsWorkbookPath : undefined,
+        skipAccessoryConditionPatch: jobIndex > 0,
+        onWorkbookReady: (publishedPath) => persistGroupExport({
+          groupId: job.id,
+          name: job.name,
+          path: publishedPath,
+          productCount: job.items.length,
+          generatedAt: new Date().toISOString()
+        })
+      });
+      if (result.productCount === 0) throw new Error(`PDT group '${job.name}' did not contain any exportable products.`);
+      stats.push(result);
+      persistGroupExport({
+        groupId: job.id,
+        name: job.name,
+        path: result.outputPath,
+        productCount: result.productCount,
+        generatedAt: new Date().toISOString()
+      });
+    }
+    const pdtPath = exports.find((entry) => entry.groupId === "main")?.path ?? exports[0].path;
+    const savedGroups: PdtGroupDefinition[] = requestedGroups;
+    const nextExports = [...exports];
+    db.updateRun(run.id, { pdtPath });
+    db.updateRunOptions(run.id, { pdtGroups: savedGroups, pdtExports: nextExports });
+    res.json({ ok: true, path: pdtPath, paths: exports.map((entry) => entry.path), exports, stats: stats[0], groupStats: stats });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not generate PDT.";
+    if (/^PDT groups|^PDT group|^PDT file name|^Catalog number|^'[^']+' is not a device sheet|^PDT group ids/i.test(message)) {
+      res.status(400).json({ error: message });
+      return;
+    }
     if (/EBUSY|EPERM|resource busy or locked/i.test(message)) {
       res.status(409).json({ error: "Could not write the PDT — close it in Excel and try again." });
       return;
@@ -657,6 +778,16 @@ app.post("/api/runs/:id/files/pdt/open", (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : "Could not open PDT." });
   }
+});
+
+app.get("/api/runs/:id/files/pdt/:groupId", (req, res) => {
+  const run = db.getRun(req.params.id);
+  const record = run?.options?.pdtExports?.find((entry) => entry.groupId === req.params.groupId);
+  if (!record?.path || !fs.existsSync(record.path)) {
+    res.status(404).json({ error: "The requested PDT group workbook is not available." });
+    return;
+  }
+  res.download(record.path);
 });
 
 app.get("/api/runs/:id/files/pdt", (req, res) => {
@@ -775,6 +906,24 @@ async function persistCustomerDocuments(files: Express.Multer.File[]): Promise<C
   const batchDir = path.join(appPaths.customerUploadsDir, `staging-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`);
   await fsAsync.mkdir(batchDir, { recursive: true });
   for (const file of files) {
+    if (/\.7z$/i.test(file.originalname || "")) {
+      const archivePath = path.join(batchDir, `${crypto.randomBytes(8).toString("hex")}.7z`);
+      const extractDir = path.join(batchDir, crypto.randomBytes(8).toString("hex"));
+      await fsAsync.writeFile(archivePath, file.buffer);
+      const extracted = await extractCustomerArchive(archivePath, extractDir);
+      for (const entry of extracted) {
+        const id = crypto.randomBytes(8).toString("hex");
+        records.push({
+          id,
+          originalName: entry.name,
+          storedPath: entry.path,
+          mimeType: customerDocumentMimeType(path.extname(entry.name).toLowerCase()),
+          size: entry.size,
+          uploadedAt: new Date().toISOString()
+        });
+      }
+      continue;
+    }
     const id = crypto.randomBytes(8).toString("hex");
     const safeName = sanitizeCustomerFileName(file.originalname || `document-${id}`);
     const storedPath = path.join(batchDir, `${id}-${safeName}`);
@@ -791,6 +940,128 @@ async function persistCustomerDocuments(files: Express.Multer.File[]): Promise<C
   return records;
 }
 
+function customerDocumentMimeType(extension: string): string {
+  return ({
+    ".pdf": "application/pdf",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".xls": "application/vnd.ms-excel",
+    ".csv": "text/csv",
+    ".tsv": "text/tab-separated-values",
+    ".txt": "text/plain"
+  } as Record<string, string>)[extension] ?? "application/octet-stream";
+}
+
+const CUSTOMER_ARCHIVE_MAX_FILES = 20;
+const CUSTOMER_ARCHIVE_MAX_UNPACKED_BYTES = 500 * 1024 * 1024;
+const CUSTOMER_ARCHIVE_DOCUMENT_EXTENSIONS = new Set([".pdf", ".docx", ".xlsx", ".xls", ".csv", ".tsv", ".txt"]);
+
+async function extractCustomerArchive(archivePath: string, outputDir: string): Promise<Array<{ name: string; path: string; size: number }>> {
+  const fsAsync = await import("node:fs/promises");
+  const sevenZip = await findSevenZipExecutable();
+  if (!sevenZip) {
+    throw new Error("Cannot read this customer .7z archive because 7-Zip is not installed. Install 7-Zip or attach the extracted PDF files.");
+  }
+  const listing = await runSevenZip(sevenZip, ["l", "-slt", archivePath]);
+  const members = parseSevenZipListing(listing);
+  const documents = members.filter((member) => CUSTOMER_ARCHIVE_DOCUMENT_EXTENSIONS.has(path.extname(member.name).toLowerCase()));
+  if (documents.length === 0) throw new Error("The customer .7z archive contains no supported documents.");
+  if (documents.length > CUSTOMER_ARCHIVE_MAX_FILES) {
+    throw new Error(`The customer .7z archive contains ${documents.length} supported documents; the limit is ${CUSTOMER_ARCHIVE_MAX_FILES}.`);
+  }
+  const declaredBytes = documents.reduce((sum, member) => sum + member.size, 0);
+  if (declaredBytes > CUSTOMER_ARCHIVE_MAX_UNPACKED_BYTES) {
+    throw new Error("The customer .7z archive expands beyond the 500 MB document limit.");
+  }
+  await fsAsync.mkdir(outputDir, { recursive: true });
+  // Name only the approved document members so large unrelated archive payloads are never extracted.
+  await runSevenZip(sevenZip, ["x", "-y", `-o${outputDir}`, archivePath, ...documents.map((member) => member.name)]);
+  const root = path.resolve(outputDir);
+  const extracted: Array<{ name: string; path: string; size: number }> = [];
+  async function visit(directory: string): Promise<void> {
+    for (const entry of await fsAsync.readdir(directory, { withFileTypes: true })) {
+      const fullPath = path.resolve(directory, entry.name);
+      if (!fullPath.startsWith(`${root}${path.sep}`)) throw new Error("The customer archive contains a path outside its extraction folder.");
+      if (entry.isDirectory()) {
+        await visit(fullPath);
+      } else if (entry.isFile() && CUSTOMER_ARCHIVE_DOCUMENT_EXTENSIONS.has(path.extname(entry.name).toLowerCase())) {
+        const stat = await fsAsync.stat(fullPath);
+        extracted.push({ name: path.basename(entry.name), path: fullPath, size: stat.size });
+      }
+    }
+  }
+  await visit(root);
+  const actualBytes = extracted.reduce((sum, entry) => sum + entry.size, 0);
+  if (extracted.length !== documents.length || actualBytes > CUSTOMER_ARCHIVE_MAX_UNPACKED_BYTES) {
+    throw new Error("The customer archive contents did not match its listing or exceeded the document limits.");
+  }
+  return extracted;
+}
+
+function parseSevenZipListing(output: string): Array<{ name: string; size: number }> {
+  const members: Array<{ name: string; size: number }> = [];
+  for (const block of output.split(/\r?\n\r?\n/)) {
+    const values = new Map<string, string>();
+    for (const line of block.split(/\r?\n/)) {
+      const separator = line.indexOf(" = ");
+      if (separator > 0) values.set(line.slice(0, separator), line.slice(separator + 3));
+    }
+    const name = values.get("Path");
+    if (!name || values.get("Folder") === "+" || values.has("Attributes") && /D/.test(values.get("Attributes")!)) continue;
+    const normalized = name.replace(/\\/g, "/");
+    if (/^(?:[a-z]:|\/)/i.test(normalized) || normalized.startsWith("-") || /[*?]/.test(normalized) || normalized.split("/").some((part) => part === "..")) {
+      throw new Error("The customer archive contains an unsafe file path and was rejected.");
+    }
+    const size = Number(values.get("Size"));
+    if (!Number.isSafeInteger(size) || size < 0) throw new Error("The customer archive contains a file with an invalid size.");
+    members.push({ name: normalized, size });
+  }
+  return members;
+}
+
+async function findSevenZipExecutable(): Promise<string | undefined> {
+  const candidates = process.platform === "win32"
+    ? ["C:\\Program Files\\7-Zip\\7z.exe", "C:\\Program Files (x86)\\7-Zip\\7z.exe", ...String(process.env.PATH ?? "").split(path.delimiter).map((dir) => path.join(dir, "7z.exe"))]
+    : ["7z", "7zz", "7za"];
+  for (const candidate of candidates) {
+    if (path.isAbsolute(candidate)) {
+      try { await (await import("node:fs/promises")).access(candidate); return candidate; } catch { continue; }
+    }
+    if (await canRunCommand(candidate, ["-h"])) return candidate;
+  }
+  return undefined;
+}
+
+function canRunCommand(command: string, args: string[]): Promise<boolean> {
+  return new Promise((resolve) => {
+    const child = spawn(command, args, { windowsHide: true, stdio: "ignore" });
+    child.once("error", () => resolve(false));
+    child.once("close", () => resolve(true));
+  });
+}
+
+function runSevenZip(command: string, args: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+    let bytes = 0;
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; child.kill(); }, 120_000);
+    child.stdout.on("data", (chunk: Buffer) => { bytes += chunk.length; if (bytes <= 8 * 1024 * 1024) stdout.push(chunk); else child.kill(); });
+    child.stderr.on("data", (chunk: Buffer) => { if (Buffer.concat(stderr).length < 1024 * 1024) stderr.push(chunk); });
+    child.once("error", (error) => { clearTimeout(timer); reject(error); });
+    child.once("close", (code) => {
+      clearTimeout(timer);
+      const detail = Buffer.concat(stderr).toString("utf8").trim();
+      if (timedOut) return reject(new Error("Reading the customer archive timed out after 2 minutes."));
+      if (bytes > 8 * 1024 * 1024) return reject(new Error("The customer archive listing is too large to process."));
+      if (code !== 0) return reject(new Error(detail || `7-Zip exited with code ${code ?? "unknown"}.`));
+      resolve(Buffer.concat(stdout).toString("utf8"));
+    });
+  });
+}
+
 function parseSheetOverrides(raw: unknown): import("../shared/types.js").PdtSheetOverrides | undefined {
   if (!raw || typeof raw !== "object") return undefined;
   const out: Record<number, string[]> = {};
@@ -801,6 +1072,38 @@ function parseSheetOverrides(raw: unknown): import("../shared/types.js").PdtShee
     if (sheets.length > 0) out[itemId] = [...new Set(sheets)];
   }
   return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function parsePdtGroups(raw: unknown): PdtGroupDefinition[] | undefined {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw) || raw.length === 0) throw new Error("PDT groups must be a non-empty list.");
+  const groups = raw.map((value, index): PdtGroupDefinition => {
+    if (!value || typeof value !== "object") throw new Error(`PDT group ${index + 1} is invalid.`);
+    const row = value as Record<string, unknown>;
+    const id = typeof row.id === "string" ? row.id.trim() : "";
+    const name = typeof row.name === "string" ? row.name.trim() : "";
+    const fileName = typeof row.fileName === "string" ? row.fileName.trim() : "";
+    const sheetName = typeof row.sheetName === "string" ? row.sheetName.trim() : "";
+    if (!id || id.length > 80 || !name || name.length > 120 || !fileName || fileName.length > 120 || !sheetName || sheetName.length > 120) {
+      throw new Error(`PDT group ${index + 1} needs an id, name, file name and existing device sheet.`);
+    }
+    if (!Array.isArray(row.catalogNumbers) || row.catalogNumbers.length === 0 || row.catalogNumbers.length > 100_000) {
+      throw new Error(`PDT group '${name}' needs at least one catalog number.`);
+    }
+    const catalogNumbers = [...new Set(row.catalogNumbers
+      .filter((entry): entry is string => typeof entry === "string")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .filter((entry, entryIndex, all) => all.findIndex((candidate) => candidate.replace(/\s+/g, " ").toLocaleLowerCase("en-US") === entry.replace(/\s+/g, " ").toLocaleLowerCase("en-US")) === entryIndex))];
+    if (catalogNumbers.length === 0) throw new Error(`PDT group '${name}' has no valid catalog numbers.`);
+    return { id, name, fileName, sheetName, catalogNumbers };
+  });
+  if (new Set(groups.map((group) => group.id)).size !== groups.length) throw new Error("PDT group ids must be unique.");
+  if (groups.some((group) => group.id === "main")) throw new Error("PDT group id 'main' is reserved for the remainder workbook.");
+  if (new Set(groups.map((group) => group.fileName.replace(/\.xlsx$/i, "").toLocaleLowerCase("en-US"))).size !== groups.length) {
+    throw new Error("PDT group file names must be unique.");
+  }
+  return groups;
 }
 
 /** Main part numbers of an uploaded accessory matrix, normalized like a catalog CSV's column. */

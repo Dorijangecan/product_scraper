@@ -1,0 +1,3947 @@
+{
+  "generatedAt": "2026-10-15T14:34:34.190Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414",
+  "filters": {
+    "manufacturer": "doepke",
+    "limit": "5",
+    "fixtureDir": "benchmarks/doepke-accuracy-speed-20261015/batch-03",
+    "isolatedStorage": "1",
+    "tag": "doepke-batch-03-stage-profile-01"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 10,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "doepke": {
+          "total": 5,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "bus-powered",
+            "cold",
+            "d lux",
+            "drd 2",
+            "drt 1",
+            "dts 1",
+            "dupline",
+            "dws 1",
+            "fire",
+            "ip67",
+            "light-level",
+            "night-setback",
+            "outdoor",
+            "photodiode",
+            "pt1000",
+            "room-thermostat",
+            "smoke",
+            "water-leak"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Light Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "doepke"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Temperature Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "doepke"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Smoke Detector": {
+          "total": 1,
+          "manufacturers": [
+            "doepke"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Thermostat": {
+          "total": 1,
+          "manufacturers": [
+            "doepke"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Water Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "doepke"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "optical sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Light Sensor"
+          ],
+          "manufacturers": [
+            "doepke"
+          ]
+        },
+        "sensor - fluid": {
+          "total": 2,
+          "deviceTypes": [
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "manufacturers": [
+            "doepke"
+          ]
+        },
+        "safety sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Smoke Detector"
+          ],
+          "manufacturers": [
+            "doepke"
+          ]
+        },
+        "cabinet.airconditioning": {
+          "total": 1,
+          "deviceTypes": [
+            "Thermostat"
+          ],
+          "manufacturers": [
+            "doepke"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 4,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "doepke",
+      "catalogNumber": "09501110",
+      "caseType": "electrical",
+      "expectedDeviceType": "Light Sensor",
+      "actualDeviceType": "Light Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "d lux",
+        "dupline",
+        "light-level",
+        "photodiode",
+        "bus-powered"
+      ],
+      "status": "found",
+      "confidence": 0.64,
+      "elapsedMs": 3400,
+      "scrapeElapsedMs": 330,
+      "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\pdt\\doepke-09501110-pdt_pdt-audit.json",
+      "pdtWrittenCells": 33,
+      "pdtBlankCells": 235,
+      "pdtSkippedCells": 17,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 5,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "DLUX",
+        "description": "Dupline light value sensor, on-wall decentralised",
+        "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+        "localizedUrls": {
+          "en": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+          "de": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=de"
+        },
+        "deviceTypeClassification": {
+          "type": "Light Sensor",
+          "confidence": 0.98,
+          "evidence": "Description: Dupline light value sensor, on-wall decentralised",
+          "alternatives": [
+            {
+              "type": "Sensor",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 310
+        },
+        "normalized": {
+          "current": "0.75 mA (range 0.71–0.79 mA)",
+          "dimensions": "83 x 40 x 43 mm",
+          "protection": "IP44",
+          "operatingTemperatureMin": "-10",
+          "operatingTemperatureMax": "60"
+        },
+        "requiredElectricalFields": [
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Doepke Product Data",
+            "name": "Catalog Number",
+            "value": "09501110",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke Product Data",
+            "name": "Product Designation",
+            "value": "DLUX",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Verified product designation",
+            "value": "DLUX",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Operating voltage source",
+            "value": "Dupline bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Device supply current",
+            "value": "0.75 mA (range 0.71–0.79 mA)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-10 °C / 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "40 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "83 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Depth",
+            "value": "43 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "09501110",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Doepke The experts in residual current protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Article number 09501110",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Operating voltage source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "2018_01_30 doepke_09501110_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Ambient temperature -10 °C ... 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Protection class IP44",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "2018_01_30 doepke_09501110_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "current consumption bus 750 μA (710 μA ... 790 μA)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data sheet",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doepke The experts in residual current",
+            "value": "protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "Surface mounting, orientation preferably facing north or east",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Technical Data",
+            "value": "DLUX",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Operating voltage",
+            "value": "source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Screw-type terminal",
+            "value": "(Bus connection)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Operating position",
+            "value": "tilted 90°",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Ambient temperature",
+            "value": "-10 °C ... 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Housing type",
+            "value": "wall-mounted housing",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Mounting type",
+            "value": "Wall mounting",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Housing material",
+            "value": "Lexan resin",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Protection class",
+            "value": "IP44",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Width",
+            "value": "40 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Height",
+            "value": "83 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Depth",
+            "value": "43 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Current consumption",
+            "value": "bus 750 μA (710 μA ... 790 μA)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501110-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Operating instructions",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931186.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501110-manual-Operating-instructions.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://www.doepke.de/produktbilder/600px_png/doepke_09501110_600px_ml.png",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\images\\DOE.09501110.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "parserVersion": "doepke-v1",
+            "stage": "doepke-prodext",
+            "reason": "Doepke prodext.php article page accepted.",
+            "fetchedAt": "2026-10-15T14:34:15.566Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501110_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T14:34:17.382Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+              "status": "partial",
+              "score": 84,
+              "missing": [
+                "normalized:voltage",
+                "minAttributes:4"
+              ],
+              "reason": "Missing required product data: normalized:voltage; minAttributes:4",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 2,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501110&lang=en",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 36,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "doepke",
+      "catalogNumber": "09501112",
+      "caseType": "electrical",
+      "expectedDeviceType": "Temperature Sensor",
+      "actualDeviceType": "Temperature Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "dts 1",
+        "dupline",
+        "pt1000",
+        "outdoor",
+        "bus-powered"
+      ],
+      "status": "found",
+      "confidence": 0.64,
+      "elapsedMs": 2442,
+      "scrapeElapsedMs": 237,
+      "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\pdt\\doepke-09501112-pdt_pdt-audit.json",
+      "pdtWrittenCells": 35,
+      "pdtBlankCells": 112,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "DTS 1",
+        "description": "Dupline temperature sensor, on-wall, for indoor/outdoor use",
+        "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+        "localizedUrls": {
+          "en": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+          "de": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=de"
+        },
+        "deviceTypeClassification": {
+          "type": "Temperature Sensor",
+          "confidence": 0.94,
+          "evidence": "Description: Dupline temperature sensor, on-wall, for indoor/outdoor use",
+          "alternatives": [
+            {
+              "type": "Sensor",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 280
+        },
+        "normalized": {
+          "current": "0.8 mA",
+          "dimensions": "68 x 35 x 15 mm",
+          "material": "Polycarbonate (PC)",
+          "protection": "IP67",
+          "operatingTemperatureMin": "-30",
+          "operatingTemperatureMax": "60"
+        },
+        "requiredElectricalFields": [
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Doepke Product Data",
+            "name": "Catalog Number",
+            "value": "09501112",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke Product Data",
+            "name": "Product Designation",
+            "value": "DTS 1",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Verified product designation",
+            "value": "DTS 1",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Operating voltage source",
+            "value": "Dupline bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Device supply current",
+            "value": "0.8 mA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-30 °C / 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "35 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "68 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Depth",
+            "value": "15 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "09501112",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Doepke The experts in residual current protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Article number 09501112",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "format. Typical examples are temperature and brightness. The DTS 1 temperature sensor is a component of the Dupline installation",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Temperature sensor for outdoors, measuring range -30 °C to 60 °C, Power supply from the Dupline bus, easy mounting",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "The temperature sensor is suitable for measuring temperatureoutdoors, indoors generally, in operational areas with high humidity where",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "temperature",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Sensor resolution temperature 0.35 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Operating voltage source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Ambient temperature -30 °C ... 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "2018_01_30 doepke_09501112_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Housing material Polycarbonate (PC)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Protection class IP67",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "2018_01_30 doepke_09501112_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "temperature (air flow 0 m/s)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "temperature (air flow 1 m/s)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "current consumption bus 800 μA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data sheet",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doepke The experts in residual current",
+            "value": "protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "Surface mounting",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Technical Data",
+            "value": "DTS 1",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Operating voltage",
+            "value": "source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Ambient temperature",
+            "value": "-30 °C ... 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Housing type",
+            "value": "wall-mounted housing",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Mounting type",
+            "value": "Wall mounting",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Housing material",
+            "value": "Polycarbonate (PC)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Protection class",
+            "value": "IP67",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Width",
+            "value": "35 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Height",
+            "value": "68 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Depth",
+            "value": "15 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Current consumption",
+            "value": "bus 800 μA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501112-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Operating instructions",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931187.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501112-manual-Operating-instructions.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://www.doepke.de/produktbilder/600px_png/doepke_09501112_600px_ml.png",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\images\\DOE.09501112.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "parserVersion": "doepke-v1",
+            "stage": "doepke-prodext",
+            "reason": "Doepke prodext.php article page accepted.",
+            "fetchedAt": "2026-10-15T14:34:19.188Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501112_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T14:34:20.430Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+              "status": "partial",
+              "score": 84,
+              "missing": [
+                "normalized:voltage",
+                "minAttributes:4"
+              ],
+              "reason": "Missing required product data: normalized:voltage; minAttributes:4",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 2,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501112&lang=en",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 42,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "doepke",
+      "catalogNumber": "09501150",
+      "caseType": "electrical",
+      "expectedDeviceType": "Smoke Detector",
+      "actualDeviceType": "Smoke Detector",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "drd 2",
+        "dupline",
+        "smoke",
+        "fire",
+        "bus-powered"
+      ],
+      "status": "found",
+      "confidence": 0.68,
+      "elapsedMs": 5832,
+      "scrapeElapsedMs": 112,
+      "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\pdt\\doepke-09501150-pdt_pdt-audit.json",
+      "pdtWrittenCells": 18,
+      "pdtBlankCells": 122,
+      "pdtSkippedCells": 10,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 1,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "DRD 2",
+        "description": "Dupline smoke and fire detector DRD 2",
+        "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+        "localizedUrls": {
+          "en": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+          "de": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=de"
+        },
+        "deviceTypeClassification": {
+          "type": "Smoke Detector",
+          "confidence": 0.98,
+          "evidence": "Description: Dupline smoke and fire detector DRD 2",
+          "alternatives": [
+            {
+              "type": "Sensor",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 320
+        },
+        "normalized": {
+          "current": "max. 1 mA",
+          "material": "Polycarbonat",
+          "operatingTemperatureMin": "5",
+          "operatingTemperatureMax": "40"
+        },
+        "requiredElectricalFields": [
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Doepke Product Data",
+            "name": "Catalog Number",
+            "value": "09501150",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke Product Data",
+            "name": "Product Designation",
+            "value": "DRD 2",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Verified product designation",
+            "value": "DRD 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Operating voltage source",
+            "value": "Dupline bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Minimum bus current input",
+            "value": "0.2 mA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Device supply current",
+            "value": "max. 1 mA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Detector principle",
+            "value": "optical (acc. to Tyndall-Effect)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Device function",
+            "value": "Smoke and Fire Detector DRD 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Input channels",
+            "value": "2 (status signal, alarm signal)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Monitored floor area",
+            "value": "60 m²",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Maximum monitored ceiling clearance",
+            "value": "6 m",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "09501150",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "DRD 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "DRD",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Schutzart / Normen IP 42, dieses Modell basiert auf ein Gerät mit",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Bestellnummer, -bezeichnung 09 501 150, DRD 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Ambient temperature +5°C +40°C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Feature",
+            "value": "Order number, description 09 501 150, DRD 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Operating instructions",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Betriebstemperatur",
+            "value": "+5°C | +40°C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Schutzart",
+            "value": "/ Normen IP 42, dieses Modell basiert auf ein Gerät mit",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Ambient temperature",
+            "value": "+5°C | +40°C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Encl. protection",
+            "value": "type /",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "standards",
+            "value": "IIP 42, this model bases on a device with the",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "VdS-Certification G",
+            "value": "299084",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Material",
+            "value": "Polycarbonat",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "Operating instructions",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501150-manual-Operating-instructions.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://www.doepke.de/produktbilder/600px_png/doepke_09501150_600px_ml.png",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\images\\DOE.09501150.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "parserVersion": "doepke-v1",
+            "stage": "doepke-prodext",
+            "reason": "Doepke prodext.php article page accepted.",
+            "fetchedAt": "2026-10-15T14:34:21.765Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931203.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-15T14:34:26.684Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+              "status": "partial",
+              "score": 80,
+              "missing": [
+                "normalized:voltage",
+                "minAttributes:4"
+              ],
+              "reason": "Missing required product data: normalized:voltage; minAttributes:4",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 2,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501150&lang=en",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 26,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "doepke",
+      "catalogNumber": "09501171",
+      "caseType": "electrical",
+      "expectedDeviceType": "Thermostat",
+      "actualDeviceType": "Thermostat",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "drt 1",
+        "dupline",
+        "room-thermostat",
+        "night-setback",
+        "bus-powered"
+      ],
+      "status": "found",
+      "confidence": 0.64,
+      "elapsedMs": 2990,
+      "scrapeElapsedMs": 110,
+      "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\pdt\\doepke-09501171-pdt_pdt-audit.json",
+      "pdtWrittenCells": 19,
+      "pdtBlankCells": 66,
+      "pdtSkippedCells": 7,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "DRT 1",
+        "description": "Dupline room thermostat with night-time reduction, on-wall/in-wall, decentralised",
+        "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+        "localizedUrls": {
+          "en": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+          "de": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=de"
+        },
+        "deviceTypeClassification": {
+          "type": "Thermostat",
+          "confidence": 0.86,
+          "evidence": "Description: Dupline room thermostat with night-time reduction, on-wall/in-wall, decentralised",
+          "alternatives": [
+            {
+              "type": "Thermal Management",
+              "score": 1350,
+              "channels": [
+                "text"
+              ]
+            },
+            {
+              "type": "Sensor",
+              "score": 1340,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 165
+        },
+        "normalized": {
+          "current": "max. 2.5 mA",
+          "operatingTemperatureMin": "-30",
+          "operatingTemperatureMax": "60",
+          "dimensions": "84 x 84 x 34 mm",
+          "material": "ABS resin",
+          "protection": "IP20"
+        },
+        "requiredElectricalFields": [
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Doepke Product Data",
+            "name": "Catalog Number",
+            "value": "09501171",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke Product Data",
+            "name": "Product Designation",
+            "value": "DRT 1",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Verified product designation",
+            "value": "DRT 1",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Operating voltage source",
+            "value": "Dupline bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Device supply current",
+            "value": "max. 2.5 mA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Temperature sensing range",
+            "value": "14 °C to 28 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Temperature hysteresis",
+            "value": "0.5 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "84 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "84 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Depth",
+            "value": "34 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "09501171",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Doepke The experts in residual current protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "2015_07_21 doepke_09501171_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Article No. 09501171",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Temperature control devices are primarily thermostats that control the room temperature using the set target value and the measured",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "other public buildings, Temperature, energy and load management in large buildings with superset controls",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Hysteresis temperature 0.5 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "temperature",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ambient temperature -30 °C ... 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "2015_07_21 doepke_09501171_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Protection class IP20",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "current consumption bus max. 2500 μA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Operating voltage source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data sheet",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doepke The experts in residual current",
+            "value": "protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "supplied housing",
+            "value": "is used.",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Technical Data",
+            "value": "DRT 1",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ambient temperature",
+            "value": "-30 °C ... 60 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Housing type",
+            "value": "wall-mounted housing, in-wall housing",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting type",
+            "value": "Socket/box installation",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Housing material",
+            "value": "ABS resin",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Protection class",
+            "value": "IP20",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Width",
+            "value": "84 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Height",
+            "value": "84 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Depth",
+            "value": "34 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Installation depth",
+            "value": "18 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Current consumption",
+            "value": "bus max. 2500 μA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Operating voltage",
+            "value": "source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501171-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Operating instructions",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931226.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501171-manual-Operating-instructions.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://www.doepke.de/produktbilder/600px_png/doepke_09501171_600px_ml.png",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\images\\DOE.09501171.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "parserVersion": "doepke-v1",
+            "stage": "doepke-prodext",
+            "reason": "Doepke prodext.php article page accepted.",
+            "fetchedAt": "2026-10-15T14:34:27.861Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501171_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T14:34:29.165Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+              "status": "partial",
+              "score": 84,
+              "missing": [
+                "normalized:voltage",
+                "minAttributes:4"
+              ],
+              "reason": "Missing required product data: normalized:voltage; minAttributes:4",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 2,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501171&lang=en",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 40,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "doepke",
+      "catalogNumber": "09501197",
+      "caseType": "electrical",
+      "expectedDeviceType": "Water Sensor",
+      "actualDeviceType": "Water Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "dws 1",
+        "dupline",
+        "water-leak",
+        "bus-powered",
+        "ip67"
+      ],
+      "status": "found",
+      "confidence": 0.62,
+      "elapsedMs": 2321,
+      "scrapeElapsedMs": 113,
+      "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\pdt\\doepke-09501197-pdt_pdt-audit.json",
+      "pdtWrittenCells": 36,
+      "pdtBlankCells": 111,
+      "pdtSkippedCells": 8,
+      "pdtUnprovenSkipped": 1,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "DWS 1",
+        "description": "Dupline water sensor for wall mounting, on-wall, decentralised",
+        "productUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+        "localizedUrls": {
+          "en": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+          "de": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=de"
+        },
+        "deviceTypeClassification": {
+          "type": "Water Sensor",
+          "confidence": 0.98,
+          "evidence": "Description: Dupline water sensor for wall mounting, on-wall, decentralised",
+          "alternatives": [
+            {
+              "type": "Sensor",
+              "score": 1210,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 315
+        },
+        "normalized": {
+          "current": "1.3 mA",
+          "dimensions": "40 x 70 x 16 mm",
+          "material": "ABS resin",
+          "protection": "IP67",
+          "operatingTemperatureMin": "-20",
+          "operatingTemperatureMax": "50"
+        },
+        "requiredElectricalFields": [
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Doepke Product Data",
+            "name": "Catalog Number",
+            "value": "09501197",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke Product Data",
+            "name": "Product Designation",
+            "value": "DWS 1",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "stage": "doepke-prodext",
+            "confidence": 0.9
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Verified product designation",
+            "value": "DWS 1",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Operating voltage source",
+            "value": "Dupline bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Device supply current",
+            "value": "1.3 mA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "Doepke exact technical data",
+            "name": "Sensor input voltage",
+            "value": "max. 8 V",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "doepke-exact-pdf",
+            "stage": "enrich-documents",
+            "confidence": 0.96,
+            "matchLevel": "exact"
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated voltage",
+            "value": "max. 8 V",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-20 °C / 50 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "70 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "40 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "09501197",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Doepke The experts in residual current protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Article number 09501197",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "format. Typical examples are temperature and brightness. The DWS 1 water stop sensor is a component of the Dupline installation",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "current consumption bus 1300 μA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Operating voltage source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Rated voltage (DC) max. 8 V",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Protection class IP67",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "2018_01_30 doepke_09501197_dbl_en.pdf 1 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "2018_01_30 doepke_09501197_dbl_en.pdf 2 / 2",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Ambient temperature -20 °C ... 50 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data sheet",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Doepke The experts in residual current",
+            "value": "protection technology",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "channels",
+            "value": "the alarm channel and a channel for transmitting signs of device function. While the alarm channel is only activated when water",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "Surface mounting",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Technical Data",
+            "value": "DWS 1",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Current consumption",
+            "value": "bus 1300 μA",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Operating voltage",
+            "value": "source Bus signal",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Rated voltage",
+            "value": "(DC) max. 8 V",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Screw-type terminal",
+            "value": "(Bus connection)",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Mounting type",
+            "value": "Wall mounting",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Housing material",
+            "value": "ABS resin",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Protection class",
+            "value": "IP67",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Width",
+            "value": "70 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Height",
+            "value": "40 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Depth",
+            "value": "16 mm",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Dimensions",
+            "value": "Wiring example",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Ambient temperature",
+            "value": "-20 °C ... 50 °C",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Housing type",
+            "value": "wall-mounted housing",
+            "sourceUrl": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501197-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Operating instructions",
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/bedienungsanleitung/web/3931247.pdf",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\documents\\09501197-manual-Operating-instructions.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "Product image",
+            "url": "https://www.doepke.de/produktbilder/600px_png/doepke_09501197_600px_ml.png",
+            "sourceUrl": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015143414\\images\\DOE.09501197.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+            "sourceType": "official",
+            "parser": "doepke-prodext",
+            "parserVersion": "doepke-v1",
+            "stage": "doepke-prodext",
+            "reason": "Doepke prodext.php article page accepted.",
+            "fetchedAt": "2026-10-15T14:34:31.116Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.doepke.de/uploads/tx_doepkeproducts/datenblatt/doepke_09501197_dbl_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T14:34:32.424Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+              "status": "partial",
+              "score": 94,
+              "missing": [
+                "minAttributes:4"
+              ],
+              "reason": "Missing required product data: minAttributes:4",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 2,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "doepke-prodext",
+              "url": "https://www.doepke.de/source/prodext.php?ARTNR=09501197&lang=en",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "doepke-prodext",
+              "statusCode": 200,
+              "attributeCount": 41,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

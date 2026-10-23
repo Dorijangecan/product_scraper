@@ -22,6 +22,61 @@ describe("splitNameValue (Phase A4)", () => {
   });
 });
 
+describe("Rittal exact product dimensions", () => {
+  it("uses the exact Dimensions row and keeps enclosure fit dimensions out", () => {
+    const url = "https://www.rittal.com/com-en/products/example?variantId=2830410";
+    const normalized = normalizeFields([
+      { group: "Definition List", name: "Dimensions", value: "Height: 100 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "To fit", name: "To fit", value: "Enclosure type: AX; Depth: = 400 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Product description", value: "AX base/plinth component, sides", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal");
+
+    expect(normalized.dimensions).toBe("H 100 mm");
+  });
+
+  it("keeps the mounting plate dimensions instead of the larger enclosure fit size", () => {
+    const url = "https://www.rittal.com/com-en/products/example?variantId=5051378";
+    const normalized = normalizeFields([
+      { group: "Definition List", name: "Dimensions", value: "Width: 550 mm Height: 575 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "To fit", name: "To fit", value: "Width: 600 mm Height: 600 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+      { group: "Definition List", name: "Product description", value: "Mounting plate for AX", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" }
+    ], [], "rittal");
+
+    expect(normalized.dimensions).toBe("H 575 mm x W 550 mm");
+  });
+
+  it("replaces mixed Rittal product/fit dimensions with the exact Dimensions row", () => {
+    const url = "https://www.rittal.com/com-en/products/example?variantId=5051378";
+    const result = mergeResults({
+      manufacturerId: "rittal",
+      catalogNumber: "5051378",
+      status: "found",
+      confidence: 0.9,
+      normalized: { dimensions: "H 575 mm x W 600 mm" },
+      attributes: [
+        { group: "Definition List", name: "Dimensions", value: "Width: 550 mm Height: 575 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+        { group: "To fit", name: "To fit", value: "Width: 600 mm Height: 600 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+        { group: "Plain Text Specs", name: "Width", value: "600 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" },
+        { group: "Plain Text Specs", name: "Height", value: "575 mm", sourceUrl: url, sourceType: "official", parser: "rittal-order-resolver" }
+      ],
+      documents: [],
+      sources: [],
+      productUrl: url
+    }, {
+      manufacturerId: "rittal",
+      catalogNumber: "5051378",
+      status: "failed",
+      confidence: 0,
+      normalized: {},
+      attributes: [],
+      documents: [],
+      sources: []
+    });
+
+    expect(result.normalized.dimensions).toBe("H 575 mm x W 550 mm");
+  });
+});
+
 describe("Turck power supply normalization", () => {
   it("uses exact output ratings ahead of power-input voltage and unrelated currents", () => {
     const normalized = normalizeFields([

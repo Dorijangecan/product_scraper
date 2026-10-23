@@ -1,0 +1,4414 @@
+{
+  "generatedAt": "2026-10-21T11:11:38.852Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261021111112",
+  "filters": {
+    "manufacturer": "woehner",
+    "limit": "5",
+    "fixtureDir": "benchmarks/woehner-accuracy-speed-20261021/batch-02",
+    "isolatedStorage": "1",
+    "tag": "batch-02-strict-fields"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 80,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 3,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "woehner": {
+          "total": 5,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "1000-mm",
+            "160-a",
+            "185power",
+            "3-pole",
+            "4-pole",
+            "60classic",
+            "busbar-adapter",
+            "busbar-cover",
+            "busbar-support",
+            "capus-panel",
+            "cold",
+            "fused-switch-disconnector",
+            "inline",
+            "internal-screw-holes",
+            "mccb-compatible",
+            "nh-00",
+            "prewired-current-transformers",
+            "size-00",
+            "touch-protection"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Busbar": {
+          "total": 3,
+          "manufacturers": [
+            "woehner"
+          ],
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ]
+        },
+        "Fuse Switch Disconnector": {
+          "total": 2,
+          "manufacturers": [
+            "woehner"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "Busbar": {
+          "total": 3,
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "manufacturers": [
+            "woehner"
+          ]
+        },
+        "contactor a. fuses": {
+          "total": 2,
+          "deviceTypes": [
+            "Fuse Switch Disconnector"
+          ],
+          "manufacturers": [
+            "woehner"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "IT LED system light",
+              "deviceType": "Luminaire",
+              "notes": "Rittal IT system lights"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Door-operated Switch",
+            "Float Switch",
+            "Key Transfer Switch",
+            "Key-operated Actuator",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Pressure Switch",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "SVE",
+              "deviceType": "Key Transfer Switch",
+              "notes": "Schmersal key-selector interlocking devices"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Ceiling Junction Box",
+            "Channel Installation Box",
+            "Empty Enclosure",
+            "Enclosure",
+            "Equipment Installation Box",
+            "Fire-Resistant Junction Box",
+            "Installation Housing",
+            "Junction Box",
+            "Large Conduit Box",
+            "Lightning Protection Enclosure",
+            "Meter Housing",
+            "Terminal Block Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "U 71 DVD",
+              "deviceType": "Ceiling Junction Box",
+              "notes": "Spelsberg ceiling-slab junction boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "KD 1",
+              "deviceType": "Channel Installation Box",
+              "notes": "Spelsberg channel installation boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "KD 2",
+              "deviceType": "Channel Installation Box",
+              "notes": "Spelsberg channel installation boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "GEOS-L",
+              "deviceType": "Empty Enclosure",
+              "notes": "Spelsberg GEOS-L outdoor empty enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Air Conditioner",
+            "Cooling Unit",
+            "Fan Assembly",
+            "Filter Fan",
+            "Heat Exchanger",
+            "Heater",
+            "Hygrostat",
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "Wall-mounted cooling unit",
+              "deviceType": "Cooling Unit",
+              "notes": "Rittal enclosure cooling units"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "Thermostat",
+              "deviceType": "Thermostat",
+              "notes": "Rittal enclosure thermostats"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Alu Connection Angle",
+            "Bag Cutter",
+            "Ball Catch",
+            "Bottle Holder",
+            "Broom Holder",
+            "Cable Binder",
+            "Ceiling Junction Box",
+            "Channel Installation Box",
+            "Compression Latch",
+            "Control Compartment",
+            "Cover / Door Accessory",
+            "Cube Connector",
+            "Door Latch",
+            "Door Stop",
+            "Empty Enclosure",
+            "Enclosure",
+            "Equipment Installation Box",
+            "Fixed Caster",
+            "Gland Plate",
+            "Handle",
+            "Hinge",
+            "Installation Housing",
+            "Junction Box",
+            "Keyboard Housing",
+            "Label Holder",
+            "Large Conduit Box",
+            "Leveling Foot",
+            "Lightning Protection Enclosure",
+            "Lock Insert",
+            "Magnetic Catch",
+            "Mechanical Interlock Kit",
+            "Meter Housing",
+            "Monitor Mount",
+            "Mounting Bracket",
+            "Over-Center Draw Latch",
+            "Pipe Hanger",
+            "Plinth Base",
+            "Pull-Out Shelf",
+            "Quarter Turn Lock",
+            "Rain Hood",
+            "Slam Latch",
+            "Subpanel",
+            "Suspension System Component",
+            "Swivel Caster",
+            "Terminal Block Enclosure",
+            "Tool Hook",
+            "Tool Tray",
+            "Window Kit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "U 71 DVD",
+              "deviceType": "Ceiling Junction Box",
+              "notes": "Spelsberg ceiling-slab junction boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "KD 1",
+              "deviceType": "Channel Installation Box",
+              "notes": "Spelsberg channel installation boxes"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "KD 2",
+              "deviceType": "Channel Installation Box",
+              "notes": "Spelsberg channel installation boxes"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "E-Bike Charging Station",
+            "EV Charging Station",
+            "Optical Connector",
+            "Socket Enclosure",
+            "Socket Outlet Combination",
+            "Test Adapter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "Current transformer",
+              "deviceType": "Current Transformer",
+              "notes": "Rittal inductive current transformers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Access Sensor",
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "Potentiometer",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "ATS Power Distribution Unit",
+            "Automatic Transfer Switch",
+            "Capacitor Bank",
+            "Distribution Board",
+            "Loadcenter",
+            "NH Fuse Enclosure",
+            "Power Distribution Unit",
+            "Small Distribution Board",
+            "Socket Strip"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "GTi 2 VS",
+              "deviceType": "Distribution Board",
+              "notes": "Spelsberg GTi selective-main-switch distribution boards"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "GST",
+              "deviceType": "NH Fuse Enclosure",
+              "notes": "Spelsberg GST NH fuse enclosures"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "MM500",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A PowerPlex Mini Modules for DC load distribution and control"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "PowerPlex Mini Modul",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A PowerPlex Mini Modules for DC load distribution and control"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Ground Rod",
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Fire Alarm Power Supply",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Pull-wire Emergency Stop Switch",
+            "Safety Hinge Switch",
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS655",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "RS656",
+              "deviceType": "Pull-wire Emergency Stop Switch",
+              "notes": "Schmersal two-sided pull-wire emergency-stop switches"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "TV8S",
+              "deviceType": "Safety Hinge Switch",
+              "notes": "Schmersal TV8S hinge safety switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Line Reactor",
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1321",
+              "deviceType": "Line Reactor",
+              "notes": "Allen-Bradley AC line reactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 2,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "woehner",
+      "catalogNumber": "01422 000",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Busbar",
+      "actualDeviceType": "Busbar",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "60classic",
+        "3-pole",
+        "busbar-support",
+        "internal-screw-holes"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "elapsedMs": 8739,
+      "scrapeElapsedMs": 5679,
+      "productUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261021111112\\pdt\\woehner-01422-000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 30,
+      "pdtBlankCells": 50,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "busbar support (01422000)",
+        "description": "busbar support 3-pole, with internal screw holes for busbars TCC section",
+        "productUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+        "localizedUrls": {
+          "en": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653"
+        },
+        "deviceTypeClassification": {
+          "type": "Busbar",
+          "confidence": 0.98,
+          "evidence": "Exact Wöhner PIM article title: busbar support (01422000)",
+          "scoreMargin": 2100
+        },
+        "normalized": {
+          "weight": "69.7 kg/100",
+          "dimensions": "26 × 200 × 173 mm (W × H × D)",
+          "voltage": "800 V",
+          "certificates": "IEC 61439-1, CCC"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Table",
+            "name": "pack size",
+            "value": "2",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated voltage (IEC) AC:",
+            "value": "800 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated isolation voltage Ui AC:",
+            "value": "1000 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated surge voltage Uimp :",
+            "value": "8 kV",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated peak withstand current Ipk max.:",
+            "value": "90 kA",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated short-time withstand current Icw (1.0 s) max.:",
+            "value": "43 kA",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "max. permitted voltage (IEC) DC:",
+            "value": "1500 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "weight:",
+            "value": "69.7 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Approvals",
+            "name": "Approval",
+            "value": "Standards IEC 61439-1:2020 CCC approval: no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Standards",
+            "value": "IEC 61439-1:2020",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "CCC approval",
+            "value": "no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "CCC approval",
+            "value": "no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Weight",
+            "value": "69.7 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Isolation voltage",
+            "value": "1000 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated surge voltage",
+            "value": "8 kV",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated voltage",
+            "value": "800 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "69.7 kg",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Product group",
+            "value": "06",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Subgroup",
+            "value": "09",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "EAN",
+            "value": "4021267014223",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ECLASS 14.0",
+            "value": "27400607",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 5.0",
+            "value": "EC001166",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 8.0",
+            "value": "EC001166",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 10.0",
+            "value": "EC001166",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated frequency (IEC):",
+            "value": "50 / 60 Hz",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "min. permitted operation temperature",
+            "value": "-40°C",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "W x H x D:",
+            "value": "26 x 200 x 173",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "poles:",
+            "value": "3-pole",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "for busbars:",
+            "value": "TCC section",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Part No.: 01422 000",
+            "value": "busbar support | 3-pole, with internal screw holes | for busbars TCC section",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Part No.",
+            "value": "01422 000",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "power dissipation of the article",
+            "value": "The power dissipation at a typical load of 80 % results to 0.0 W. | (The power dissipation at full load would be 0.0 W.)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "Part No.",
+            "value": "01422 000",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "Torque for the screws of the busbar support Md",
+            "value": "4Nm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "Part No.",
+            "value": "01422",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 5.0",
+            "value": "EC001166",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8.0",
+            "value": "EC001166",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 10.0",
+            "value": "EC001166",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Short-circuit capacity",
+            "value": "90 kA",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "0.0 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "0.0 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Rated frequency",
+            "value": "50 / 60 Hz",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Torque",
+            "value": "4Nm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Description",
+            "name": "Product description",
+            "value": "busbar support 3-pole, with internal screw holes for busbars TCC section",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.96
+          }
+        ],
+        "documents": [
+          {
+            "type": "cad",
+            "label": "CAD model 3D PDF",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/download/ZEI_ART_3DPDF_01422?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD model 3D STP",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/download/ZEI_ART_3DSTP_01422?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD symbol 2D DXF",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/download/ZEI_ART_2DDXF_01422?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "Dimensioned drawing",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/download/ZEI_ART_MAS_01422?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "certificate",
+            "label": "EU declaration of conformity",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/download/DOK_ART_CE_CE01?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-21T11:11:18.883Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "Wöhner exact PIM article",
+              "url": "https://pim.woehner.de/EN/EN/System/60Classic_630_A_(800_A)_2500_A/Busbar_supports_busbars_and_covers/3-pole_60mm_System_classic/1000066653",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "Wöhner exact PIM article",
+              "statusCode": 200,
+              "attributeCount": 44,
+              "documentCount": 5,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "woehner",
+      "catalogNumber": "32116 000AC",
+      "caseType": "electrical",
+      "expectedDeviceType": "Busbar",
+      "actualDeviceType": "Busbar",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "60classic",
+        "4-pole",
+        "busbar-adapter",
+        "mccb-compatible"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "elapsedMs": 3422,
+      "scrapeElapsedMs": 2568,
+      "productUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261021111112\\pdt\\woehner-32116-000AC-pdt_pdt-audit.json",
+      "pdtWrittenCells": 29,
+      "pdtBlankCells": 52,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "busbar adapter 630 A, 4-pole (32116000AC)",
+        "description": "EQUES 60Classic busbar adapter 630 A, 4-pole with laminated copper (bottom) 184 x 300 phase distance 44 - 48 mm N on left side connection to the",
+        "productUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+        "localizedUrls": {
+          "en": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843"
+        },
+        "deviceTypeClassification": {
+          "type": "Busbar",
+          "confidence": 0.98,
+          "evidence": "Exact Wöhner PIM article title: busbar adapter 630 A, 4-pole (32116000AC)",
+          "scoreMargin": 2100
+        },
+        "normalized": {
+          "weight": "403.5 kg/100",
+          "dimensions": "184 × 300 × 52 mm (W × H × D)",
+          "voltage": "690 V",
+          "current": "560 A",
+          "certificates": "IEC 61439-1, CCC"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Table",
+            "name": "pack size",
+            "value": "1",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated current (IEC):",
+            "value": "560 A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated voltage (IEC) AC:",
+            "value": "690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated isolation voltage Ui AC:",
+            "value": "800 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated surge voltage Uimp :",
+            "value": "6 kV",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated peak withstand current Ipk max.:",
+            "value": "44 kA",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "max. permitted voltage (IEC) DC:",
+            "value": "800 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "weight:",
+            "value": "403.5 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Approvals",
+            "name": "Approval",
+            "value": "Standards IEC 61439-1:2020 CCC approval: no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Standards",
+            "value": "IEC 61439-1:2020",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "CCC approval",
+            "value": "no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Voltage",
+            "value": "32116000 V AC",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "630 A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Text",
+            "name": "CCC approval",
+            "value": "no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Weight",
+            "value": "403.5 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Isolation voltage",
+            "value": "800 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated surge voltage",
+            "value": "6 kV",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated voltage",
+            "value": "690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated current",
+            "value": "560 A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "403.5 kg",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Product group",
+            "value": "05",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Subgroup",
+            "value": "42",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "EAN",
+            "value": "4021267321161",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ECLASS 14.0",
+            "value": "27370304",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 5.0",
+            "value": "EC001531",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 8.0",
+            "value": "EC001531",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 10.0",
+            "value": "EC001531",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "min. permitted operation temperature",
+            "value": "-40°C",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "W x H x D:",
+            "value": "184 x 300 x 52",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "poles:",
+            "value": "3-pole+N",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "for busbars:",
+            "value": "12, 15, 20, 25, 30 x 5, 10 and section busbars",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Part No.",
+            "value": "32116 000AC",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "power dissipation of the article",
+            "value": "The power dissipation at a typical load of 80 % results to 31.5 W. | (The power dissipation at full load would be 49.2 W.)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "Part No.",
+            "value": "32116 000AC",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "Part No.",
+            "value": "32116",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 5.0",
+            "value": "EC001531",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8.0",
+            "value": "EC001531",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 10.0",
+            "value": "EC001531",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "31.5 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "49.2 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "49.2 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Description",
+            "name": "Product description",
+            "value": "EQUES 60Classic busbar adapter 630 A, 4-pole with laminated copper (bottom) 184 x 300 phase distance 44 - 48 mm N on left side connection to the",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.96
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "Mounting instructions",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/download/DOK_ART_MON_94789000B?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD model 3D PDF",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/download/ZEI_ART_3DPDF_32116?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD model 3D STP",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/download/ZEI_ART_3DSTP_32116?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD symbol 2D DXF",
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/download/ZEI_ART_2DDXF_32116?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-21T11:11:25.020Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "Wöhner exact PIM article",
+              "url": "https://pim.woehner.de/EN/EN/System/60Classic_4P/Adapters/adapters_630A/Adapter_630A_4P_left_b/1000268843",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "Wöhner exact PIM article",
+              "statusCode": 200,
+              "attributeCount": 42,
+              "documentCount": 4,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "woehner",
+      "catalogNumber": "01251 000",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Busbar",
+      "actualDeviceType": "Busbar",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "busbar-cover",
+        "touch-protection",
+        "1000-mm"
+      ],
+      "status": "found",
+      "confidence": 0.9,
+      "elapsedMs": 3456,
+      "scrapeElapsedMs": 2703,
+      "productUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261021111112\\pdt\\woehner-01251-000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 22,
+      "pdtBlankCells": 60,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "busbar cover (01251000)",
+        "description": "busbar cover for 40 - 60 x 10 busbars, 1m long touch protection cover",
+        "productUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+        "localizedUrls": {
+          "en": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165"
+        },
+        "deviceTypeClassification": {
+          "type": "Busbar",
+          "confidence": 0.98,
+          "evidence": "Exact Wöhner PIM article title: busbar cover (01251000)",
+          "scoreMargin": 2100
+        },
+        "normalized": {
+          "weight": "17.6 kg/100",
+          "dimensions": "1000 × 13 × 70 mm (W × H × D)",
+          "certificates": "IEC 61439-1, CCC",
+          "material": "copper Cu-ETP (No. CW004A) acc. to EN 13601 (99.9% copper), strength class R300 (300 N/mm²)"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Table",
+            "name": "pack size",
+            "value": "5",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "weight:",
+            "value": "17.6 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Approvals",
+            "name": "Approval",
+            "value": "Standards IEC 61439-1:2020 CCC approval: no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Standards",
+            "value": "IEC 61439-1:2020",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "CCC approval",
+            "value": "no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "CCC approval",
+            "value": "no certification required",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "material",
+            "value": "copper Cu-ETP (No. CW004A) acc. to EN 13601 (99.9% copper), strength class R300 (300 N/mm²)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Weight",
+            "value": "17.6 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Material",
+            "value": "copper Cu-ETP (No. CW004A) acc. to EN 13601 (99.9% copper), strength class R300 (300 N/mm²)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "17.6 kg",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Product group",
+            "value": "06",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Subgroup",
+            "value": "27",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "EAN",
+            "value": "4021267012519",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ECLASS 14.0",
+            "value": "27142190",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 5.0",
+            "value": "EC002270",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 8.0",
+            "value": "EC002270",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 10.0",
+            "value": "EC002270",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "W x H x D:",
+            "value": "1000 x 13 x 70",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Part No.: 01251 000",
+            "value": "busbar cover | for 40 - 60 x 10 busbars, 1m long | touch protection cover",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Part No.",
+            "value": "01251 000",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "Part No.",
+            "value": "01251 000",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "Part No.",
+            "value": "01251",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 5.0",
+            "value": "EC002270",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8.0",
+            "value": "EC002270",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 10.0",
+            "value": "EC002270",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Description",
+            "name": "Product description",
+            "value": "busbar cover for 40 - 60 x 10 busbars, 1m long touch protection cover",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.96
+          }
+        ],
+        "documents": [
+          {
+            "type": "cad",
+            "label": "CAD model 3D PDF",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/download/ZEI_ART_3DPDF_01251?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD model 3D STP",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/download/ZEI_ART_3DSTP_01251?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD symbol 2D DXF",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/download/ZEI_ART_2DDXF_01251?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "Dimensioned drawing",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/download/ZEI_ART_MAS_01251?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "other",
+            "label": "Text for specification - GAEB90 (in German) (*.d81)",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/download/DOK_ART_D81_01251000?ausgabeart=IN&customDownloadFilename=01251.d81",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "certificate",
+            "label": "EU declaration of conformity",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/download/DOK_ART_CE_CE17?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-21T11:11:28.776Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "Wöhner exact PIM article",
+              "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/Busbar_supports_busbars_and_covers/cover_compartment/1000044165",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "Wöhner exact PIM article",
+              "statusCode": 200,
+              "attributeCount": 26,
+              "documentCount": 6,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "woehner",
+      "catalogNumber": "33337 000",
+      "caseType": "electrical",
+      "expectedDeviceType": "Fuse Switch Disconnector",
+      "actualDeviceType": "Fuse Switch Disconnector",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "capus-panel",
+        "nh-00",
+        "160-a",
+        "fused-switch-disconnector"
+      ],
+      "status": "found",
+      "confidence": 0.81,
+      "elapsedMs": 3805,
+      "scrapeElapsedMs": 2837,
+      "productUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261021111112\\pdt\\woehner-33337-000-pdt_pdt-audit.json",
+      "pdtWrittenCells": 40,
+      "pdtBlankCells": 55,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "switch disconnector with fuses, 3-pole (33337000)",
+        "description": "CAPUS Panel switch disconnector with fuses, 3-pole screw M8, graphite-grey handle NH 00, 160 A for mounting plate ERGONFUSE-160",
+        "productUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+        "localizedUrls": {
+          "en": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788"
+        },
+        "deviceTypeClassification": {
+          "type": "Fuse Switch Disconnector",
+          "confidence": 0.98,
+          "evidence": "Exact Wöhner PIM article title: switch disconnector with fuses, 3-pole (33337000)",
+          "scoreMargin": 2100
+        },
+        "normalized": {
+          "weight": "230.0 kg/100",
+          "dimensions": "171 × 148 × 195 mm (W × H × D)",
+          "voltage": "690 V",
+          "current": "160 A",
+          "certificates": "IEC 60947-1"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Table",
+            "name": "pack size",
+            "value": "1",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "for fuse links size:",
+            "value": "NH 000, NH 00",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "fuse links acc. to standard:",
+            "value": "IEC / HD 60269-2",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated current (IEC):",
+            "value": "160 A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated voltage (IEC) AC:",
+            "value": "690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated isolation voltage Ui AC:",
+            "value": "1000 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated surge voltage Uimp :",
+            "value": "8 kV",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "cond. short-circuit current with fuses (AC):",
+            "value": "80 kA / 690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "approved wth fuse links of operation class:",
+            "value": "gG",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "weight:",
+            "value": "230.0 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "lam. Cu width:",
+            "value": "15 - 20 mm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "lam. Cu thickness:",
+            "value": "1 - 10 mm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Approvals",
+            "name": "Approval",
+            "value": "Standards IEC 60947-1:2020IEC 60947-3:2020 AC ratings only Approvals IEC (CB) type number: LTS-F160",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Standards",
+            "value": "IEC 60947-1:2020IEC 60947-3:2020 AC ratings only",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Size",
+            "value": "NH 000, NH 00",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Weight",
+            "value": "230.0 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Width",
+            "value": "15 - 20 mm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Thickness",
+            "value": "1 - 10 mm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Isolation voltage",
+            "value": "1000 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated surge voltage",
+            "value": "8 kV / 690V / 500V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated voltage",
+            "value": "690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Short-circuit current",
+            "value": "80 kA",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated current",
+            "value": "160 A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "230.0 kg",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Width",
+            "value": "15...20 mm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Thickness",
+            "value": "1...10 mm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Product group",
+            "value": "15",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Subgroup",
+            "value": "03",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "EAN",
+            "value": "4021267333379",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ECLASS 14.0",
+            "value": "27371401",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 5.0",
+            "value": "EC001040",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 8.0",
+            "value": "EC001040",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 10.0",
+            "value": "EC001040",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "permitted power dissipation of the fuse-link:",
+            "value": "12 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "W x H x D:",
+            "value": "171 x 148 x 195",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "poles:",
+            "value": "3-pole",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Md min.:",
+            "value": "12.6 Nm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Md max.:",
+            "value": "15.4 Nm",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "connection accessories",
+            "value": "33363 000 clamp connector for Cu conductors 2.5 - 70 / 12 x 10 for: LTS-F 160 phase-out product More",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Part No.",
+            "value": "33337 000",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Approvals",
+            "value": "IEC (CB)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "type number",
+            "value": "LTS-F160",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "power dissipation of the article",
+            "value": "The power dissipation at a typical load of 80 % results to 17.9 W. | (The power dissipation at full load would be 28.0 W.)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "Part No.",
+            "value": "33337 000",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "type number",
+            "value": "LTS-F160",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "Part No.",
+            "value": "33337",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "type number",
+            "value": "LTS-F160",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "for",
+            "value": "LTS-F 160",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "for",
+            "value": "LTS-250/400/630 LTS-F 160/250/400",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "for",
+            "value": "LTS-250/400/630, LTS-F 160/250/400, S32 250/400",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "for",
+            "value": "S32 250 A / 400 A, LTS-F 160-400",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 5.0",
+            "value": "EC001040",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8.0",
+            "value": "EC001040",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 10.0",
+            "value": "EC001040",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "12 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "17.9 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "28.0 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "12 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "28.0 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Description",
+            "name": "Product description",
+            "value": "CAPUS Panel switch disconnector with fuses, 3-pole screw M8, graphite-grey handle NH 00, 160 A for mounting plate ERGONFUSE-160",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.96
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "Mounting instructions",
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/download/DOK_ART_MON_33337000?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD model 3D PDF",
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/download/ZEI_ART_3DPDF_33337?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD model 3D STP",
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/download/ZEI_ART_3DSTP_33337?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "CAD symbol 2D DXF",
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/download/ZEI_ART_2DDXF_33337?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "Dimensioned drawing",
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/download/ZEI_ART_MAS_33337?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "Dimensioned drawing #2",
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/download/ZEI_ART_MA2_Griff?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "certificate",
+            "label": "EU declaration of conformity",
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/download/DOK_ART_CE_CE11?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-21T11:11:32.607Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "Wöhner exact PIM article",
+              "url": "https://pim.woehner.de/EN/EN/Panel_switch_disconnectors_fuse_switch_disconnectors_and_hybrid_motor_starters_for_panel_mounted/Switch_disconnectors_with_NH_fuses/size_NH_00/1000049788",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "Wöhner exact PIM article",
+              "statusCode": 200,
+              "attributeCount": 60,
+              "documentCount": 7,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "woehner",
+      "catalogNumber": "37530 000A",
+      "caseType": "electrical",
+      "expectedDeviceType": "Fuse Switch Disconnector",
+      "actualDeviceType": "Fuse Switch Disconnector",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "185power",
+        "inline",
+        "size-00",
+        "prewired-current-transformers"
+      ],
+      "status": "found",
+      "confidence": 0.81,
+      "elapsedMs": 3629,
+      "scrapeElapsedMs": 2656,
+      "productUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261021111112\\pdt\\woehner-37530-000A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 43,
+      "pdtBlankCells": 53,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "in-line fuse switch-disconnector 160 A (37530000A)",
+        "description": "QUADRON 185Power in-line fuse switch-disconnector 160 A Size 00, 3-pole switchable high version with V-clamp 16-120 mm² terminal body alu, pressure piece steel prewired with 3x measuring transformers 150 A / 333 mV, accuracy class 0.5, with 6-pole plug connection from behind for busbars 30, 40, 60, 80, 100, 120 x 10 NEW",
+        "productUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+        "localizedUrls": {
+          "en": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026"
+        },
+        "deviceTypeClassification": {
+          "type": "Fuse Switch Disconnector",
+          "confidence": 0.98,
+          "evidence": "Exact Wöhner PIM article title: in-line fuse switch-disconnector 160 A (37530000A)",
+          "scoreMargin": 2100
+        },
+        "normalized": {
+          "weight": "298.0 kg/100",
+          "dimensions": "50 × 687 × 189 mm (W × H × D)",
+          "voltage": "690 V",
+          "current": "150 A",
+          "protection": "IP20; IP10",
+          "certificates": "IEC 60947-1"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Table",
+            "name": "pack size",
+            "value": "1",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "for fuse links size:",
+            "value": "NH 000, NH 00",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "fuse links acc. to standard:",
+            "value": "IEC / HD 60269-2",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated current (IEC):",
+            "value": "150 A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated voltage (IEC) AC:",
+            "value": "690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "accuracy class (current):",
+            "value": "0.5",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated isolation voltage Ui AC:",
+            "value": "1000 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rated surge voltage Uimp :",
+            "value": "8 kV",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "cond. short-circuit current with fuses (AC):",
+            "value": "30 kA / 800 V (63 A)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "approved wth fuse links of operation class:",
+            "value": "gG",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "weight:",
+            "value": "298.0 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "front degree of protection:",
+            "value": "IP20",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "degree of protection when open:",
+            "value": "IP10",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Standards",
+            "value": "IEC 60947-1:2020IEC 60947-3:2020 AC ratings only",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "160 A; 37530000A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Size",
+            "value": "NH 000, NH 00",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Weight",
+            "value": "298.0 kg/100",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "Degree of protection",
+            "value": "IP20",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Isolation voltage",
+            "value": "1000 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated surge voltage",
+            "value": "8 kV / 800 V / 690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated voltage",
+            "value": "690 V",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Short-circuit current",
+            "value": "30 kA / 63 A / 100 kA",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated current",
+            "value": "150 A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Weight",
+            "value": "298.0 kg",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Product group",
+            "value": "12",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "Subgroup",
+            "value": "62",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "EAN",
+            "value": "4021267375300",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ECLASS 14.0",
+            "value": "27142108",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 5.0",
+            "value": "EC001046",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 8.0",
+            "value": "EC001046",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "ETIM 10.0",
+            "value": "EC001046",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "permitted power dissipation of the fuse-link:",
+            "value": "12 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "short-circuit strength when protected by fuses:",
+            "value": "100 kA",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "min. permitted operation temperature",
+            "value": "-40°C",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "max. permitted operation temperature",
+            "value": "55°C",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "min. permitted temperature for transport and storage",
+            "value": "-40°C",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "W x H x D:",
+            "value": "50 x 687 x 189",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "poles:",
+            "value": "3-pole",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "for busbars:",
+            "value": "30, 40, 60, 80, 100, 120 x 10",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "min. cross-section:",
+            "value": "16 mm²",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "max. cross-section:",
+            "value": "120 mm²",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "re:",
+            "value": "16 - 95 mm²",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "rm:",
+            "value": "16 - 95 mm²",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "se:",
+            "value": "25 - 120 mm²",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Table",
+            "name": "sm:",
+            "value": "25 - 120 mm²",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "accessories for mounting",
+            "name": "connection accessories",
+            "value": "33557 000A V-clamp terminal body alu, pressure piece steel size 00 for Cu / Al 16 - 120 mm² More",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "covers",
+            "name": "connection cable",
+            "value": "37901 000A Connection kit spring connector strip with 6 x 0.5 mm² leads for internal wiring of 333 mV measuring transformers. NEW More 37903 000A pin connector for independent assembly of RJ12 cables NEW More",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "Part No.",
+            "value": "37530 000A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "type number",
+            "value": "QU185-00 Pre-Assembled",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Page Evidence",
+            "name": "power dissipation of the article",
+            "value": "The power dissipation at a typical load of 80 % results to 17.9 W. | (The power dissipation at full load would be 28.0 W.)",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "Part No.",
+            "value": "37530 000A",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Text",
+            "name": "type number",
+            "value": "QU185-00 Pre-Assembled",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "Part No.",
+            "value": "37530",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "type number",
+            "value": "QU185-00 Pre-Assembled",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text",
+            "name": "for",
+            "value": "QU185-00...",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 5.0",
+            "value": "EC001046",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 8.0",
+            "value": "EC001046",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Plain Text Specs",
+            "name": "ETIM 10.0",
+            "value": "EC001046",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "12 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "17.9 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Power dissipation",
+            "value": "28.0 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "12 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Power",
+            "value": "28.0 W",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature for transport",
+            "value": "40°C",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "group": "Description",
+            "name": "Product description",
+            "value": "QUADRON 185Power in-line fuse switch-disconnector 160 A Size 00, 3-pole switchable high version with V-clamp 16-120 mm² terminal body alu, pressure piece steel prewired with 3x measuring transformers 150 A / 333 mV, accuracy class 0.5, with 6-pole plug connection from behind for busbars 30, 40, 60, 80, 100, 120 x 10 NEW",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.96
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "Mounting instructions",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/download/DOK_ART_MON_94784000B?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "Dimensioned drawing",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/download/ZEI_ART_MAS_33700?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "cad",
+            "label": "Dimensioned drawing #2",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/download/ZEI_ART_MA2_33700?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          },
+          {
+            "type": "certificate",
+            "label": "EU declaration of conformity",
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/download/DOK_ART_CE_CE11?ausgabeart=IN",
+            "sourceUrl": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "stage": "Wöhner exact PIM article",
+            "confidence": 0.95
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+            "sourceType": "official-fallback",
+            "parser": "Wöhner exact PIM article",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-21T11:11:36.480Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "Wöhner exact PIM article",
+              "url": "https://pim.woehner.de/EN/EN/System/185Power_2100_A/NH_in-line_fuse_switch_disconnectors/fuse_disc_size_00/fuse_disc_size_00_3-p_switch_333/1000364026",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "Wöhner exact PIM article",
+              "statusCode": 200,
+              "attributeCount": 65,
+              "documentCount": 4,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -73,13 +73,17 @@ export class GenericFallbackScraper {
   constructor(
     private readonly manufacturerId: ProductResult["manufacturerId"],
     private readonly http: CachedHttpClient,
-    private readonly manufacturer?: ManufacturerConfig
+    private readonly manufacturer?: ManufacturerConfig,
+    private readonly selectedInfo?: { shouldStopSelectedInfoSearch: (result: ProductResult) => boolean }
   ) {}
 
   async scrape(catalogNumber: string, sources: FallbackSourceConfig[], signal?: AbortSignal): Promise<ProductResult | undefined> {
     let bestPartial: ProductResult | undefined;
-    for (const source of sources.filter((item) => item.enabled && this.sourceAllowedByPolicy(item)).sort(compareFallbackSources)) {
-      for (const template of source.directUrlTemplates) {
+    const orderedSources = sources.filter((item) => item.enabled && this.sourceAllowedByPolicy(item)).sort(compareFallbackSources);
+    const sourcesToTry = this.selectedInfo ? orderedSources.slice(0, 3) : orderedSources;
+    for (const source of sourcesToTry) {
+      const templatesToTry = this.selectedInfo ? source.directUrlTemplates.slice(0, 1) : source.directUrlTemplates;
+      for (const template of templatesToTry) {
         throwIfCancelled(signal);
         const url = fillCatalogTemplate(template, catalogNumber);
         const match = { ...this.manufacturer?.match, ...source.match };
@@ -108,6 +112,12 @@ export class GenericFallbackScraper {
           const discovery = knownExactEtaProductPage
             ? { candidates: [], rejected: [] }
             : discoverProductLinksWithDiagnostics(fetched.text, fetched.effectiveUrl, catalogNumber);
+          if (
+            !isUnresolvedSearchResultPage(fetched.effectiveUrl, parsed.title, false) &&
+            this.selectedInfo?.shouldStopSelectedInfoSearch(parsed)
+          ) {
+            return withLinkDiagnostics(parsed, discovery);
+          }
           // Phoenix Contact's official reader-backed product endpoint already resolves the exact
           // article and contains its technical data. Its page also exposes many related links; probing
           // four of them serially adds 20–40 seconds without improving the confirmed result. Keep

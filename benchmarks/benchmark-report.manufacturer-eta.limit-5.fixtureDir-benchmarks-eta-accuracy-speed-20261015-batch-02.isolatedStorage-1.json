@@ -1,0 +1,2559 @@
+{
+  "generatedAt": "2026-10-15T17:43:02.464Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944",
+  "filters": {
+    "manufacturer": "eta",
+    "limit": "5",
+    "fixtureDir": "benchmarks/eta-accuracy-speed-20261015/batch-02",
+    "isolatedStorage": "1"
+  },
+  "summary": {
+    "foundRate": 66.7,
+    "officialUrlRate": 66.7,
+    "documentRate": 66.7,
+    "pdtAuditRate": 66.7,
+    "deviceTypeRate": 66.7,
+    "normalizedFieldsRate": 66.7,
+    "expectedAttributesRate": 66.7,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 2,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "eta": {
+          "total": 3,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "battery-isolation-switch",
+            "dc-ok",
+            "eta-batch-02",
+            "iec-ul1077",
+            "miniature-circuit-breaker",
+            "remote-disconnect",
+            "single-phase-smps"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Miniature Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Power Supply": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        },
+        "Disconnect Switch": {
+          "total": 1,
+          "manufacturers": [
+            "eta"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "contactor a. fuses": {
+          "total": 2,
+          "deviceTypes": [
+            "Disconnect Switch",
+            "Miniature Circuit Breaker"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        },
+        "power supply devices": {
+          "total": 1,
+          "deviceTypes": [
+            "Power Supply"
+          ],
+          "manufacturers": [
+            "eta"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management",
+            "Thermostat"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 2,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "4230-T110-K0CE-10A",
+      "caseType": "electrical",
+      "expectedDeviceType": "Miniature Circuit Breaker",
+      "actualDeviceType": "Miniature Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eta-batch-02",
+        "miniature-circuit-breaker",
+        "iec-ul1077"
+      ],
+      "status": "found",
+      "confidence": 0.47,
+      "elapsedMs": 3674,
+      "scrapeElapsedMs": 70,
+      "productUrl": "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\pdt\\eta-4230-T110-K0CE-10A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 38,
+      "pdtBlankCells": 59,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 3,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "productUrl": "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/",
+        "deviceTypeClassification": {
+          "type": "Miniature Circuit Breaker",
+          "confidence": 0.86,
+          "evidence": "Product Type: Miniature Circuit Breaker",
+          "alternatives": [
+            {
+              "type": "Circuit Breaker",
+              "score": 1635,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 9
+        },
+        "normalized": {
+          "voltage": "AC 240 V / DC 80 V",
+          "current": "10 A",
+          "weight": "29 g (0.029 kg)",
+          "dimensions": "W 9 mm",
+          "certificates": "UL 489",
+          "operatingTemperatureMin": "-35",
+          "operatingTemperatureMax": "70"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA datasheet identity",
+            "name": "Catalog Number",
+            "value": "4230-T110-K0CE-10A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Product Data",
+            "name": "Product Type",
+            "value": "Miniature Circuit Breaker",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Product Data",
+            "name": "Description",
+            "value": "Single-pole 4230-T thermal-magnetic miniature circuit breaker, C characteristic, IEC/EN 60947-2 and UL 1077",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Technical Data",
+            "name": "Rated Voltage",
+            "value": "AC 240 V / DC 80 V",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Technical Data",
+            "name": "Rated Current",
+            "value": "10 A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Technical Data",
+            "name": "Ordering code",
+            "value": "4230-T110-K0CE-10A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Technical Data",
+            "name": "Number of poles",
+            "value": "1 pole",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Technical Data",
+            "name": "Trip characteristic",
+            "value": "C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf"
+          },
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "group": "ETA Technical Data",
+            "name": "Mounting method",
+            "value": "DIN rail",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf"
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-35°C / 70°C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient temperature",
+            "value": "-35 °C / 70 °C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Mass",
+            "value": "29 g",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Tightening torque",
+            "value": "2 Nm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Tightening torque",
+            "value": "1 Nm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "9 mm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Cable cross section",
+            "value": "≤35 mm²",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Stripping length",
+            "value": "14 mm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "4230-T110-K0CE-10A",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "ordering example",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Current ratings:",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "4230 - T1 1 0 - K0 C E - 10 A ordering example",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "* not for UL 489",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "temperature +40°C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ambient temperature -35°C...+ 70°C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "E IEC/EN 60947-2 (TÜV) / UL 1077",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "U UL 489 (only 1-, 2- & 3-pole) /",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Dimensions – UL 489 version",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "...times rated current",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Ambient temperature 30 °C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Current",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Feature",
+            "value": "Voltage",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Rated currents to UL 489:",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "Ambient temperature -35 °C ...+ 70 °C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Feature",
+            "value": "UL UL 489 with key index \"B\"",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "ETA family datasheet",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Current",
+            "value": "ratings:",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "4230 - T1 1 0 - K0 C",
+            "value": "E - 10 A ordering example",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "* not for UL",
+            "value": "489",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Terminals",
+            "value": "screw terminals",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Tightening torque",
+            "value": "2 Nm max.",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Stripping length",
+            "value": "14 mm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Cable cross section",
+            "value": "≤35 mm²",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ambient temperature",
+            "value": "-35°C...+ 70°C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mounting",
+            "value": "rail mounting",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "1-pole",
+            "value": "DC 60 V | 1...63 A | 1 | 0 | 7.5 kA, U1",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "E IEC/EN 60947-2 (TÜV) / UL",
+            "value": "1077",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "U UL",
+            "value": "489 (only 1-, 2- & 3-pole) /",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Dimensions",
+            "value": "– IEC/EN 60947-2 / UL1077 version",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Dimensions",
+            "value": "– UL 489 version",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "60.2 ± 0.3",
+            "value": "52.9 ± 0.6",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Ambient temperature",
+            "value": "30 °C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Mounting",
+            "value": "principle",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Current",
+            "value": "AC 12…",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Approvals",
+            "name": "Voltage",
+            "value": "AC 12…",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Rated currents to UL",
+            "value": "489:",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Typical life",
+            "value": "20,000 cycles",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Tightening torque",
+            "value": "1 Nm max.",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Ambient temperature",
+            "value": "-35 °C ...+ 70 °C",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Width",
+            "value": "9 mm",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Mass",
+            "value": "approx. 29 g",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "Standard",
+            "value": "Types",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Technical Data",
+            "name": "UL",
+            "value": "UL 489 | with key index \"B\"",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "sourceType": "official-fallback",
+            "parser": "eta-family-datasheet-rule",
+            "stage": "family-datasheet-rule",
+            "confidence": 0.78,
+            "type": "datasheet",
+            "label": "ETA family datasheet",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "sourceUrl": "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\documents\\4230-T110-K0CE-10A-datasheet-ETA-family-datasheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/",
+            "sourceType": "official-fallback",
+            "parser": "eta-4230-t110-k0ce-10a-ordering-example",
+            "parserVersion": "eta-v1",
+            "stage": "family-datasheet-rule",
+            "reason": "ETA official product family page and datasheet identify the orderable family and published ratings.",
+            "fetchedAt": "2026-10-15T17:39:45.110Z"
+          },
+          {
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "sourceType": "official-fallback",
+            "parser": "eta-4230-t110-k0ce-10a-ordering-example",
+            "parserVersion": "eta-v1",
+            "stage": "exact-model-datasheet",
+            "reason": "The official ETA datasheet supports the exact requested model and the published technical ratings.",
+            "fetchedAt": "2026-10-15T17:39:45.110Z"
+          },
+          {
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schutzschalter_Sicherungsautomaten/Therm_magn/2_en/D_4230-T_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T17:39:47.549Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "eta-4230-t110-k0ce-10a-ordering-example",
+              "url": "https://global.e-t-a.com/products/circuit_protection_devices/thermal_magnetic_overcurrent_circuit_breakers/p/4230_t_ul_1077_en_60947_2/",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "eta-4230-t110-k0ce-10a-ordering-example",
+              "attributeCount": 10,
+              "documentCount": 1,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "SMPS-T 10A",
+      "caseType": "electrical",
+      "expectedDeviceType": "Power Supply",
+      "actualDeviceType": "Power Supply",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "eta-batch-02",
+        "single-phase-smps",
+        "dc-ok"
+      ],
+      "status": "found",
+      "confidence": 0.73,
+      "elapsedMs": 12644,
+      "scrapeElapsedMs": 3082,
+      "productUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\pdt\\eta-SMPS-T-10A-pdt_pdt-audit.json",
+      "pdtWrittenCells": 58,
+      "pdtBlankCells": 133,
+      "pdtSkippedCells": 6,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Type SMPS-T 10A",
+        "description": "Single-phase switch-mode power supplies offering efficient voltage regulation, overload protection, and compact design for industrial applications.",
+        "productUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+        "localizedUrls": {
+          "en": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/"
+        },
+        "deviceTypeClassification": {
+          "type": "Power Supply",
+          "confidence": 0.76,
+          "evidence": "Title: Type SMPS-T 10A",
+          "alternatives": [
+            {
+              "type": "Switch",
+              "score": 1335,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 30
+        },
+        "normalized": {
+          "voltage": "24 V",
+          "current": "10 A",
+          "certificates": "IEC, CE, UKCA, WEEE, RoHS, REACH Regulation, TSCA",
+          "operatingTemperatureMin": "-35",
+          "operatingTemperatureMax": "70"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "REACH",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "RoHS",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Certifications",
+            "name": "Certification",
+            "value": "WEEE",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Rated input voltage",
+            "value": "AC 120 V...AC 240 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Input voltage range (V)",
+            "value": "AC 90...264 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Output voltage (V)",
+            "value": "DC 24 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Output voltage range",
+            "value": "DC 22 V...DC 29 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Temperature range",
+            "value": "-35...+70 °C",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Certificates",
+            "value": "UL508, UL61010-1, UL61010-2-201, IEC/EN61010-1, IEC/EN61010-2-201, REACH, RoHS, CE, UKCA",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Title/Description Inference",
+            "name": "Current",
+            "value": "10A",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "generated",
+            "parser": "summary-inference",
+            "stage": "summary-inference",
+            "confidence": 0.45
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Input voltage",
+            "value": "120 V / 240 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Input voltage range",
+            "value": "90...264 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Output voltage",
+            "value": "24 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Output voltage range",
+            "value": "22 V / 29 V",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Electrical Text",
+            "name": "Rated current",
+            "value": "10 A",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Ontology Spec Text",
+            "name": "Temperature range",
+            "value": "-35...70 °C",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Meta",
+            "name": "description",
+            "value": "Single-phase switch-mode power supplies offering efficient voltage regulation, overload protection, and compact design for industrial applications.",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Typical efficiency (%)",
+            "value": "> 93%",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Power boost",
+            "value": "150 %",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Signal output",
+            "value": "DC OK - potential-free contact",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Status indication",
+            "value": "2 LED green/red operating condition",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Technical Data",
+            "name": "Mounting method",
+            "value": "rail mounting",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "Mobility & Transport Overview Aerospace Agriculture Equipment Automotive Bus",
+            "value": "Transit & School Commercial Trucks Construction & Forestry Emergency Vehicles Marine Work Trucks",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Text",
+            "name": "Bus",
+            "value": "Transit & School",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "stroke",
+            "value": "#009fe4;",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Plain Text",
+            "name": "clip-path",
+            "value": "url(#clippath);",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "substances above the limit values listed in the current Annex XIV of the REACH Regulation, the so-",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "the chemical substances listed in the Annex XVII of the REACH Regulation above the applicable limits.",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Chemicals Agency ECHA. For specific products, exemptions 6a., 6b., 6c., 7a. and 7c. I of the RoHS",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "Declaration of Conformity – REACH 253 (04-Feb-2026)",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "REACH and actively request related information. At present, we are not aware of any products supplied",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "REACH Regulation.",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "as specified in the REACH",
+            "value": "Regulation. According to the European Chemicals Agency ECHA, we are",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "E-Mail",
+            "value": "compliance@e-t-a.de",
+            "sourceUrl": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Products/Schaltnetzteile/2_en/D_SMPS-T-01-1-240-DC24V-10A_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\documents\\SMPS-T-10A-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "failed",
+            "parseError": "Invalid PDF structure."
+          },
+          {
+            "type": "datasheet",
+            "label": "Technical Information",
+            "url": "https://www.e-t-a.com/footer_navigation/technical_information/",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/#productDownloads",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\documents\\SMPS-T-10A-datasheet-Data-sheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "failed",
+            "parseError": "Invalid PDF structure."
+          },
+          {
+            "type": "datasheet",
+            "label": "Data sheet",
+            "url": "javascript:;",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "Find Reps & Distributors E-T-A's sales network stretches across North America- providing customers with convenient and local access to E-T-A products and services.",
+            "url": "https://www.e-t-a.com/contact/e_t_a_sales_network/",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "Datasheets, CAD, Manuals, etc. Looking for CAD drawings, technical documentation, and more? Visit the download center for everything you need to specify E-T-A products.",
+            "url": "https://www.e-t-a.com/resource_center/download_center/",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\documents\\SMPS-T-10A-manual-Datasheets,-CAD,-Manuals,-etc.-Looking-for-CAD-drawings,-technical-documentation.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "failed",
+            "parseError": "Invalid PDF structure."
+          },
+          {
+            "type": "cad",
+            "label": "SMPS-T.zip",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/Downloads_Products/CAD-ZIP-Data/CAD_Daten/SMPS-T/SMPS-T.zip",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\documents\\SMPS-T-10A-cad-SMPS-T.zip.zip",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Interactive Virtual Sample Kit Filter products, 360° CAD product viewer, request samples all from the comfort of your desk with E-T-A's new interactive sample kit.",
+            "url": "https://www.e-t-a.com/resource_center/interactive_virtual_sample_kit/",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015173944\\documents\\SMPS-T-10A-certificate-REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "certificate",
+            "label": "TSCA Letter of Confirmation",
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/TSCA_Letter_of_Confirmation_E-T-A_GmbH_en.pdf",
+            "sourceUrl": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "stage": "ETA smps t 10a product page",
+            "confidence": 0.88
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+            "sourceType": "official-fallback",
+            "parser": "ETA smps t 10a product page",
+            "parserVersion": "generic-v3",
+            "fetchedAt": "2026-10-15T17:39:49.545Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.e-t-a.com/fileadmin/user_upload/Ordnerstruktur/pdf-Data/Declaration_of_Conformity_General/REACH_253_Declaration_of_Conformity_E-T-A_GmbH_en.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-15T17:40:00.607Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "ETA smps t 10a product page",
+              "url": "https://www.e-t-a.com/products/power_supplies/1_phase_switch_mode_power_supplies/p/smps_t_10a/",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official-fallback",
+              "parser": "ETA smps t 10a product page",
+              "statusCode": 200,
+              "attributeCount": 26,
+              "documentCount": 10,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "eta",
+      "catalogNumber": "E-1073-437",
+      "caseType": "electrical",
+      "expectedDeviceType": "Disconnect Switch",
+      "deviceTypeMatched": false,
+      "riskTags": [
+        "eta-batch-02",
+        "battery-isolation-switch",
+        "remote-disconnect"
+      ],
+      "status": "error",
+      "confidence": 0,
+      "elapsedMs": 180021,
+      "scrapeElapsedMs": 0,
+      "identityConfirmed": false,
+      "wrongProduct": false,
+      "officialUrlMatched": false,
+      "requiredDocumentsMatched": false,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": false,
+      "pdtAuditMatched": false,
+      "pdtWrittenCells": 0,
+      "pdtBlankCells": 0,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [
+        "error",
+        "timeout"
+      ],
+      "resultEvidence": {
+        "deviceTypeClassification": {},
+        "normalized": {},
+        "requiredElectricalFields": [],
+        "attributes": [],
+        "documents": [],
+        "sources": []
+      },
+      "error": "Benchmark fixture timed out after 180000 ms."
+    }
+  ]
+}

@@ -869,7 +869,7 @@ function isAuthWallUrl(url: string): boolean {
 }
 
 function isSearchLikeUrl(url: string): boolean {
-  return /\/(?:site-)?search(?:\/|$)|[?&](?:s|q|query|search|term|text|keyword|searchterm)=/i.test(url);
+  return /\/(?:site-)?search(?:\/|$)|\/suchergebnis(?:\/|$)|[?&](?:s|q|query|search|term|text|keyword|searchterm|searchpattern)=/i.test(url);
 }
 
 /** Evidence collected only AFTER a candidate URL has been fetched. URL shape is useful for deciding

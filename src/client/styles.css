@@ -879,6 +879,11 @@ textarea:focus {
   background: rgba(27, 34, 43, 0.95);
 }
 
+.run-option-card.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .run-option-card input {
   flex: 0 0 auto;
   width: 16px;
@@ -2495,6 +2500,32 @@ tbody tr:hover {
   margin: 0 0 4px;
 }
 
+.only-selected-summary {
+  display: grid;
+  gap: 3px;
+  padding: 10px 11px;
+  border: 1px solid rgba(100, 217, 133, 0.35);
+  border-radius: 7px;
+  background: rgba(100, 217, 133, 0.08);
+  line-height: 1.4;
+}
+
+.only-selected-summary strong {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.only-selected-summary span {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.only-selected-summary.is-warning {
+  border-color: rgba(255, 190, 92, 0.45);
+  background: rgba(255, 190, 92, 0.08);
+}
+
 .run-coverage-editor-actions {
   display: flex;
   justify-content: space-between;
@@ -3231,7 +3262,7 @@ tbody tr:hover {
 .pdt-routing-panel {
   position: relative;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
   gap: 12px;
   width: min(1100px, 96vw);
   max-height: 90vh;
@@ -3280,6 +3311,45 @@ tbody tr:hover {
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 6px;
+}
+
+.pdt-group-editor {
+  display: grid;
+  gap: 8px;
+  max-height: 30vh;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 12px;
+}
+
+.pdt-group-toggle { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.pdt-group-editor > p { margin: 0; color: var(--muted); }
+.pdt-group-summary { color: var(--muted); font-weight: 600; }
+.pdt-group-issues { display: grid; gap: 3px; color: #ffb5b5; }
+.pdt-group-card { display: grid; gap: 8px; padding: 9px; border: 1px solid var(--border); border-radius: 5px; }
+.pdt-group-fields { display: grid; grid-template-columns: 1fr 1.3fr 1fr auto; gap: 8px; align-items: end; }
+.pdt-group-fields label, .pdt-group-catalogs { display: grid; gap: 4px; color: var(--muted); }
+.pdt-group-fields input, .pdt-group-fields select, .pdt-group-catalogs textarea { width: 100%; min-width: 0; }
+.pdt-group-catalogs textarea { resize: vertical; font: 12px/1.4 ui-monospace, monospace; }
+.pdt-group-catalogs span { font-size: 11px; }
+.pdt-group-add-selected { justify-self: start; }
+.pdt-routing-review-toggle { justify-self: start; }
+
+.pdt-files-menu { position: relative; }
+.pdt-files-menu > summary { display: flex; align-items: center; gap: 7px; list-style: none; cursor: pointer; }
+.pdt-files-menu > summary::-webkit-details-marker { display: none; }
+.pdt-files-list { position: absolute; z-index: 25; top: calc(100% + 6px); right: 0; display: grid; gap: 2px; min-width: 240px; max-height: 50vh; overflow: auto; padding: 6px; border: 1px solid var(--border-strong); border-radius: 6px; background: #10151b; box-shadow: var(--shadow); }
+.pdt-files-list a { display: flex; justify-content: space-between; gap: 14px; padding: 8px; border-radius: 4px; color: inherit; text-decoration: none; }
+.pdt-files-list a:hover { background: rgba(255,255,255,.08); }
+.pdt-files-list small { color: var(--muted); white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .pdt-routing-panel { width: 98vw; max-height: 96vh; padding: 12px; }
+  .pdt-group-fields { grid-template-columns: 1fr; }
+  .pdt-files-list { right: auto; left: 0; }
 }
 
 .pdt-routing-table {

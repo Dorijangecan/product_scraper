@@ -1,0 +1,4649 @@
+{
+  "generatedAt": "2026-10-14T10:46:50.997Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014104551",
+  "filters": {
+    "catalogNumber": "1SDA066799R1",
+    "fixtureDir": "benchmarks/abb-accuracy-speed-20261014/batch-01",
+    "isolatedStorage": "1",
+    "tag": "mccb-stage-baseline"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 0,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": false,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "abb": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "cold",
+            "mccb",
+            "tmax-xt1"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Molded Case Circuit Breaker": {
+          "total": 1,
+          "manufacturers": [
+            "abb"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "contactor a. fuses": {
+          "total": 1,
+          "deviceTypes": [
+            "Molded Case Circuit Breaker"
+          ],
+          "manufacturers": [
+            "abb"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "abb"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1783",
+              "deviceType": "Communication Gateway",
+              "notes": "Stratix industrial networking and communication modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2702665",
+              "deviceType": "Switch",
+              "notes": "Phoenix FL SWITCH 2105 item number"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "EFM",
+              "deviceType": "Switch",
+              "notes": "Schmersal foot switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Power Meter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Magnetic Field Sensor",
+            "RFID Device",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BTL",
+              "deviceType": "Encoder",
+              "notes": "Magnetostrictive linear encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42EF",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "42JS",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "XU",
+              "deviceType": "Photoelectric Sensor",
+              "notes": "OsiSense XU"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "HMI",
+              "deviceType": "HMI",
+              "notes": "Harmony HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Relay",
+            "Safety Sensor",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": true,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "abb",
+      "catalogNumber": "1SDA066799R1",
+      "caseType": "electrical",
+      "expectedDeviceType": "Molded Case Circuit Breaker",
+      "actualDeviceType": "Molded Case Circuit Breaker",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "tmax-xt1",
+        "mccb"
+      ],
+      "status": "found",
+      "confidence": 0.75,
+      "elapsedMs": 58283,
+      "productUrl": "https://new.abb.com/products/1SDA066799R1",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014104551\\pdt\\abb-1SDA066799R1-pdt_pdt-audit.json",
+      "pdtWrittenCells": 34,
+      "pdtBlankCells": 16,
+      "pdtSkippedCells": 47,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "XT1B 160 TMD 16-450 3p F F",
+        "description": "C.BREAKER TMAX XT1B 160 FIXED THREE-POLE WITH FRONT TERMINALS AND THERMOMAGNETIC RELEASE TMD R 16-450 A",
+        "productUrl": "https://new.abb.com/products/1SDA066799R1",
+        "localizedUrls": {
+          "en": "https://new.abb.com/products/1SDA066799R1",
+          "de": "https://new.abb.com/products/de/1SDA066799R1"
+        },
+        "localizedDescriptions": {
+          "de": {
+            "title": "Kompaktleistungsschalter Tmax XT1 mit vorderseitigen Anschlüssen, 3polig",
+            "description": "Kompaktleistungsschalter für Anlagenschutz gemäß EN 60947-2 (DIN VDE 0660, Teil 101), Kompaktlasttrennschalter gemäß EN 60947-3 (DIN VDE 0660, Teil 107). Die Kompaktleistungs- / Lasttrennschalter Tmax XT entsprechen den unterschiedlichen Anlagenanforderungen von Gleich- und Wechselstromnetzen. Tmax XT mit thermomagnetischen- oder elektronischen Auslösern sind einsetzbar zum Schutz von Energieverteilungen, Kabeln, Generatoren und Motoren. Viele dieser Leistungsschalter können auch in Kommunikationssystemen benutzt werden. Umfangreiche Anschlussumbausätze, mechanisches und elektrisches Zubehör sowie Versionsumbausätze (steckbar / ausfahrbar) stehen zur Verfügung. Verschiedene Feldbus und IP Kommunikationsprotokolle können zum Einsatz kommen. Der Installationsprozess wird, dank der Bluetooth- und Ekip-Konnektivität für mobile Geräte, vereinfacht. Die in die SACE Tmax XT-Serie integrierte Konnektivität verknüpft Smartphones, Tablets und PCs in Echtzeit mit Datenanalysetools."
+          }
+        },
+        "deviceTypeClassification": {
+          "type": "Molded Case Circuit Breaker",
+          "confidence": 0.86,
+          "evidence": "Product Main Type: SACE Tmax XT",
+          "alternatives": [
+            {
+              "type": "Circuit Breaker",
+              "score": 1655,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 20
+        },
+        "normalized": {
+          "weight": "1.1 kg",
+          "dimensions": "130 x 76.2 x 70 mm",
+          "voltage": "690 V AC; 500 V DC",
+          "current": "16 A",
+          "certificates": "CE"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "ABB Product Data",
+            "name": "Extended Product Type",
+            "value": "XT1B 160 TMD 16-450 3p F F",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Product ID",
+            "value": "1SDA066799R1",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "EAN",
+            "value": "8015644003265",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Catalog Description",
+            "value": "XT1B 160 TMD 16-450 3p F F",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Long Description",
+            "value": "C.BREAKER TMAX XT1B 160 FIXED THREE-POLE WITH FRONT TERMINALS AND THERMOMAGNETIC RELEASE TMD R 16-450 A",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Product Data",
+            "name": "Display Name",
+            "value": "XT1B 160 TMD 16-450 3p F F",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Supplier Information - INABB015",
+            "name": "Country of Origin",
+            "value": "India",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Supplier Information - INABB015",
+            "name": "Made To Order",
+            "value": "No",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Supplier Information - INABB015",
+            "name": "No Warranty Return",
+            "value": "Product under warranty must be returned",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Supplier Information - INABB015",
+            "name": "Product Sales Status",
+            "value": "Active",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Supplier Information - INABB015",
+            "name": "Quote Only",
+            "value": "No",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Supplier Information - INABB015",
+            "name": "Stocked At Warehouses",
+            "value": "INABB015EXPU",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "ABB EcoSolutions",
+            "value": "Yes",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "ABB Site Meeting Group Waste To Landfill Target",
+            "value": "UL 2799 Zero Waste To Landfill Validation available",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "End Of Life Disassembling Instructions",
+            "value": "9AKK108468A2347",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Environmental Product Declaration - EPD",
+            "value": "9AKK108468A1890; 9AKK108468A7793",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Extended Product Lifetime",
+            "value": "Product is Modular",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB ABB EcoSolutions",
+            "name": "Recyclability Rate of the Product acc. to EN45555",
+            "value": "Design for Closing Resource Loops - Standard EN45555 - 55.9 %",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "REACH Declaration",
+            "value": "9AKK108466A1425",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "RoHS Declaration",
+            "value": "9AKK108466A1424",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "RoHS Information",
+            "value": "Following EU Directive 2011/65/EU and Amendment 2015/863 July 22, 2019",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "Conflict Minerals Reporting Template (CMRT)",
+            "value": "9AKK108467A5658",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Material Compliance",
+            "name": "Tox Sub Con Act",
+            "value": "9AKK108467A8326",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Environmental",
+            "name": "Environmental Information",
+            "value": "9AKK108467A6707",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "Order Code US and Canada",
+            "value": "XT1BE3016AFF000XXX",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "E-Number (Finland)",
+            "value": "3602498",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "E-Number (Norway)",
+            "value": "4309600",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "Minimum Order Quantity",
+            "value": "1 piece",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Ordering",
+            "name": "Customs Tariff Number",
+            "value": "85362090",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Width",
+            "value": "76.2 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Height",
+            "value": "130 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Depth / Length",
+            "value": "70 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Dimensions",
+            "name": "Product Net Weight",
+            "value": "1.1 kg",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Container Information",
+            "name": "Package Level 1 Units",
+            "value": "box 1 piece",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Container Information",
+            "name": "Package Level 1 Width",
+            "value": "128 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Container Information",
+            "name": "Package Level 1 Height",
+            "value": "135 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Container Information",
+            "name": "Package Level 1 Depth / Length",
+            "value": "143 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Container Information",
+            "name": "Package Level 1 Gross Weight",
+            "value": "1.119 kg",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Container Information",
+            "name": "Package Level 1 EAN",
+            "value": "8015644003265",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Additional information",
+            "name": "Circuit Breaker Type to be Associated",
+            "value": "Power Distribution",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Additional information",
+            "name": "Product Main Type",
+            "value": "SACE Tmax XT",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Additional information",
+            "name": "Product Name",
+            "value": "Moulded Case Circuit Breaker",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Additional information",
+            "name": "Product Type",
+            "value": "Automatic Circuit Breaker",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Additional information",
+            "name": "Version",
+            "value": "F",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Additional information",
+            "name": "CAD Dimensional Drawing",
+            "value": "1SDH001295R0008",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Connecting Capacity Main Circuit",
+            "value": "Busbar 45.5 ... 80 mm²",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Current Type",
+            "value": "AC/DC",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Electrical Durability",
+            "value": "120 cycles per hour; 8000 cycle",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Mechanical Durability",
+            "value": "240 cycles per hour; 25000 cycle",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Number of Poles",
+            "value": "3P",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Opening Time",
+            "value": "CB with SOR 30 ms; CB with UVR 30 ms",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Order Multiple",
+            "value": "1 piece",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Power Loss",
+            "value": "1.5 W",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Current",
+            "value": "16 A",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Frequency",
+            "value": "50 / 60 Hz",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Impulse Withstand Voltage",
+            "value": "8 kV",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Instantaneous Short-Circuit Current Setting (I i )",
+            "value": "450 A",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Insulation Voltage",
+            "value": "800 V",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Operational Voltage",
+            "value": "690 V AC; 500 V DC",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Service Short-Circuit Breaking Capacity",
+            "value": "(220 V AC) 25 kA; (230 V AC) 25 kA; (240 V AC) 25 kA; (380 V AC) 18 kA; (415 V AC) 18 kA; (440 V AC) 11.25 kA; (500 V AC) 8 kA; (525 V AC) 6 kA; (690 V AC) 3 kA; (250 V DC) 2 Poles in Series 18 kA; (500 V DC) 3 Poles in Series 18 kA",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Ultimate Short-Circuit Breaking Capacity",
+            "value": "(220 V AC) 25 kA; (230 V AC) 25 kA; (240 V AC) 25 kA; (380 V AC) 18 kA; (415 V AC) 18 kA; (440 V AC) 15 kA; (500 V AC) 8 kA; (525 V AC) 6 kA; (690 V AC) 3 kA; (250 V DC) 2 Poles in Series 18 kA; (500 V DC) 3 Poles in Series 18 kA",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Uninterrupted Current (I u )",
+            "value": "160 A",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rated Voltage (U r )",
+            "value": "690 V",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Rec Scr Dri",
+            "value": "Main Circuit M6",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Release",
+            "value": "TMD",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Release Type",
+            "value": "TM",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Setting Range",
+            "value": "11.2...16 A",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Short-Circuit Performance Level",
+            "value": "B",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Standards",
+            "value": "IEC60947-2",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Sub-type",
+            "value": "XT1",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Terminal Connection Type",
+            "value": "Front",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Terminal Type",
+            "value": "Bolt",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Technical",
+            "name": "Tightening Torque",
+            "value": "6 N·m",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "ATEX Certificate",
+            "value": "No certification needed",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "Data Sheet, Technical Information",
+            "value": "1SDC210100D0206; 1SDC210099D0206",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "Declaration of Conformity - CE",
+            "value": "9AKK106713A5532",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "GL Certificate",
+            "value": "1SDL000163R0103",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "LR Certificate",
+            "value": "1SDL000163R0100",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "UL Certificate",
+            "value": "No certification needed",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "VDE Certificate",
+            "value": "No certification needed",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "Dimension Diagram",
+            "value": "1SDH000719R0100",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "Mechanical Drawings",
+            "value": "1SDH000719R0100",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "Wiring Diagram",
+            "value": "1SDM000068R0001",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Certificates and declarations",
+            "name": "Instructions and Manuals",
+            "value": "1SDH000719R0001",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "Etim9",
+            "value": "EC000228 - Power circuit-breaker for trafo/generator/installation protection",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "Etim10",
+            "value": "EC000228 - Power circuit-breaker for trafo/generator/installation protection",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "Object Classification Code",
+            "value": "Q",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "WEEE Category",
+            "value": "5. Small Equipment (No External Dimension More Than 50 cm)",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB External classifications and standards",
+            "name": "eClass",
+            "value": "V11.1 : 27370409",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model",
+            "confidence": 0.96
+          },
+          {
+            "group": "ABB Accessories",
+            "name": "Accessory",
+            "value": "1SDA066305R1 - ADP MONT. FIXED TERM. x PF XT1 3p (Type: ADP MONT. FIXED TERM. x PF XT1 3p) (Qty: 1 piece)",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model-relationships",
+            "confidence": 0.9
+          },
+          {
+            "group": "ABB Accessories",
+            "name": "Accessory",
+            "value": "1SDA066865R1 - KIT EF XT1 3pcs (Type: KIT EF XT1 3pcs) (Qty: 1 piece)",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model-relationships",
+            "confidence": 0.9
+          },
+          {
+            "group": "ABB Accessories",
+            "name": "Accessory",
+            "value": "1SDA066867R1 - KIT EF XT1 6pcs (Type: KIT EF XT1 6pcs) (Qty: 1 piece)",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model-relationships",
+            "confidence": 0.9
+          },
+          {
+            "group": "ABB Accessories",
+            "name": "Accessory",
+            "value": "1SDA066260R1 - KIT EF FP XT1 3pcs (Type: KIT EF FP XT1 3pcs) (Qty: 1 piece)",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model-relationships",
+            "confidence": 0.9
+          },
+          {
+            "group": "ABB Accessories",
+            "name": "Accessory",
+            "value": "1SDA066889R1 - KIT ES XT1 3pcs (Type: KIT ES XT1 3pcs) (Qty: 1 piece)",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model-relationships",
+            "confidence": 0.9
+          },
+          {
+            "group": "ABB Product Classification",
+            "name": "Products Path",
+            "value": "Products > Low Voltage Products and Systems > Circuit Breakers > Moulded Case Circuit Breakers > Tmax XT",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model-classification",
+            "confidence": 0.88
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Extended Product Type",
+            "value": "XT1B 160 TMD 16-450 3p F F",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product ID",
+            "value": "1SDA066799R1",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "EAN",
+            "value": "8015644003265",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Catalog Description",
+            "value": "XT1B 160 TMD 16-450 3p F F",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Long Description",
+            "value": "C.BREAKER TMAX XT1B 160 FIXED THREE-POLE WITH FRONT TERMINALS AND THERMOMAGNETIC RELEASE TMD R 16-450 A",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Width",
+            "value": "76.2 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Height",
+            "value": "130 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Depth / Length",
+            "value": "70 mm",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "ABB Legacy Markers",
+            "name": "Product Net Weight",
+            "value": "1.1 kg",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1"
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated voltage",
+            "value": "24V / 110V / 220V",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "7/20 SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Power supply voltage Operating current according to the utilization category",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Power supply voltage",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Operating current",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "250V AC - 6 A - 5 A (UL/CSA)",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "7/26 SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "contacts close, in accordance with IEC 60204-1 and VDE 0113 standards.",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "7/36 SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "continuity of the opening and closing releases with a rated operating voltage between 24V and 250V",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Maximum interrupted current 6A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Maximum interrupted voltage 250V AC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "7/42 SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Rated voltage, Un",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Operating voltage [% Un] MIN=85% Un;",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data Sheet, Technical Information: 1SDC210100D0206",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "7/20",
+            "value": "SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Power supply voltage",
+            "value": "Operating current according to the utilization category",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "AC-15",
+            "value": "AC-14 | AC-13 | DC-14 | DC-13 | DC-12",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "250V AC",
+            "value": "4 A | 5 A | 6 A | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "125V AC",
+            "value": "5 A | 6 A | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "250V DC",
+            "value": "- | 0.03 A | 0.3 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "110V DC",
+            "value": "- | 0.05 A | 0.5 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Power supply voltage",
+            "value": "Operating current",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "5 V DC",
+            "value": "0.001 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "30 V DC",
+            "value": "0.1 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Combinations",
+            "value": "XT2 | XT4 | XT5",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "3/4p",
+            "value": "3/4p",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2Q 400V",
+            "value": "F-P-W",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "F",
+            "value": "Fixed, P = Plug-in, W = Withdrawable",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "AC",
+            "value": "DC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "125 AC/DC",
+            "value": "– | 0.5",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "250 AC/DC",
+            "value": "12 | 0.3",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "400 AC (1)",
+            "value": "3 | –",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "3-pole circuit-breaker",
+            "value": "4-pole circuit-breaker",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "AUX 400V",
+            "value": "AUX 400V",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2Q 400V",
+            "value": "2Q 400V",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2Q 400V",
+            "value": "1Q+",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "S75I=104",
+            "value": "S75I=102",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "S75I",
+            "value": "102",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "S75E",
+            "value": "144",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "S75E",
+            "value": "142",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "S75I",
+            "value": "104",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Operating current",
+            "value": "L/R = 10 ms Resistive load",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "L/R = 10 ms",
+            "value": "Resistive load",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "250V AC",
+            "value": "- | 6 A - 5 A (UL/CSA)",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "125V AC",
+            "value": "- | 6 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "250V DC",
+            "value": "0.2 A | 0.3 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "110V DC",
+            "value": "0.3 A | 0.45 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "24V DC",
+            "value": "5 A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "7/26",
+            "value": "SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "400V/250V AC/DC contact",
+            "value": "24V DC contact",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Type",
+            "value": "Changeover contacts",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Minimum load",
+            "value": "100mA @ 24V | 1mA @ 5V",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Breaking capacity",
+            "value": "DC 24V - 0.1A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "DC",
+            "value": "24V | - | 0.1A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "125V",
+            "value": "0.3A @ 10ms | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "250V",
+            "value": "0.15A @ 10ms | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "AC",
+            "value": "250V | 5A @ cosϕ 1 | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "400V",
+            "value": "3A @ cosϕ 1 | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Early closing auxiliary contacts",
+            "value": "these allow the undervoltage release to be supplied before the main",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Early opening auxiliary contacts",
+            "value": "these allow any electronic devices connected to the system to be dis-",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1",
+            "value": "XT2 | XT3 | XT4 | XT5 | XT6 | XT7 | XT7 M",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "AUE closing",
+            "value": " | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "AUE opening",
+            "value": " | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "7/36",
+            "value": "SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "OPEN and SHORT FLASHING",
+            "value": "faulty coil switch or incorrect supply;",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "OPEN and SHORT OFF",
+            "value": "correct operation of the coil switch.",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Power supply (Un)",
+            "value": "AC | DC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "24V",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "110V",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "220V",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Operating limits",
+            "value": "90%...110% Un",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Auxiliary power supply",
+            "value": "24...250V AC/DC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Maximum interrupted current",
+            "value": "6A",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Maximum interrupted voltage",
+            "value": "250V AC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "7/42",
+            "value": "SACE TMAX XT LOW VOLTAGE MOLDED CASE CIRCUIT-BREAKERS",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Electrical specifications",
+            "value": "MOD | MOE and MOE-E | MOE",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1 – XT3",
+            "value": "XT2 – XT4 | XT5 | XT6",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rated voltage,",
+            "value": "Un",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[V] 24 DC",
+            "value": "24 DC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[V] 48…60 DC",
+            "value": "48…60 DC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[V] 110…125 AC/DC",
+            "value": "110…125 AC/DC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[V] 220…250 AC/DC",
+            "value": "220…250 AC/DC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[V] 380…440 AC",
+            "value": "380…440 AC | 380 AC",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[V] 480…525 AC",
+            "value": "480…525 AC | -",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Operating voltage",
+            "value": "[% Un] MIN=85% Un;",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MAX",
+            "value": "110% Un",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[VA - W] ≤ 500",
+            "value": "≤ 300 | ≤ 400",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[VA - W] ≤ 300",
+            "value": "≤ 150",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Operating frequency",
+            "value": "50..60 | 50..60 Hz",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "CL →OP [s] < 0.1",
+            "value": "< 1.5 | 1.5 | 3",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "OP → CL [s] < 0.1",
+            "value": "< 0.1 | < 0.08",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TR → OP [s] < 0.1",
+            "value": "< 3 | < 5",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Mechanical life",
+            "value": "N° operations 25000 | 25000 | 20000 | 10000",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[ms] ≥ 150",
+            "value": "≥ 150 | ≥ 100",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Electrical specifications",
+            "value": "Motor Operator XT7 M",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Power absorbed on inrush Ps",
+            "value": "[VA - W] 300",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Inrush time",
+            "value": "[ms] 200",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Power absorbed on continue Pc service",
+            "value": "[VA - W] 100",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Operating frequency",
+            "value": "50..60 Hz",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Charging time",
+            "value": "[s] 8",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated voltage",
+            "value": "70 V",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Rated voltage",
+            "value": "25 V",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "1SDA066799R1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "1000: Temperature performance",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Data Sheet, Technical Information: 1SDC210099D0206",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "1/9",
+            "value": "0 1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "1/10: This section provides the compliance",
+            "value": "clearances for the installation of the circuit-breaker inside a metal",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "LTC",
+            "value": "HTC-ES",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EF",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC Cu",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x1.5…70",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x35…95",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FB",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "MC",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EF",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x1…95",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x70…185",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 2x35...70",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x35...150",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x95...185",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 2x35…120",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x1…150",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x35-185",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x120-240",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 1x185-300",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 2x70-240",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT6",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "EF 800A",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Fc CuAl 2x 120...240",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Fc CuAl 3x 70...185",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Fc CuAl 4x 70...150",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 4x240",
+            "value": "S",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "FC CuAl 2x185...240",
+            "value": "R",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT5",
+            "value": "30",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT6",
+            "value": "35",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "100 20",
+            "value": "100",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT7",
+            "value": "50",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "440 V < U < 500V",
+            "value": "20",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "500 V ≤ U ≤ 690V",
+            "value": "20",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "500V < U ≤ 750V",
+            "value": "20",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1",
+            "value": "102",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT2",
+            "value": "120",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT3",
+            "value": "140",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT4",
+            "value": "140",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT5",
+            "value": "186",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT6",
+            "value": "280",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT7",
+            "value": "280",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1-XT3 F-P",
+            "value": "35",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Circuit-breaker",
+            "value": "D [mm]",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT2-XT4 F-P-W",
+            "value": "120",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT5 F-P-W",
+            "value": "120",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT6 F-W",
+            "value": "120",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT7 F-W",
+            "value": "150",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Un",
+            "value": "≤500",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1",
+            "value": "1.6",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT2",
+            "value": "1.5",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT3",
+            "value": "1.35",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT4",
+            "value": "1.5",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT5",
+            "value": "1.1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT6",
+            "value": "1.1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Un",
+            "value": "≤750",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT3",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT4",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT5",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT6",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT7",
+            "value": "",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1",
+            "value": "16..160",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT2",
+            "value": "1..160",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TMD/TMA",
+            "value": "16..1600",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TMG",
+            "value": "160..480",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Dip LS/I",
+            "value": "1..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Dip LIG",
+            "value": "1..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Dip LSI",
+            "value": "1..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Dip LSIG",
+            "value": "1..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip M Dip I",
+            "value": "1..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip M Dip LIU",
+            "value": "6..13xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip G Dip LS/I",
+            "value": "1..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch LSI",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch LSIG",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch Measuring LSI",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch Measuring LSIG",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Hi-Touch LSI",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Hi-Touch LSIG",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip M Touch LRIU",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT3",
+            "value": "100..200",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TMD",
+            "value": "630..2500",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TMG",
+            "value": "400..750",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT4",
+            "value": "10..200",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TMD/TMA",
+            "value": "300..2500",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT5",
+            "value": "320..500",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TMA",
+            "value": "1600..6300",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "TMG",
+            "value": "800..3150",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip G Touch LSIG",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip G Hi-Touch LSIG",
+            "value": "1.5..10xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT6",
+            "value": "630..800",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT7",
+            "value": "630..1600",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Dip LSI",
+            "value": "1..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Dip LSIG",
+            "value": "1..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch LSI",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch LSIG",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch Measuring LSI",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Touch Measuring LSIG",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Hi-Touch LSI",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip Hi-Touch LSIG",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip M Touch LRIU",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip G Touch LSIG",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ekip G Hi-Touch LSIG",
+            "value": "1.5..15xIn",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Un (V)",
+            "value": "500",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT1",
+            "value": "18",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT2",
+            "value": "36",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT3",
+            "value": "36",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT4",
+            "value": "36",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XT5",
+            "value": "25",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "I1 (50-60Hz)",
+            "value": "Km I3 (400 Hz)",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "In",
+            "value": "max",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "End Of Life Disassembling Instructions: 9AKK108468A2347",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "3 DISASSEMBLY INSTRUCTION",
+            "value": "TMAX XT XT1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Gloves",
+            "value": "Glasses | Safety shoes | Protective clothes",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "4 INSTRUCTION",
+            "value": "HANDBOOK",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Description",
+            "value": "Position inside circuit breaker | Quantity",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Sides of the operating mechanism",
+            "value": "Parts constituting the operating mechanism | 2",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Tripping shaft",
+            "value": "Between the operating mechanism and the tripping groups | 1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Trimmer",
+            "value": "Mounted on the circuit breaker cover | 1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "5 DISASSEMBLY INSTRUCTION",
+            "value": "TMAX XT XT1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "6 INSTRUCTION",
+            "value": "HANDBOOK",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "7 DISASSEMBLY INSTRUCTION",
+            "value": "TMAX XT XT1 7",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "8 INSTRUCTION",
+            "value": "HANDBOOK",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "Actions to be performed",
+            "value": "Tools",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "9 DISASSEMBLY INSTRUCTION",
+            "value": "TMAX XT XT1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "10 INSTRUCTION",
+            "value": "HANDBOOK",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "11 DISASSEMBLY INSTRUCTION",
+            "value": "TMAX XT XT1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "12 INSTRUCTION",
+            "value": "HANDBOOK",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "13 DISASSEMBLY INSTRUCTION",
+            "value": "TMAX XT XT1",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF manual",
+            "name": "14 INSTRUCTION",
+            "value": "HANDBOOK",
+            "sourceUrl": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Data Sheet, Technical Information: 1SDC210100D0206",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014104551\\documents\\1SDA066799R1-datasheet-Data-Sheet,-Technical-Information--1SDC210100D0206.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "Data Sheet, Technical Information: 1SDC210099D0206",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014104551\\documents\\1SDA066799R1-datasheet-Data-Sheet,-Technical-Information--1SDC210099D0206.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "End Of Life Disassembling Instructions: 9AKK108468A2347",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014104551\\documents\\1SDA066799R1-manual-End-Of-Life-Disassembling-Instructions--9AKK108468A2347.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Instructions and Manuals: 1SDH000719R0001",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDH000719R0001&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "cad",
+            "label": "CAD Dimensional Drawing: 1SDH001295R0008",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDH001295R0008&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "cad",
+            "label": "Dimension Diagram: 1SDH000719R0100",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDH000719R0100&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "cad",
+            "label": "Wiring Diagram: 1SDM000068R0001",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDM000068R0001&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "image",
+            "label": "Product image 400x400",
+            "url": "https://cdn.productimages.abb.com/9PAA00000229456_400x400.jpg",
+            "candidateUrls": [
+              "https://cdn.productimages.abb.com/9PAA00000229516_400x400.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000229516_master.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000229516_100x100.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000228865_400x400.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000228865_master.jpg",
+              "https://cdn.productimages.abb.com/9PAA00000228865_100x100.jpg"
+            ],
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-model-image",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014104551\\images\\ABB.1SDA066799R1.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "Environmental Product Declaration - EPD: 9AKK108468A1890",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A1890&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261014104551\\documents\\1SDA066799R1-certificate-Environmental-Product-Declaration---EPD--9AKK108468A1890.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "Environmental Product Declaration - EPD: 9AKK108468A7793",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A7793&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "REACH Declaration: 9AKK108466A1425",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108466A1425&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "RoHS Declaration: 9AKK108466A1424",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108466A1424&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "Conflict Minerals Reporting Template (CMRT): 9AKK108467A5658",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108467A5658&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "Environmental Information: 9AKK108467A6707",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108467A6707&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "Declaration of Conformity - CE: 9AKK106713A5532",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK106713A5532&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "GL Certificate: 1SDL000163R0103",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDL000163R0103&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          },
+          {
+            "type": "certificate",
+            "label": "LR Certificate: 1SDL000163R0100",
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDL000163R0100&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceUrl": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-embedded-json-document-ref",
+            "confidence": 0.9
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://new.abb.com/products/1SDA066799R1",
+            "sourceType": "official",
+            "parser": "abb-product-page",
+            "parserVersion": "abb-v2",
+            "fetchedAt": "2026-10-14T10:45:52.761Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210100D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-14T10:46:15.942Z"
+          },
+          {
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=1SDC210099D0206&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-14T10:46:44.066Z"
+          },
+          {
+            "url": "https://search.abb.com/library/Download.aspx?DocumentID=9AKK108468A2347&LanguageCode=en&DocumentPartId=&Action=Launch",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-14T10:46:46.948Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "abb-product-page",
+              "url": "https://new.abb.com/products/1SDA066799R1",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "abb-product-page",
+              "statusCode": 200,
+              "attributeCount": 104,
+              "documentCount": 17,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

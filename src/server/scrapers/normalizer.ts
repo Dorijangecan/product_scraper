@@ -2906,6 +2906,10 @@ function mergeNormalizedFields(
   } else if (nventProductMaterial && !suppressNventTerminalBlockMaterial) {
     merged.material = nventProductMaterial;
   }
+  if (manufacturerId === "rittal") {
+    const exactDimensions = rittalProductDimensions(attributes);
+    if (exactDimensions) merged.dimensions = exactDimensions;
+  }
   return Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== undefined && value !== "")) as NormalizedProductFields;
 }
 
@@ -2981,6 +2985,33 @@ function rittalMultipleVoltageRanges(attributes: AttributeRecord[]): string | un
 }
 
 function rittalProductDimensions(attributes: AttributeRecord[]): string | undefined {
+  const exactDimensionRows = attributes
+    .filter((attribute) =>
+      attribute.parser === "rittal-order-resolver" &&
+      attribute.sourceType === "official" &&
+      /^dimensions?$/i.test(attribute.name.trim())
+    )
+    .sort(compareAttributeEvidence);
+  for (const attribute of exactDimensionRows) {
+    const axes: Array<[string, RegExp]> = [
+      ["L", /\blength\s*:?\s*(\d+(?:[.,]\d+)?)\s*mm\b/i],
+      ["H", /\bheight\s*:?\s*(\d+(?:[.,]\d+)?)\s*mm\b/i],
+      ["W", /\bwidth\s*:?\s*(\d+(?:[.,]\d+)?)\s*mm\b/i],
+      ["D", /\bdepth\s*:?\s*(\d+(?:[.,]\d+)?)\s*mm\b/i]
+    ];
+    const values = axes
+      .map(([axis, pattern]) => {
+        const match = attribute.value.match(pattern);
+        return match ? { axis, value: match[1].replace(",", ".") } : undefined;
+      })
+      .filter((value): value is { axis: string; value: string } => Boolean(value));
+    if (values.length) {
+      return values
+        .sort((left, right) => ["H", "W", "D", "L"].indexOf(left.axis) - ["H", "W", "D", "L"].indexOf(right.axis))
+        .map(({ axis, value }) => `${axis} ${value} mm`)
+        .join(" x ");
+    }
+  }
   // Rittal's exact PDP product description labels dimensions as WHD. Use that exact variant row
   // instead of a cut-out, installation-depth, or mounting-panel axis that happens to match a
   // generic width/height/depth label elsewhere on the page.

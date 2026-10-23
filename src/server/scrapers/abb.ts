@@ -242,6 +242,10 @@ export class ABBConnector implements ManufacturerConnector {
     if (lastAemFetch && context.downloadDocuments !== false && !context.imageOnly) {
       aemEnriched = await enrichFromAbbLibraryApi(catalogNumber, lastAemFetch, context);
     }
+    const preBrowserMerged = mergeAbbResults(directPrimary, searchPrimary, localeFallbackPrimary, aemEnriched);
+    if (preBrowserMerged && context.onlySelectedInfo && context.shouldStopSelectedInfoSearch?.(preBrowserMerged)) {
+      return attachGerman(preBrowserMerged);
+    }
 
     // Browser render last resort: if no PIS data anywhere yet AND we have an AEM page available,
     // render it via Playwright so the client-side widgets populate the DOM with the technical data
@@ -253,6 +257,9 @@ export class ABBConnector implements ManufacturerConnector {
     }
 
     const initialMerged = mergeAbbResults(directPrimary, searchPrimary, localeFallbackPrimary, aemEnriched, browserPrimary);
+    if (initialMerged && context.onlySelectedInfo && context.shouldStopSelectedInfoSearch?.(initialMerged)) {
+      return attachGerman(initialMerged);
+    }
     const needsCadCatalog = !initialMerged || initialMerged.status === "failed" || (!isRichAbbResult(initialMerged) && (!context.imageOnly || !hasProductImage(initialMerged)));
     const cadCatalogResult = needsCadCatalog
       ? await fetchAbbPartcommunityCadCatalogResult(catalogNumber, context)

@@ -16,7 +16,7 @@ import { writeSaginawWeightDimensionWorkbook } from "./saginaw-weight-dimension-
 import { normalizePdtCellNumber } from "./unit-cleanup.js";
 import { writeProductAccessorySheet } from "./product-accessory-sheet.js";
 import { writeConnectionPointSheet } from "./connection-point-sheet.js";
-import { accessoryMatrixMainPartsNotInRun, loadAccessoryMatrix, type AccessoryMatrixPlan } from "./accessory-matrix.js";
+import { accessoryMatrixMainPartsNotInRun, filterAccessoryMatrixPlan, loadAccessoryMatrix, type AccessoryMatrixPlan } from "./accessory-matrix.js";
 import { patchAccessoryConditionsIntoWorkbookFile } from "./accessory-conditions-sheet.js";
 import { bestFact, buildPdtFactIndex, factsMatchingValue, type PdtFact, type PdtFactIndex } from "./facts.js";
 import { additionalPdtSheetsRule, pdtColumnAllowRule, pdtSheetOverrideRule } from "./rules.js";
@@ -154,23 +154,32 @@ export async function exportRunPdt(input: {
    */
   accessoryMatrixPath?: string;
   accessoryMatrixFileName?: string;
+  /** When grouped, keep only this group's main products in the matrix-derived PDT sheets. */
+  accessoryMatrixFilter?: string[];
+  /** Full run catalog set for consistent matrix diagnostics across grouped PDTs. */
+  accessoryMatrixRunCatalogNumbers?: string[];
+  /** Only the first workbook in a grouped export patches the shared products workbook. */
+  skipAccessoryConditionPatch?: boolean;
   /** Products workbook (`products.xlsx`) that receives the matrix's "Accessory Conditions" sheet. */
   productsWorkbookPath?: string;
+  /** Called as soon as the main PDT has been atomically published, before companion files are written. */
+  onWorkbookReady?: (outputPath: string) => void | Promise<void>;
 }): Promise<PdtExportResult> {
   const { manufacturer, items, templatePath, outputPath, sheetOverrides } = input;
   const workbook = await loadTemplateWorkbook(templatePath);
 
   // Parse before anything expensive: a broken matrix should fail fast and loudly, not half-way
   // through an export.
-  const accessoryMatrix: AccessoryMatrixPlan | undefined = input.accessoryMatrixPath
+  const loadedAccessoryMatrix: AccessoryMatrixPlan | undefined = input.accessoryMatrixPath
     ? await loadAccessoryMatrix(input.accessoryMatrixPath)
     : undefined;
+  const accessoryMatrix = loadedAccessoryMatrix && input.accessoryMatrixFilter
+    ? filterAccessoryMatrixPlan(loadedAccessoryMatrix, input.accessoryMatrixFilter)
+    : loadedAccessoryMatrix;
 
   const included = items.filter((item) => item.result && (item.status === "found" || item.status === "partial"));
   const cleanup = await buildPdtRepairResult(included, manufacturer, { aiCleanup: input.aiCleanup === true });
   const repairs = cleanup.repairs;
-  const cleanedInputPath = await writeCleanedInputWorkbook(outputPath, cleanup.audit);
-  const saginawWeightDimensionPath = await writeSaginawWeightDimensionWorkbook(outputPath, manufacturer, included);
 
   // Pre-index every sheet by a canonical (case- and whitespace-insensitive) name so template
   // casing tweaks ("Switch" vs "switch", "PLC" vs "Plc") never silently drop products.
@@ -260,15 +269,28 @@ export async function exportRunPdt(input: {
       workbook.removeWorksheet(ws.id);
     }
   }
-  await workbook.xlsx.writeFile(outputPath);
+  const temporaryOutputPath = `${outputPath}.part`;
+  try {
+    await workbook.xlsx.writeFile(temporaryOutputPath);
+    await fs.rename(temporaryOutputPath, outputPath);
+  } catch (error) {
+    await fs.rm(temporaryOutputPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
+  await input.onWorkbookReady?.(outputPath);
 
-  const accessoryMatrixSummary = accessoryMatrix
-    ? await summarizeAccessoryMatrix(accessoryMatrix, {
+  // Companion artifacts are useful for review but do not delay publication of the import-ready PDT.
+  const cleanedInputPath = await writeCleanedInputWorkbook(outputPath, cleanup.audit);
+  const saginawWeightDimensionPath = await writeSaginawWeightDimensionWorkbook(outputPath, manufacturer, included);
+
+  const accessoryMatrixSummary = loadedAccessoryMatrix
+    ? await summarizeAccessoryMatrix(loadedAccessoryMatrix, {
         fileName: input.accessoryMatrixFileName,
         accessoryRows: matrixAccessoryRows,
         connectionPointRows: matrixConnectionPointRows,
-        catalogNumbers: items.map((item) => item.catalogNumber),
-        productsWorkbookPath: input.productsWorkbookPath
+        catalogNumbers: input.accessoryMatrixRunCatalogNumbers ?? items.map((item) => item.catalogNumber),
+        productsWorkbookPath: input.productsWorkbookPath,
+        skipConditionPatch: input.skipAccessoryConditionPatch
       })
     : undefined;
 
@@ -748,6 +770,7 @@ async function summarizeAccessoryMatrix(
     connectionPointRows: number;
     catalogNumbers: string[];
     productsWorkbookPath?: string;
+    skipConditionPatch?: boolean;
   }
 ): Promise<PdtAccessoryMatrixSummary> {
   const warnings = [...matrix.warnings];
@@ -762,7 +785,9 @@ async function summarizeAccessoryMatrix(
   // A failure here (missing file, open in Excel) must not invalidate the PDT we just wrote.
   let conditionsPath: string | undefined;
   if (matrix.conditions.length > 0) {
-    if (!context.productsWorkbookPath) {
+    if (context.skipConditionPatch) {
+      // The first group already patched these run-wide conditions into the shared products workbook.
+    } else if (!context.productsWorkbookPath) {
       warnings.push("No products workbook for this run, so the INLIST accessory conditions were not written anywhere.");
     } else {
       try {

@@ -37,13 +37,17 @@ export async function runDeterministicScrapePipeline(
     evaluateQualityGate(initial, context.manufacturer, catalogNumber, attempts)
   );
   recordTargetObservation(context, current, { stage: "official-source" });
+  if (context.onlySelectedInfo && context.shouldStopSelectedInfoSearch?.(current)) {
+    return canonicalizeProductLocaleUrls(promoteQualityPassedOfficialResult(current));
+  }
   if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current))
     return canonicalizeProductLocaleUrls(promoteQualityPassedOfficialResult(current));
 
   const discovery = await discoverOfficialProductCandidates(catalogNumber, context);
   current = withDiscoveryDiagnostics(current, discovery);
 
-  for (const candidate of discovery.candidates) {
+  const candidatesToTry = context.onlySelectedInfo ? discovery.candidates.slice(0, 5) : discovery.candidates;
+  for (const candidate of candidatesToTry) {
     if (current.qualityGate?.passed && !needsOfficialProductLinkRepair(current)) break;
     if (alreadyTried(current, candidate.url)) continue;
     // Past the soft target, a URL GUESS is no longer worth its price. This loop walks every
@@ -127,6 +131,9 @@ export async function runDeterministicScrapePipeline(
       );
       learnConfirmedProductPage(context, catalogNumber, fetched, candidate.url, candidate.stage, current);
       learnProductAliases(context, catalogNumber, fetched.effectiveUrl, current);
+      if (context.onlySelectedInfo && context.shouldStopSelectedInfoSearch?.(current)) {
+        return canonicalizeProductLocaleUrls(promoteQualityPassedOfficialResult(current));
+      }
     } catch (error) {
       attempts.push({
         stage: candidate.stage,
@@ -137,6 +144,11 @@ export async function runDeterministicScrapePipeline(
         error: error instanceof Error ? error.message : String(error)
       });
     }
+  }
+  // Selected-info runs stop after official product-page candidates. PDF mining and adaptive or
+  // smart fallback can take minutes for a value the manufacturer may not publish.
+  if (context.onlySelectedInfo) {
+    return canonicalizeProductLocaleUrls(promoteQualityPassedOfficialResult(current));
   }
   if (!current.qualityGate?.passed && discovery.documentCandidates.length) {
     const documentResult = discoveryDocumentResult(catalogNumber, context, discovery.documentCandidates);

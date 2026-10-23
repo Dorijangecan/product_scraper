@@ -1,0 +1,3213 @@
+{
+  "generatedAt": "2026-10-19T07:02:53.604Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221",
+  "filters": {
+    "manufacturer": "sce",
+    "limit": "5",
+    "fixtureDir": "benchmarks/sce-accuracy-speed-20261019/batch-04",
+    "isolatedStorage": "1",
+    "tag": "sce-batch-04-final-cold-02"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 100,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 5,
+    "qualityAccepted": true,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "sce": {
+          "total": 5,
+          "caseTypes": [
+            "electrical",
+            "mechanical"
+          ],
+          "riskTags": [
+            "airflow-ratings",
+            "cable-entry",
+            "carbon-steel-variant",
+            "cold",
+            "exact-image",
+            "exact-model-manual",
+            "floor-cable-entry",
+            "ims-gland-plate",
+            "ims-plinth-base",
+            "keyboard-housing",
+            "six-inch-fan-housing",
+            "workstation-accessory",
+            "workstation-control-compartment"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Gland Plate": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Plinth Base": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Keyboard Housing": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Control Compartment": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "mechanical"
+          ]
+        },
+        "Fan Assembly": {
+          "total": 1,
+          "manufacturers": [
+            "sce"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "cabinet.mechanical": {
+          "total": 4,
+          "deviceTypes": [
+            "Control Compartment",
+            "Gland Plate",
+            "Keyboard Housing",
+            "Plinth Base"
+          ],
+          "manufacturers": [
+            "sce"
+          ]
+        },
+        "cabinet.airconditioning": {
+          "total": 1,
+          "deviceTypes": [
+            "Fan Assembly"
+          ],
+          "manufacturers": [
+            "sce"
+          ]
+        }
+      },
+      "thinManufacturers": [],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "safety sensor",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller",
+            "Safety Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway",
+            "Communication Interface"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "CPC12",
+              "deviceType": "Communication Gateway",
+              "notes": "E-T-A ControlPlex bus controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Automatic Reclosing Device",
+            "Float Switch",
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch",
+            "Twilight Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "802T",
+              "deviceType": "Limit Switch",
+              "notes": "Allen-Bradley 802T electromechanical limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440G-LZ",
+              "deviceType": "Lock / Interlock",
+              "notes": "Allen-Bradley Guardmaster 440G-LZ guard-locking switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Power Entry Module",
+            "Relay",
+            "Residual Current Device",
+            "Residual Current Monitoring Relay",
+            "Roller Shutter Controller",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Monitoring & Reporting Unit",
+            "Power Meter",
+            "Residual Current Analyzer",
+            "Signal Conditioner",
+            "Undervoltage Measuring Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1420",
+              "deviceType": "Power Meter",
+              "notes": "Allen-Bradley PowerMonitor 500 power meters"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inclinometer",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor",
+            "Vibration Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "UC",
+              "deviceType": "Capacitive Sensor",
+              "notes": "Turck UC capacitive sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "RI360P0",
+              "deviceType": "Encoder",
+              "notes": "Turck contactless incremental encoders"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter",
+            "Power Distribution Unit"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "SCS1000",
+              "deviceType": "Power Distribution Unit",
+              "notes": "E-T-A intelligent SCS power distribution system"
+            }
+          ]
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter",
+            "Overload Relay"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Light Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "safety sensor",
+          "deviceTypes": [
+            "Safety Light Curtain",
+            "Safety Relay",
+            "Safety Sensor",
+            "Smoke Detector",
+            "Solenoid Interlock"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PLUTO",
+              "deviceType": "Safety Relay",
+              "notes": "Pluto safety controller"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "2981091",
+              "deviceType": "Safety Relay",
+              "notes": "Phoenix PSR-SPP-24DC/ESD/5X1/1X2/T10 item number"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSR",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "PSRMINI",
+              "deviceType": "Safety Relay"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "440C",
+              "deviceType": "Safety Relay"
+            }
+          ]
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor",
+            "Water Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "turck",
+              "pattern": "PS400R-",
+              "deviceType": "Pressure Sensor",
+              "notes": "Turck pressure transmitters"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "150-C",
+              "deviceType": "Soft Starter",
+              "notes": "Allen-Bradley SMC-3 smart motor controllers are soft starters"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 2,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": true
+  },
+  "reports": [
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-GP08",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Gland Plate",
+      "actualDeviceType": "Gland Plate",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "ims-gland-plate",
+        "cable-entry",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.82,
+      "elapsedMs": 4359,
+      "scrapeElapsedMs": 1806,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\pdt\\sce-SCE-GP08-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 62,
+      "pdtSkippedCells": 2,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "SCE-GP08",
+        "description": "IMS Gland Plate",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+        "localizedUrls": {
+          "en": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08"
+        },
+        "deviceTypeClassification": {
+          "type": "Gland Plate",
+          "confidence": 0.86,
+          "evidence": "Product Type: IMS Gland Plate",
+          "alternatives": [
+            {
+              "type": "Cable Gland",
+              "score": 1585,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 145
+        },
+        "normalized": {
+          "weight": "2.00 lbs (0.90718474 kg)",
+          "dimensions": "10.00 x 11.00 x 0.25 in (254 x 279.4 x 6.35 mm)",
+          "finish": "Powder coated RAL 7035.",
+          "color": "RAL 7035",
+          "certificates": "NEMA Not Applicable, UL Not Applicable, CSA N/A"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Product Specifications",
+            "name": "Part Number",
+            "value": "SCE-GP08",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Description",
+            "value": "IMS Gland Plate",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Height",
+            "value": "10.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Width",
+            "value": "11.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Depth",
+            "value": "0.25\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Price Code",
+            "value": "P2",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "List Price",
+            "value": "$96.39",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Catalog Page",
+            "value": "197",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Weight",
+            "value": "2.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "SCE Product Data",
+            "name": "Product Type",
+            "value": "IMS Gland Plate",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.95
+          },
+          {
+            "group": "Application",
+            "name": "Application",
+            "value": "Gland plates designed for use in our IMS enclosures to allow for easy removal of the plate for installation of cable entry cutouts into enclosure. Includes seamless oil and water resistant gasket to maintain the environmental rating of the enclosure.",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Finish",
+            "name": "Finish",
+            "value": "Powder coated RAL 7035.",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "NEMA Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "UL Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "CSA N/A",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-GP16 - IMS Gland Plate",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Prose Understanding",
+            "name": "Finish",
+            "value": "Powder coated RAL 7035",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Description",
+            "value": "IMS Gland Plate",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Height",
+            "value": "10.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Width",
+            "value": "11.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Depth",
+            "value": "0.25\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Price Code",
+            "value": "P2",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "List Price",
+            "value": "$96.39",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Catalog Page",
+            "value": "197",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Est. Ship Weight",
+            "value": "2.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          }
+        ],
+        "documents": [
+          {
+            "type": "image",
+            "label": "Product image - SCE-GP08",
+            "url": "https://www.saginawcontrol.com/images/sce-gp08.png",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\images\\SCE.SCE-GP08.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Download CAD Package",
+            "url": "https://www.saginawcontrol.com/download-doc/?Part=sce-gp08",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "parserVersion": "sce-v2",
+            "fetchedAt": "2026-10-19T07:02:23.600Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "sce-product-page",
+              "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-GP08",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "sce-product-page",
+              "statusCode": 200,
+              "attributeCount": 25,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-P010605",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Plinth Base",
+      "actualDeviceType": "Plinth Base",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "ims-plinth-base",
+        "floor-cable-entry",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.84,
+      "elapsedMs": 2763,
+      "scrapeElapsedMs": 789,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\pdt\\sce-SCE-P010605-pdt_pdt-audit.json",
+      "pdtWrittenCells": 26,
+      "pdtBlankCells": 62,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "SCE-P010605",
+        "description": "Base, IMS Plinth (Bolt Together)",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+        "localizedUrls": {
+          "en": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605"
+        },
+        "deviceTypeClassification": {
+          "type": "Plinth Base",
+          "confidence": 0.98,
+          "evidence": "Product Type: Base, IMS Plinth (Bolt Together)",
+          "scoreMargin": 1730
+        },
+        "normalized": {
+          "weight": "26.00 lbs (11.79340162 kg)",
+          "dimensions": "3.94 x 23.62 x 18.00 in (100.076 x 599.948 x 457.2 mm)",
+          "finish": "Black textured powder coated",
+          "color": "black",
+          "certificates": "NEMA Not Applicable, UL Not Applicable, CSA N/A"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Product Specifications",
+            "name": "Part Number",
+            "value": "SCE-P010605",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Description",
+            "value": "Base, IMS Plinth (Bolt Together)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Height",
+            "value": "3.94\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Width",
+            "value": "23.62\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Depth",
+            "value": "18.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Price Code",
+            "value": "P5",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "List Price",
+            "value": "$210.20",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Catalog Page",
+            "value": "442",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Weight",
+            "value": "26.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "SCE Product Data",
+            "name": "Product Type",
+            "value": "Base, IMS Plinth (Bolt Together)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.95
+          },
+          {
+            "group": "Application",
+            "name": "Application",
+            "value": "Designed to install under an enclosure to provide space for cables to enter from below and raise the enclosure up off the floor. Plinth bases are stackable to acquire desired height off the floor.",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Finish",
+            "name": "Finish",
+            "value": "Black textured powder coated",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "NEMA Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "UL Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "CSA N/A",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-P010606 - Base, IMS Plinth (Bolt Together)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-P010805 - Base, IMS Plinth (Bolt Together)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-P010806 - Base, IMS Plinth (Bolt Together)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Installation Information",
+            "name": "Manual",
+            "value": "IMS Enclosure Plinth Base & SCE-FMA Mounting Angle Kit Installation",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Description",
+            "value": "Base, IMS Plinth (Bolt Together)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Height",
+            "value": "3.94\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Width",
+            "value": "23.62\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Depth",
+            "value": "18.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Price Code",
+            "value": "P5",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "List Price",
+            "value": "$210.20",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Catalog Page",
+            "value": "442",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Est. Ship Weight",
+            "value": "26.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          }
+        ],
+        "documents": [
+          {
+            "type": "image",
+            "label": "Product image - SCE-P010605",
+            "url": "https://www.saginawcontrol.com/images/sce-p010605.png",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\images\\SCE.SCE-P010605.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Download CAD Package",
+            "url": "https://www.saginawcontrol.com/download-doc/?Part=sce-p010605",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "parserVersion": "sce-v2",
+            "fetchedAt": "2026-10-19T07:02:27.320Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "sce-product-page",
+              "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-P010605",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "sce-product-page",
+              "statusCode": 200,
+              "attributeCount": 27,
+              "documentCount": 2,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-KBH",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Keyboard Housing",
+      "actualDeviceType": "Keyboard Housing",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "keyboard-housing",
+        "workstation-accessory",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.84,
+      "elapsedMs": 2039,
+      "scrapeElapsedMs": 772,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\pdt\\sce-SCE-KBH-pdt_pdt-audit.json",
+      "pdtWrittenCells": 25,
+      "pdtBlankCells": 63,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "SCE-KBH",
+        "description": "Housing, Keyboard",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+        "localizedUrls": {
+          "en": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH"
+        },
+        "deviceTypeClassification": {
+          "type": "Keyboard Housing",
+          "confidence": 0.98,
+          "evidence": "Product Type: Housing, Keyboard",
+          "scoreMargin": 1730
+        },
+        "normalized": {
+          "weight": "35.00 lbs (15.87573295 kg)",
+          "dimensions": "7.00 x 21.91 x 22.38 in (177.8 x 556.514 x 568.452 mm)",
+          "finish": "Powder coated white",
+          "color": "white",
+          "certificates": "NEMA Not Applicable, UL Not Applicable, CSA N/A"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Product Specifications",
+            "name": "Part Number",
+            "value": "SCE-KBH",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Description",
+            "value": "Housing, Keyboard",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Height",
+            "value": "7.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Width",
+            "value": "21.91\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Depth",
+            "value": "22.38\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Price Code",
+            "value": "C2",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "List Price",
+            "value": "$309.64",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Catalog Page",
+            "value": "44",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Weight",
+            "value": "35.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "SCE Product Data",
+            "name": "Product Type",
+            "value": "Housing, Keyboard",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.95
+          },
+          {
+            "group": "Application",
+            "name": "Application",
+            "value": "Provides protection from dust, dirt, oil and water for interior components when keyboard drawer is open. Mounts to mounting channels. Keyboard shelf with slides is mounted inside the housing. Hole gromet in rear provided for cords. Mounting hardware is included.",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Finish",
+            "name": "Finish",
+            "value": "Powder coated white",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "NEMA Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "UL Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "CSA N/A",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Installation Information",
+            "name": "Manual",
+            "value": "Keyboard Housing",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Prose Understanding",
+            "name": "Finish",
+            "value": "Powder coated white",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Description",
+            "value": "Housing, Keyboard",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Height",
+            "value": "7.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Width",
+            "value": "21.91\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Depth",
+            "value": "22.38\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Price Code",
+            "value": "C2",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "List Price",
+            "value": "$309.64",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Catalog Page",
+            "value": "44",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Est. Ship Weight",
+            "value": "35.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "Keyboard Housing",
+            "url": "https://www.saginawcontrol.com/instman/instman-sce-kbh.pdf",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH"
+          },
+          {
+            "type": "image",
+            "label": "Product image - SCE-KBH",
+            "url": "https://www.saginawcontrol.com/images/sce-kbh.png",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\images\\SCE.SCE-KBH.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Download CAD Package",
+            "url": "https://www.saginawcontrol.com/download-doc/?Part=sce-kbh",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "parserVersion": "sce-v2",
+            "fetchedAt": "2026-10-19T07:02:30.315Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "sce-product-page",
+              "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-KBH",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "sce-product-page",
+              "statusCode": 200,
+              "attributeCount": 25,
+              "documentCount": 3,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-WSCC",
+      "caseType": "mechanical",
+      "expectedDeviceType": "Control Compartment",
+      "actualDeviceType": "Control Compartment",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "workstation-control-compartment",
+        "carbon-steel-variant",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.8,
+      "elapsedMs": 2160,
+      "scrapeElapsedMs": 783,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\pdt\\sce-SCE-WSCC-pdt_pdt-audit.json",
+      "pdtWrittenCells": 28,
+      "pdtBlankCells": 60,
+      "pdtSkippedCells": 1,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 1,
+      "pdtRequiredFieldIssues": 2,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "SCE-WSCC",
+        "description": "Compartment, Control",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+        "localizedUrls": {
+          "en": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC"
+        },
+        "deviceTypeClassification": {
+          "type": "Control Compartment",
+          "confidence": 0.98,
+          "evidence": "Product Type: Compartment, Control",
+          "scoreMargin": 1730
+        },
+        "normalized": {
+          "weight": "23.00 lbs (10.43262451 kg)",
+          "dimensions": "8.00 x 24.25 x 14.50 in (203.2 x 615.95 x 368.3 mm)",
+          "material": "carbon steel",
+          "finish": "Powder coated RAL 7035 gray. Stainless Steel is #4 Brushed",
+          "color": "gray",
+          "certificates": "NEMA Not Applicable, UL Not Applicable, CSA N/A"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Product Specifications",
+            "name": "Part Number",
+            "value": "SCE-WSCC",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Description",
+            "value": "Compartment, Control",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Height",
+            "value": "8.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Width",
+            "value": "24.25\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Depth",
+            "value": "14.50\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Price Code",
+            "value": "C2",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "List Price",
+            "value": "$358.55",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Catalog Page",
+            "value": "44",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Weight",
+            "value": "23.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "SCE Product Data",
+            "name": "Product Type",
+            "value": "Compartment, Control",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.95
+          },
+          {
+            "group": "Application",
+            "name": "Application",
+            "value": "Designed to be mounted to the front of the work station when installation of pushbuttons or control panels is desired. Installed after removing the pull-out keyboard drawer and door. Can be installed with the flat or sloped surface facing up. 20° slope on sloped surface. Gasket and mounting hardware included. Made of heavy gauge carbon steel. ''SS'' part is made of Type 304 stainless steel.",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Finish",
+            "name": "Finish",
+            "value": "Powder coated RAL 7035 gray. Stainless Steel is #4 Brushed",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "NEMA Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "UL Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "CSA N/A",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-WSCCSS - Compartment, S.S. Control",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Installation Information",
+            "name": "Manual",
+            "value": "Control Compartment",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Prose Understanding",
+            "name": "Material",
+            "value": "carbon steel",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.91
+          },
+          {
+            "group": "SCE Prose Understanding",
+            "name": "Material",
+            "value": "stainless steel",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.91
+          },
+          {
+            "group": "SCE Prose Understanding",
+            "name": "Finish",
+            "value": "Powder coated RAL 7035",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Description",
+            "value": "Compartment, Control",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Height",
+            "value": "8.00\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Width",
+            "value": "24.25\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Depth",
+            "value": "14.50\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Price Code",
+            "value": "C2",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "List Price",
+            "value": "$358.55",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Catalog Page",
+            "value": "44",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Est. Ship Weight",
+            "value": "23.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "Control Compartment",
+            "url": "https://www.saginawcontrol.com/instman/035.PDF",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC"
+          },
+          {
+            "type": "image",
+            "label": "Product image - SCE-WSCC",
+            "url": "https://www.saginawcontrol.com/images/sce-wscc.png",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\images\\SCE.SCE-WSCC.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Download CAD Package",
+            "url": "https://www.saginawcontrol.com/download-doc/?Part=sce-wscc",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC"
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "parserVersion": "sce-v2",
+            "fetchedAt": "2026-10-19T07:02:32.626Z",
+            "statusCode": 200
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "sce-product-page",
+              "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-WSCC",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "sce-product-page",
+              "statusCode": 200,
+              "attributeCount": 28,
+              "documentCount": 4,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "manufacturerId": "sce",
+      "catalogNumber": "SCE-FA66",
+      "caseType": "electrical",
+      "expectedDeviceType": "Fan Assembly",
+      "actualDeviceType": "Fan Assembly",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "six-inch-fan-housing",
+        "exact-model-manual",
+        "airflow-ratings",
+        "exact-image"
+      ],
+      "status": "found",
+      "confidence": 0.62,
+      "elapsedMs": 18926,
+      "scrapeElapsedMs": 790,
+      "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": true,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\pdt\\sce-SCE-FA66-pdt_pdt-audit.json",
+      "pdtWrittenCells": 37,
+      "pdtBlankCells": 55,
+      "pdtSkippedCells": 0,
+      "pdtUnprovenSkipped": 0,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 0,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "SCE-FA66",
+        "description": "Assembly, Fan Housing (6in.)",
+        "productUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+        "localizedUrls": {
+          "en": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66"
+        },
+        "deviceTypeClassification": {
+          "type": "Fan Assembly",
+          "confidence": 0.86,
+          "evidence": "Product Type: Assembly, Fan Housing (6in.)",
+          "alternatives": [
+            {
+              "type": "Thermal Management",
+              "score": 1610,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 120
+        },
+        "normalized": {
+          "weight": "4.00 lbs (1.81436948 kg)",
+          "dimensions": "7.61 x 8.88 x 3.75 in (193.294 x 225.552 x 95.25 mm)",
+          "material": "aluminum filter; steel air plenum; stainless steel grille",
+          "finish": "ANSI-61 gray urethane polyester powder coated",
+          "voltage": "115 V",
+          "certificates": "NEMA Not Applicable, UL Not Applicable, CSA N/A",
+          "current": "0.25 A"
+        },
+        "requiredElectricalFields": [
+          "voltage",
+          "current"
+        ],
+        "attributes": [
+          {
+            "group": "Product Specifications",
+            "name": "Part Number",
+            "value": "SCE-FA66",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Description",
+            "value": "Assembly, Fan Housing (6in.)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Height",
+            "value": "7.61\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Width",
+            "value": "8.88\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Depth",
+            "value": "3.75\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Price Code",
+            "value": "P1",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "List Price",
+            "value": "$491.43",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Catalog Page",
+            "value": "399",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Weight",
+            "value": "4.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "CFM",
+            "value": "185",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "Product Specifications",
+            "name": "Volt",
+            "value": "115",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.96
+          },
+          {
+            "group": "SCE Product Data",
+            "name": "Product Type",
+            "value": "Assembly, Fan Housing (6in.)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.95
+          },
+          {
+            "group": "Construction",
+            "name": "Construction Detail",
+            "value": "UL Listed Motor",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Application",
+            "name": "Application",
+            "value": "Designed for use in enclosures that require cooling but have limited space. Consists of a washable aluminum filter, steel air plenum, removable stainless steel grille, single phase fan, and approximately 14 inch of lead wire. Grille has captivated thumbnuts for easy access to the filter from the outside. Fan is available in 115 or 230 volt AC, 60/50 Hertz (HZ) single phase or 24 VDC. Air plenum is ANSI-61 gray urethane polyester powder coated.",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "NEMA Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "UL Not Applicable",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Industry Standards - (IS17)",
+            "name": "Standard",
+            "value": "CSA N/A",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Notes",
+            "name": "Note",
+            "value": "For use with UL General purpose Type 1 applications UL Listed Motor File # E137077 Mechatronics, E186492 PTI Pelko Motor Motor Mechatronics, E170149 Orion Motor. w/ Thermal Protection w/ Thermal Protection",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Optional Accessories",
+            "name": "Optional Accessory",
+            "value": "SCE-FGA66 - Assembly, Filter & Grille (6in.) (Fan Assembly)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Optional Accessories",
+            "name": "Optional Accessory",
+            "value": "SCE-RF66 - Filter, Replacement (6in.) (Replacement Filter)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Optional Accessories",
+            "name": "Optional Accessory",
+            "value": "SCE-RH66 - Hood, Rain",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Optional Accessories",
+            "name": "Optional Accessory",
+            "value": "SCE-RH66SS - Hood, S.S. Rain",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA1010 - Assembly, Fan Housing (10in.)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA1010-230 - Assembly, Fan Housing (10in.) 230v",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA1010-24VDC - Assembly, Fan Housing (10in.) 24VDC",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA44 - Assembly, Fan Housing (4in.)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA44-230 - Assembly, Fan Housing (4in.) 230v",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA44-24VDC - Assembly, Fan Housing (4in.) 24VDC",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA66-230 - Assembly, Fan Housing (6in.) 230v",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Similar Part Numbers",
+            "name": "Similar Part",
+            "value": "SCE-FA66-24VDC - Assembly, Fan Housing (6in.) 24VDC",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Installation Information",
+            "name": "Manual",
+            "value": "Fan & Grille Kit",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "Installation Information",
+            "name": "Manual",
+            "value": "Thermal Management Chart",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Thermal Ratings",
+            "name": "Air Flow",
+            "value": "185 CFM",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.95
+          },
+          {
+            "group": "SCE Mechanical Ratings",
+            "name": "Material Components",
+            "value": "aluminum filter; steel air plenum; stainless steel grille",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.86
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Description",
+            "value": "Assembly, Fan Housing (6in.)",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Height",
+            "value": "7.61\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Width",
+            "value": "8.88\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Depth",
+            "value": "3.75\"",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Price Code",
+            "value": "P1",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "List Price",
+            "value": "$491.43",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Catalog Page",
+            "value": "399",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "SCE Legacy Markers",
+            "name": "Est. Ship Weight",
+            "value": "4.00 lbs",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "confidence": 0.9
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Fan & Grille Kit",
+            "sourceUrl": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "SCE Exact Fan Package Manual",
+            "name": "Air Flow",
+            "value": "185 CFM",
+            "sourceUrl": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.78,
+            "matchLevel": "exact",
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "SCE Exact Fan Package Manual",
+            "name": "Power",
+            "value": "31 W at ${frequency} Hz",
+            "sourceUrl": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.78,
+            "matchLevel": "exact",
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "SCE Exact Fan Package Manual",
+            "name": "Voltage",
+            "value": "115 V",
+            "sourceUrl": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.78,
+            "matchLevel": "exact",
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "SCE Exact Fan Package Manual",
+            "name": "Frequency",
+            "value": "60 Hz",
+            "sourceUrl": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.78,
+            "matchLevel": "exact",
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "SCE Exact Fan Package Manual",
+            "name": "Rated Current",
+            "value": "0.25 A",
+            "sourceUrl": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.78,
+            "matchLevel": "exact",
+            "stage": "enrich-documents"
+          },
+          {
+            "group": "SCE Exact Fan Package Manual",
+            "name": "Locked Rotor Current",
+            "value": "0.43 A",
+            "sourceUrl": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "confidence": 0.78,
+            "matchLevel": "exact",
+            "stage": "enrich-documents"
+          }
+        ],
+        "documents": [
+          {
+            "type": "manual",
+            "label": "Fan & Grille Kit",
+            "url": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\documents\\SCE-FA66-manual-Fan-&-Grille-Kit.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "Thermal Management Chart",
+            "url": "https://www.saginawcontrol.com/instman/thermal-management-chart.pdf",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66"
+          },
+          {
+            "type": "image",
+            "label": "Product image - SCE-FA66",
+            "url": "https://www.saginawcontrol.com/images/sce-fa66.png",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261019070221\\images\\SCE.SCE-FA66.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Download CAD Package",
+            "url": "https://www.saginawcontrol.com/download-doc/?Part=sce-fa66",
+            "sourceUrl": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "downloadStatus": "failed",
+            "downloadError": "Cancelled by user."
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+            "sourceType": "official",
+            "parser": "sce-product-page",
+            "parserVersion": "sce-v2",
+            "fetchedAt": "2026-10-19T07:02:35.045Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://www.saginawcontrol.com/instman/fan-and-grille-kit.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "manual",
+            "fetchedAt": "2026-10-19T07:02:51.858Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "sce-product-page",
+              "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+              "status": "partial",
+              "score": 98,
+              "missing": [
+                "normalized:current"
+              ],
+              "reason": "Missing required product data: normalized:current",
+              "sourceType": "official",
+              "parser": "sce-product-page",
+              "statusCode": 200,
+              "attributeCount": 42,
+              "documentCount": 6,
+              "sectionAttributeCounts": {}
+            },
+            {
+              "stage": "sce-product-page",
+              "url": "https://www.saginawcontrol.com/partnumber_info/?n=SCE-FA66",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "sce-product-page",
+              "statusCode": 200,
+              "attributeCount": 49,
+              "documentCount": 4,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

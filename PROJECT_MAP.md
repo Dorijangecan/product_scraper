@@ -93,10 +93,10 @@ playwright ako patchright ikad zakaže na nekoj mašini.
 
 **API rute (sve u `index.ts`):** `GET/POST /api/manufacturers` (+`/:id/operational-summary` za read-only target-health/learned-endpoint pregled, `/inspect`,`/test`,`/:id/learned-extractors`,`/:id/reset-override`)
 · `GET /api/field-coverage-matrix` (site×field health matrica preko SVIH proizvođača — `run-manager.ts` `buildFieldCoverageMatrix`, renderano u `App.tsx` `FieldCoverageMatrixPanel`, po zadanim postavkama skupljeno; korisnik ga može otvoriti)
-· `POST /api/csv/preview` · `POST /api/runs` (multipart: CSV + customer docs) · `GET /api/runs[/:id]`
+· `POST /api/csv/preview` · `POST /api/runs` (multipart: CSV + customer docs; customer `.7z` archives are expanded to supported documents during upload) · `GET /api/runs[/:id]`
 (`?summary=1` → `summarizeRunItem`) · `PATCH /api/runs/:id/coverage-fields`
 · `POST /api/runs/:id/{cancel,pause,resume}` · `/files/{result,pdt,log,document}` (+`/open`)
-· `GET /api/runs/:id/pdt-routing-preview` · `POST /api/runs/:id/pdt`
+· `GET /api/runs/:id/pdt-routing-preview` · `POST /api/runs/:id/pdt` (jedan PDT ili više zasebnih grupa po postojećem device sheetu; točni kataloški brojevi, ostatak ide u glavni PDT; spremljene grupe i gotovi outputi ostaju u `RunOptions`; grupirani outputi: `/files/pdt/:groupId`)
 · `POST|DELETE /api/runs/:id/accessory-matrix` (multipart XLSX; parsira se odmah pa je pogrešan fajl odbijen dok operater još gleda picker; sprema se u `RunOptions.accessoryMatrix` i time nadjačava matrix priložen pri startu runa)
 · `POST /api/accessory-matrix/preview` (matrix prije nego run postoji → main partovi + točke). **`POST /api/runs` više ne zahtijeva CSV:** ako je poslan samo `accessoryMatrix`, kataloški brojevi su njegovi main partovi (`accessoryMatrixCatalogNumbers`, ista normalizacija kao `extractCatalogNumbers`), a `inputFileName` je ime matrixa; accessory brojevi se **ne** scrapaju.
 
@@ -104,6 +104,7 @@ playwright ako patchright ikad zakaže na nekoj mašini.
 
 ```
 UI App.tsx ──HTTP──> index.ts POST /api/runs
+  │ customer `.7z` attachments → 7-Zip preflight (paths/count/size) → run-staging PDFs/docs
   │  csv.ts (extractCatalogNumbers)
   ▼
 RunManager.processRun (run-manager.ts) ──persist──> db.ts (SQLite)
@@ -136,11 +137,12 @@ final-completeness.ts (evaluate→repair→retry zadnjih polja)
   ▼
 evidence.ts (attachEvidence + field candidates/resolutions) + dedupe.ts (merge duplikata, čuva veći confidence)
   ▼
-persist run_item (db.ts) → finalize run
+persist run_item + item/run-progress checkpoint atomically (db.ts) → finalize run
   ├─ cohort-anomaly.ts (detectCohortAnomalies)          # cross-record MAD-outlier flags within the run's own device-type cohorts, patched into run_items
   ├─ field-coverage-drift.ts (detectFieldCoverageDrift)  # this run's per-field fill-rate vs the manufacturer's recent completed-run baseline
-  ├─ excel.ts (exportRunWorkbook) → outputs/.../excel/<...>.xlsx   # surfaces both above as review flags + a Run Summary warning section
-  └─ on demand: pdt/exporter.ts (exportRunPdt) → <runId>_PDT.xlsx
+  ├─ excel.ts (exportRunWorkbook) → outputs/.../excel/<...>.xlsx   # surfaces review flags + Run Summary warnings
+  ├─ excel.ts (exportOnlySelectedInfoWorkbook) → compact handoff XLSX with selected fields + clickable product source
+  └─ pdt/exporter.ts (exportRunPdt) → <runId>_PDT.xlsx (skipped for Only selected info runs)
 ```
 
 **Fast paths:** images-only (preskoči Excel + široke fallbacke), links-only (samo URL-ovi),
@@ -238,8 +240,11 @@ RunRecord { id; manufacturerId; createdAt; updatedAt; status: RunStatus; inputFi
             total; processed; found; partial; failed; outputPath?; pdtPath?;
             activityStage?; activityMessage?; options?: RunOptions; error? }
 RunOptions { downloadDocuments?; downloadPdfs?; downloadCad?; downloadImages?; generateExcel?;
-             generateLinksFile?; customCoverageFields?; hiddenCoverageFields?; forceFinalRetry?;
-             customerDocuments?: CustomerDocumentRecord[]; accessoryMatrix?: CustomerDocumentRecord }
+             generateLinksFile?; onlySelectedInfo?; customCoverageFields?; hiddenCoverageFields?; forceFinalRetry?;
+             customerDocuments?: CustomerDocumentRecord[]; accessoryMatrix?: CustomerDocumentRecord;
+             pdtGroups?: PdtGroupDefinition[]; pdtExports?: PdtGroupExportRecord[] }
+PdtGroupDefinition { id; name; fileName; sheetName; catalogNumbers: string[] } — ručno uređiva PDT grupa, sheet mora biti postojeći device sheet u predlošku.
+PdtGroupExportRecord { groupId; name; path; productCount; generatedAt } — uspješno objavljen odvojeni PDT workbook.
 ManufacturerConfig { id; canonicalName; shortName; rateLimitMs; concurrency?; officialBaseUrls[];
              homepageUrl?; fallbackSources[]; localizedUrlTemplates?; match?; fetchPolicy?;
              markerRules?; scrapeRecipe?; customCoverageFields?; origin?; isBuiltIn?; hasOverride? }
@@ -266,7 +271,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | `run-manager.ts` | `RunManager`, `documentDownloadProfile`, `shouldDownloadDocumentsForRun`, `documentDownloadCandidateUrls`, `imageFileName`; debug bundle uključuje learned endpoints i recent `stageObservations` |
 | `db.ts` | `ScraperDb` (svi DB upiti), uključujući `listStageObservations` za newest-first raw history i `listTargetHealth` za bounded per-host/stage dashboard prozore iza `target_health` agregata |
 | `csv.ts` | `previewCsv`, `extractCatalogNumbers` |
-| `excel.ts` | `exportRunWorkbook` — izvozi `Unmapped Labels` teach-list s `quantity`/`text` kindom, deterministic/local-AI review prijedlozima i human review stupcima (approve/reject/needs-evidence, reviewer, source/fixture, note); workbook se nikad ne čita natrag u alias ili parser konfiguraciju |
+| `excel.ts` | `exportRunWorkbook`, `exportOnlySelectedInfoWorkbook` — drugi stvara filtrirani handoff XLSX s kataloškim brojem, odabranim poljima i klikabilnim izvornim URL-om; standardni exporter izvozi `Unmapped Labels` teach-list s `quantity`/`text` kindom, deterministic/local-AI review prijedlozima i human review stupcima; workbook se nikad ne čita natrag u alias ili parser konfiguraciju |
 | `manufacturer-wizard.ts` | `inspectManufacturerDraft`, `testManufacturerDraft`, `confirmedLearnedExtractorSuggestions`, `wizardValidationKey`, `buildWizardAliasSuggestions`, `downloadWizardDocument`, `approveWizardLearnedExtractor`; save-gate zahtijeva 2/3 official identity-confirmed uzorka, UI nudi mined recipe za Save tek kada se isti strogi obrazac ponovi na dva takva uzorka, a server prihvaća approval samo uz svježi testni dokaz vezan uz isti ID/službene hostove. Potvrđeni PDP zapisuje reproducibilni HTML/case fixture pod wizard outputom, a do 8 enrichable službenih dokumenata prolazi isti PDF enrichment kao regularni run; nikad u curated korpus; API dopušta samo službeni HTTPS, host-matching `css:table-row:tr…`, `json:script:#id` ili strogi `html-table:header-column:table#id-or-class:encoded-header` recipe koji miner već zna replayati |
 | `scrapers/eaton-ordering-inference.ts` | Isključivo Eaton RapidLink offset/model-code adapter; shared `document-enrichment` predaje mu dokazanu baznu ordering-row funkciju, pa drugi proizvođači ne mogu naslijediti CDVRL/RASP5X pretpostavke |
 | `scrapers/pdf-positioned-table.ts` | Geometrijski PDF reader za comparison i ordering tablice; dominantno rotirane stranice normalizira cijele, a miješane stranice projicira samo dokazani vertikalni SKU-header sloj (≥2 variant tokena) |
@@ -283,7 +288,7 @@ Politike u `ManufacturerConfig.scrapeRecipe`: `DiscoveryPolicyConfig`, `Interact
 | Fajl | Ključni exporti |
 | --- | --- |
 | `index.ts` | `getConnector` |
-| `types.ts` | `ScrapeContext` (uklj. per-item `discoveryMemo` koji connector/fallback/final retry dijele), `ManufacturerConnector` (scrape + opcionalni `enrichDocuments` nakon mjerenog scrapea) |
+| `types.ts` | `ScrapeContext` (uklj. per-item `discoveryMemo` i Only selected info early-stop signal koji dijele connector/fallback/final retry), `ManufacturerConnector` (scrape + opcionalni `enrichDocuments` nakon mjerenog scrapea) |
 | `InteractionPolicyConfig.fastIdentityCapture` | Ubrzani browser dohvat za stranice koje se mogu provjeriti kratkim identitetskim selectorom; preskače network-idle/Cloudflare čekanje i capture iframe/shadow/network sadržaja, ali može nakratko čekati lazy sadržaj kroz `waitForOptionalSelectors`. Za ponovne istodomain upite isti `BrowserRenderSession` koristi `fetch()` iz identitetski označene stranice umjesto nove navigacije. Konektor mora naknadno potvrditi kanonski URL i traženi SKU te pozvati `discardFastIdentityPage` ako provjera ne prođe |
 | `http-client.ts` | `CachedHttpClient`, `FetchedText`, `delay`, `DEFAULT_USER_AGENT` (aktualni Chrome UA; ABB/Siemens Akamai edge odbija stare verzije). Primarni tekstualni fetch (`fetchTextWithRetry`) ide preko `got-scraping` (`fetchViaGotScraping`, `useHeaderGenerator:false` da headeri ostanu deterministički za cache-key) umjesto golog `fetch()` — curl/PowerShell fallbackovi i `fetchBufferWithRetry` (downloadi slika/dokumenata) namjerno ostaju na golom `fetch()` |
 | `browser-renderer.ts` | `BrowserRenderSession`, `renderProductPage`, `RenderedPage`, `ModalSection`, `clickSafeSelectors`, `captureFrameFragments`, `captureShadowDomFragments` (zadnja tri exportana za testove: klik-petlja s re-scanom + iframe + shadow-DOM capture). Browser je `patchright` (fallback na `playwright` ako nedostupan; `PRODUCT_SCRAPER_STEALTH_BROWSER=0` prisilno vraća na `playwright`), context gradi `createFingerprintedContext` preko `fingerprint-injector`/`fingerprint-generator` (fallback na stari fiksni UA/viewport). `applyRequestFiltering` (jedan `page.route` po pageu) kombinira opt-in `blockResourceTypes` s default-on ad/tracker blockom (`ad-block-domains.ts`; opt-out `interactionPolicy.disableAdBlock`). `waitForNonInteractiveCloudflareChallenge` (bounded, 8s default) čeka da Cloudflareov `cType: 'non-interactive'\|'managed'` marker nestane prije nastavka — "interactive" (checkbox) Turnstile namjerno nije handlean |
@@ -398,6 +403,12 @@ manual-PDT keyword-search pravila (2715P, 1756-L9, 1492-PDE/PDME, 2198-DSM) su m
 provjereno da svaki od tih kataloga ima vlastitu details stranicu. Ostaje samo Micro820
 family stranica za `2080-LC20-` (njihov details URL stvarno 404-a).
 
+Za `140G-*`, connector prvo provjeri exact SKU na izravnom PDP-u. Ako se identitet ne potvrdi,
+provjeri kompletan službeni 140G indeks (paginiran i cacheiran 15 min); exact indeksni URL zatim
+se dohvaća i ponovno validira. Sličan model nikad nije dovoljan. Kad i PDP i potpuni indeks
+nedostaju, cutsheet/DPP i generički discovery se preskaču; nepotpun indeks vraća se na uobičajenu
+pretragu umjesto da lažno označi artikl kao nepostojeći.
+
 `siemens.ts` (`SiemensConnector`): standardni MLFB automation dio ide preko SiePortal anon-token API-ja
 (`parseSiemensProductApiResponse`) + mmpdata; **Building Technologies stock brojevi** (`S55…`, regex
 `/^S\d{5}-[A-Z]\d+$/`) idu preko **Industry Online Support pview API-ja** (`support.industry.siemens.com
@@ -441,13 +452,13 @@ fallback = Access Denied/timeout).
 | --- | --- |
 | `exporter.ts` | `exportRunPdt`, `PdtExportResult` |
 | `template.ts` | `resolveTemplatePath`, `loadTemplateWorkbook`, `DEFAULT_PDT_TEMPLATE` |
-| `device-sheet-map.ts` | `deviceSheetsFor`, `targetSheets`, `knownDeviceSheets`, `CONSTANT_SHEETS` |
+| `device-sheet-map.ts` | `deviceSheetsFor`, `targetSheets`, `knownDeviceSheets`, `CONSTANT_SHEETS`; grupirani izvoz koristi samo postojeće device sheetove kao vrijednost grupe |
 | `device-type-profiles.ts` | `DEVICE_TYPE_PROFILES`, `deviceTypeProfile`, `criticalFactsForDeviceType`, `eclassDefaultForDeviceType`; `Signal Conditioner` targets `el. mesurement devices` with voltage required and current optional. |
 | `eclass-resolvers.ts` | `resolveProperty`, `hasPropertyResolver`, `ResolveContext` |
 | `facts.ts` | `buildPdtFactIndex`, `bestFact`, `PDT_ONTOLOGY_FACT_KEYS` |
 | `documents-sheet.ts` | `writeDocumentsSheet` |
 | `product-accessory-sheet.ts` | `writeProductAccessorySheet`, `CURATED_ACCESSORY_RULES`. Uz priloženi accessory matrix on je **jedini** izvor tog taba (scrapani + curated se ignoriraju) |
-| `accessory-matrix.ts` | `loadAccessoryMatrix`, `parseAccessoryMatrixBuffer`, `readAccessoryMatrixSheet`, `buildAccessoryMatrixPlan`, `pointVariantIndex`, `accessoryMatrixCatalogNumbers`, `accessoryMatrixMainPartsNotInRun` — **port operaterove VBA makro skripte** (`accessori matrix/Skripte_V2.txt`): iz prvog lista uploadanog XLSX-a (red 2 = imena točaka, red 3 = opisi, main partovi u koloni A od reda 4) gradi tri deterministička izlaza — Product Accessory redovi (+ variant index = broj iza zadnjeg `_` u imenu točke), Connection Point redovi (jedna točka po main partu, `User supplementary point N` restarta po main partu) i `INLIST('mp1,mp2,…', PN)` conditione. Prazan red između grupa main partova je namjeran (kao u makrou). Ground truth: `fixtures/_assets/accessory-matrix-example.xlsx` sadrži i ulaz (`Matrix`) i makrov izlaz (`final`/`conn point`/`Condition`), pa `tests/accessory-matrix.test.ts` tvrdi red-za-red jednakost |
+| `accessory-matrix.ts` | `loadAccessoryMatrix`, `parseAccessoryMatrixBuffer`, `readAccessoryMatrixSheet`, `buildAccessoryMatrixPlan`, `filterAccessoryMatrixPlan`, `pointVariantIndex`, `accessoryMatrixCatalogNumbers`, `accessoryMatrixMainPartsNotInRun` — **port operaterove VBA makro skripte** (`accessori matrix/Skripte_V2.txt`): iz prvog lista uploadanog XLSX-a (red 2 = imena točaka, red 3 = opisi, main partovi u koloni A od reda 4) gradi tri deterministička izlaza — Product Accessory redovi (+ variant index = broj iza zadnjeg `_` u imenu točke), Connection Point redovi (jedna točka po main partu, `User supplementary point N` restarta po main partu) i `INLIST('mp1,mp2,…', PN)` conditione. Grupirani PDT izvoz filtrira matrix po glavnim kataloškim brojevima grupe, dok se run-wide uvjeti pišu jednom u products workbook. Prazan red između grupa main partova je namjeran (kao u makrou). Ground truth: `fixtures/_assets/accessory-matrix-example.xlsx` sadrži i ulaz (`Matrix`) i makrov izlaz (`final`/`conn point`/`Condition`), pa `tests/accessory-matrix.test.ts` tvrdi red-za-red jednakost |
 | `connection-point-sheet.ts` | `writeConnectionPointSheet` — tab se puni **samo** iz accessory matrixa (geometrija spojnih točaka je CAD podatak, ne scrape); bez matrixa ostaje prazan placeholder. Ciljne kolone (makrove C/D/G/I/U/AF/AG/AJ/AP) razrješavaju se po PDT property idu, ne po poziciji; nedostaje li ijedna → glasna greška umjesto upisa u pogrešnu ćeliju |
 | `accessory-conditions-sheet.ts` | `ACCESSORY_CONDITIONS_SHEET`, `writeAccessoryConditionsSheet`, `patchAccessoryConditionsIntoWorkbookFile` — `INLIST` conditioni ne idu u PDT nego u products workbook: matrix priložen pri startu runa upisuje ih `excel.ts` odmah, a matrix odabran u PDT panelu ih zakrpa u već zapisani `products.xlsx` (neuspjeh = warning, PDT ostaje valjan) |
 | `ai-cleaned-input-sheet.ts` / `cleaned-input-workbook.ts` | `writeAiCleanedInputSheet` / `writeCleanedInputWorkbook` |
@@ -476,7 +487,7 @@ fallback = Access Denied/timeout).
 | Trebaš… | Gledaj |
 | --- | --- |
 | Dodati/izmijeniti API rutu | [index.ts](src/server/index.ts) |
-| Run lifecycle (pause/resume/cancel, konkurentnost, enrichment) | [run-manager.ts](src/server/run-manager.ts) |
+| Run lifecycle (pause/resume/cancel, konkurentnost, enrichment) | [run-manager.ts](src/server/run-manager.ts); atomarni item/run-progress checkpointi i inkrementalni brojači su u [db.ts](src/server/db.ts) |
 | Dodati proizvođača | [config/manufacturers.ts](src/server/config/manufacturers.ts) + `scrapers/<id>.ts` + [scrapers/index.ts](src/server/scrapers/index.ts) |
 | Scrape redoslijed / fallback | [deterministic-pipeline.ts](src/server/scrapers/deterministic-pipeline.ts), [smart-fallback.ts](src/server/scrapers/smart-fallback.ts) |
 | Discovery / URL nalaženje | [discovery.ts](src/server/scrapers/discovery.ts), [link-discovery.ts](src/server/scrapers/link-discovery.ts), [learned-endpoints.ts](src/server/scrapers/learned-endpoints.ts) |

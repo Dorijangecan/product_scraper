@@ -80,6 +80,7 @@ export async function startRun(input: {
   downloadImages: boolean;
   generateExcel: boolean;
   generateLinksFile?: boolean;
+  onlySelectedInfo?: boolean;
   /**
    * Per-run override of the coverage tiles. Pass `undefined` to use the manufacturer
    * defaults; pass an array (including empty `[]`) to override for this single run.
@@ -110,6 +111,7 @@ export async function startRun(input: {
   form.append("downloadImages", String(input.downloadImages));
   form.append("generateExcel", String(input.generateExcel));
   form.append("generateLinksFile", String(input.generateLinksFile ?? false));
+  form.append("onlySelectedInfo", String(input.onlySelectedInfo ?? false));
   if (input.customCoverageFields !== undefined) {
     form.append("customCoverageFields", JSON.stringify(input.customCoverageFields));
   }
@@ -226,15 +228,21 @@ export interface PdtRequiredFieldIssue {
 
 export async function importRunPdt(
   id: string,
-  options: { templatePath?: string; aiCleanup?: boolean; sheetOverrides?: import("../shared/types.js").PdtSheetOverrides } = {}
-): Promise<{ ok: true; path: string; stats: PdtImportStats }> {
+  options: {
+    templatePath?: string;
+    aiCleanup?: boolean;
+    sheetOverrides?: import("../shared/types.js").PdtSheetOverrides;
+    groups?: import("../shared/types.js").PdtGroupDefinition[];
+  } = {}
+): Promise<{ ok: true; path: string; paths?: string[]; exports?: import("../shared/types.js").PdtGroupExportRecord[]; groupStats?: PdtImportStats[]; stats: PdtImportStats }> {
   return request(`/api/runs/${id}/pdt`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       templatePath: options.templatePath,
       aiCleanup: options.aiCleanup ?? false,
-      sheetOverrides: options.sheetOverrides
+      sheetOverrides: options.sheetOverrides,
+      groups: options.groups
     })
   });
 }

@@ -1,0 +1,3914 @@
+{
+  "generatedAt": "2026-10-15T06:08:09.694Z",
+  "outputDir": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015060753",
+  "filters": {
+    "manufacturer": "schneider",
+    "catalogNumber": "XUSL4E30H091N",
+    "fixtureDir": "benchmarks/schneider-accuracy-speed-20261014/batch-02",
+    "isolatedStorage": "1",
+    "tag": "schneider-xusl-current-debug"
+  },
+  "summary": {
+    "foundRate": 100,
+    "officialUrlRate": 100,
+    "documentRate": 100,
+    "pdtAuditRate": 100,
+    "deviceTypeRate": 100,
+    "normalizedFieldsRate": 0,
+    "expectedAttributesRate": 100,
+    "customerDocumentRate": 0,
+    "wrongProducts": 0,
+    "partialWithoutMissing": 0,
+    "pdtUnprovenWritten": 0,
+    "pdtUnexplainedRequiredFieldIssues": 0,
+    "pdtWriteIssues": 2,
+    "qualityAccepted": false,
+    "fixtureCoverageAccepted": true,
+    "fixtureCoverage": {
+      "byManufacturer": {
+        "schneider": {
+          "total": 1,
+          "caseTypes": [
+            "electrical"
+          ],
+          "riskTags": [
+            "30mm-resolution",
+            "910mm-protected-height",
+            "cold",
+            "telemecanique-xusl",
+            "type-4-light-curtain"
+          ]
+        }
+      },
+      "byDeviceType": {
+        "Safety Sensor": {
+          "total": 1,
+          "manufacturers": [
+            "schneider"
+          ],
+          "caseTypes": [
+            "electrical"
+          ]
+        }
+      },
+      "byDeviceSheet": {
+        "safety sensor": {
+          "total": 1,
+          "deviceTypes": [
+            "Safety Sensor"
+          ],
+          "manufacturers": [
+            "schneider"
+          ]
+        }
+      },
+      "thinManufacturers": [
+        "schneider"
+      ],
+      "uncoveredDeviceSheets": [
+        "Busbar",
+        "Luminaire",
+        "Motion Controller",
+        "PCB connection system",
+        "PCB connection technology",
+        "PLC",
+        "RS232 interfaces",
+        "Switch",
+        "Wire ID Information",
+        "cabinet",
+        "cabinet.airconditioning",
+        "cabinet.mechanical",
+        "cabinet.rack",
+        "cable",
+        "cable ducts mounting rails",
+        "cable gland",
+        "command and alarm device",
+        "connector",
+        "contactor a. fuses",
+        "directional control valve",
+        "el. mesurement devices",
+        "electronic sensor",
+        "energy distribution system",
+        "filters",
+        "fluid power",
+        "generator",
+        "int. ext. lightning protection",
+        "module carrier frame",
+        "motor protection",
+        "motors",
+        "optical sensor",
+        "panel (HMI)",
+        "pneumatic handling",
+        "power supply devices",
+        "pump",
+        "sensor - fluid",
+        "servo controller",
+        "terminal",
+        "terminal endbracket",
+        "ventil"
+      ],
+      "missingDeviceSheetRecommendations": [
+        {
+          "sheetName": "Busbar",
+          "deviceTypes": [
+            "Busbar"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "Luminaire",
+          "deviceTypes": [
+            "Luminaire"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SL0040I.953",
+              "deviceType": "Luminaire",
+              "notes": "FATH Module F Line LED lamp"
+            }
+          ]
+        },
+        {
+          "sheetName": "Motion Controller",
+          "deviceTypes": [
+            "Motion Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-HYD",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1756-M02",
+              "deviceType": "Motion Controller",
+              "notes": "ControlLogix integrated motion modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "PCB connection system",
+          "deviceTypes": [
+            "PCB Connector"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PCB connection technology",
+          "deviceTypes": [
+            "PCB Terminal Block"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "PLC",
+          "deviceTypes": [
+            "Communication Gateway",
+            "HMI",
+            "I/O Module",
+            "Programmable Logic Controller"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "RS232 interfaces",
+          "deviceTypes": [
+            "Communication Gateway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "FL",
+              "deviceType": "Communication Gateway",
+              "notes": "FL switch / FL gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "GW PL ETH",
+              "deviceType": "Communication Gateway",
+              "notes": "Phoenix Ethernet HART multiplexer gateway"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "RAD",
+              "deviceType": "Communication Gateway",
+              "notes": "Radioline"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENT",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1734-AENTR",
+              "deviceType": "Communication Gateway",
+              "notes": "Rockwell communication adapters and bridge modules"
+            }
+          ]
+        },
+        {
+          "sheetName": "Switch",
+          "deviceTypes": [
+            "Limit Switch",
+            "Lock / Interlock",
+            "Selector Switch",
+            "Switch"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BNS",
+              "deviceType": "Limit Switch",
+              "notes": "Mechanical position and safety limit switches"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3SE",
+              "deviceType": "Limit Switch",
+              "notes": "SIRIUS electromechanical position switches"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2SS",
+              "deviceType": "Selector Switch",
+              "notes": "M2SS selector switches"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22-WR",
+              "deviceType": "Selector Switch",
+              "notes": "M22 selector switch actuator"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "JSHD",
+              "deviceType": "Switch",
+              "notes": "JSHD three-position handheld devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "Wire ID Information",
+          "deviceTypes": [
+            "Wire Marker"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "cabinet",
+          "deviceTypes": [
+            "Enclosure"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PSN",
+              "deviceType": "Enclosure",
+              "notes": "xEnergy ProfiSNAP enclosure panels/accessories"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2C",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "P2D",
+              "deviceType": "Enclosure",
+              "notes": "nVent Hoffman enclosure families"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.airconditioning",
+          "deviceTypes": [
+            "Thermal Management"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "nvent",
+              "pattern": "DAH",
+              "deviceType": "Thermal Management",
+              "notes": "nVent HOFFMAN DAH enclosure heaters"
+            },
+            {
+              "manufacturerId": "rittal",
+              "pattern": "SK",
+              "deviceType": "Thermal Management",
+              "notes": "Climate control / filter fans"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.mechanical",
+          "deviceTypes": [
+            "Accessory",
+            "Cover / Door Accessory",
+            "Enclosure",
+            "Subpanel"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MDB",
+              "deviceType": "Accessory",
+              "notes": "MDB dummy blocks and operator accessories"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "061CC42300.74",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "FATH shelf-board cover cap"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "73540003",
+              "deviceType": "Cover / Door Accessory",
+              "notes": "Spelsberg AK KF 03 hinged window"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEP",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MEPY",
+              "deviceType": "Enclosure",
+              "notes": "MEP emergency-stop enclosures"
+            }
+          ]
+        },
+        {
+          "sheetName": "cabinet.rack",
+          "deviceTypes": [
+            "Rack Cabinet"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rittal",
+              "pattern": "DK",
+              "deviceType": "Rack Cabinet"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable",
+          "deviceTypes": [
+            "Cable"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAMB1J313B.4000",
+              "deviceType": "Cable",
+              "notes": "FATH Module F Line GST18i3 main power cable"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "889",
+              "deviceType": "Cable",
+              "notes": "Allen-Bradley cordsets and patchcords"
+            },
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "59181001",
+              "deviceType": "Cable",
+              "notes": "Spelsberg Wallbox LL 7m Type 2 charging cable"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable ducts mounting rails",
+          "deviceTypes": [
+            "Mounting Accessory",
+            "Wireway"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "09308901S01",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6FG40ND80M695N08",
+              "deviceType": "Mounting Accessory",
+              "notes": "FATH workstation and profile mounting components"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "CSP2020",
+              "deviceType": "Mounting Accessory",
+              "notes": "nVent Hoffman/Schroff accessory items verified on official product pages"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "1524160",
+              "deviceType": "Mounting Accessory",
+              "notes": "Phoenix MCS-112X90-AP-7035 adapter plate item number"
+            }
+          ]
+        },
+        {
+          "sheetName": "cable gland",
+          "deviceTypes": [
+            "Cable Gland"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "spelsberg",
+              "pattern": "26013201",
+              "deviceType": "Cable Gland",
+              "notes": "Spelsberg DMS M32/w double-membrane seal"
+            }
+          ]
+        },
+        {
+          "sheetName": "command and alarm device",
+          "deviceTypes": [
+            "Pilot Light",
+            "Pushbutton / Operator",
+            "Stack Light / Beacon"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "ML1",
+              "deviceType": "Pilot Light",
+              "notes": "ML1 pilot lights"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "M22",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "M22 control station"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800F",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "800H",
+              "deviceType": "Pushbutton / Operator"
+            },
+            {
+              "manufacturerId": "schmersal",
+              "pattern": "BDF",
+              "deviceType": "Pushbutton / Operator",
+              "notes": "BDF command and control devices"
+            }
+          ]
+        },
+        {
+          "sheetName": "connector",
+          "deviceTypes": [
+            "Connector",
+            "Optical Connector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SAKP5J516BS01",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "fath",
+              "pattern": "6SBEU14I.317",
+              "deviceType": "Connector",
+              "notes": "FATH Module F Line and profile connectors"
+            },
+            {
+              "manufacturerId": "nvent",
+              "pattern": "69001-",
+              "deviceType": "Connector",
+              "notes": "nVent SCHROFF DIN connectors"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MCS",
+              "deviceType": "Connector"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VIP",
+              "deviceType": "Connector"
+            }
+          ]
+        },
+        {
+          "sheetName": "contactor a. fuses",
+          "deviceTypes": [
+            "Circuit Breaker",
+            "Contactor",
+            "Disconnect Switch",
+            "Fuse",
+            "Fuse Switch Disconnector",
+            "Miniature Circuit Breaker",
+            "Molded Case Circuit Breaker",
+            "Relay",
+            "Residual Current Device",
+            "Supplementary Protector"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "eta",
+              "pattern": "3120",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eta",
+              "pattern": "REX",
+              "deviceType": "Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-CB",
+              "deviceType": "Circuit Breaker",
+              "notes": "Allen-Bradley circuit breakers"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "A",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "AF",
+              "deviceType": "Contactor",
+              "notes": "AF / A / AL / AX series IEC contactors"
+            }
+          ]
+        },
+        {
+          "sheetName": "directional control valve",
+          "deviceTypes": [
+            "Directional Control Valve"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "el. mesurement devices",
+          "deviceTypes": [
+            "Current Sensor",
+            "Current Transformer",
+            "Power Meter",
+            "Signal Conditioner"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "7KM",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "PAC2200",
+              "deviceType": "Power Meter",
+              "notes": "SENTRON PAC energy and power measuring devices"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "MACX MCR-UI",
+              "deviceType": "Signal Conditioner",
+              "notes": "Phoenix MACX Analog input signal conditioner family"
+            }
+          ]
+        },
+        {
+          "sheetName": "electronic sensor",
+          "deviceTypes": [
+            "Capacitive Sensor",
+            "Condition Monitoring Sensor",
+            "Encoder",
+            "Inductive Proximity Sensor",
+            "Linear Position Sensor",
+            "Magnetic Field Sensor",
+            "Magnetic Position Sensor",
+            "RFID Device",
+            "Radar Sensor",
+            "Sensor",
+            "Ultrasonic Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCS",
+              "deviceType": "Capacitive Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BCM",
+              "deviceType": "Condition Monitoring Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BDG",
+              "deviceType": "Encoder",
+              "notes": "Absolute encoder"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BES",
+              "deviceType": "Inductive Proximity Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BIS",
+              "deviceType": "Inductive Proximity Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "energy distribution system",
+          "deviceTypes": [
+            "Loadcenter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "filters",
+          "deviceTypes": [
+            "Filter"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "fluid power",
+          "deviceTypes": [
+            "Hydraulic Actuator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "generator",
+          "deviceTypes": [
+            "Generator"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "int. ext. lightning protection",
+          "deviceTypes": [
+            "Surge Protective Device"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "OVR",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-CP",
+              "deviceType": "Surge Protective Device"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "VAL-MS",
+              "deviceType": "Surge Protective Device"
+            }
+          ]
+        },
+        {
+          "sheetName": "module carrier frame",
+          "deviceTypes": [
+            "Module Carrier"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "siemens",
+              "pattern": "6ES7193",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "BaseUnits",
+              "deviceType": "Module Carrier",
+              "notes": "SIMATIC ET 200SP BaseUnits / base carriers"
+            }
+          ]
+        },
+        {
+          "sheetName": "motor protection",
+          "deviceTypes": [
+            "Motor Circuit Breaker",
+            "Motor Starter"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "MO",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "MS",
+              "deviceType": "Motor Circuit Breaker",
+              "notes": "Manual motor starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKE",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "PKZM",
+              "deviceType": "Motor Circuit Breaker"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "140M",
+              "deviceType": "Motor Circuit Breaker"
+            }
+          ]
+        },
+        {
+          "sheetName": "motors",
+          "deviceTypes": [
+            "Motor",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "M2A",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "TM",
+              "deviceType": "Motor"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACQ",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "ACS",
+              "deviceType": "Variable Speed Drive",
+              "notes": "ACS / ACQ / ACH drives"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DC1",
+              "deviceType": "Variable Speed Drive",
+              "notes": "PowerXL"
+            }
+          ]
+        },
+        {
+          "sheetName": "optical sensor",
+          "deviceTypes": [
+            "Color Sensor",
+            "Fiber Optic Sensor",
+            "Photoelectric Distance Sensor",
+            "Photoelectric Sensor",
+            "Vision Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFS",
+              "deviceType": "Color Sensor",
+              "notes": "Balluff color sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BFB",
+              "deviceType": "Fiber Optic Sensor",
+              "notes": "Fiber optic base units"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOD",
+              "deviceType": "Photoelectric Distance Sensor",
+              "notes": "Photoelectric distance sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOH",
+              "deviceType": "Photoelectric Sensor"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BOS",
+              "deviceType": "Photoelectric Sensor"
+            }
+          ]
+        },
+        {
+          "sheetName": "panel (HMI)",
+          "deviceTypes": [
+            "HMI"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP6",
+              "deviceType": "HMI",
+              "notes": "CP6xx HMI panel"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "XV",
+              "deviceType": "HMI"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "WP 6",
+              "deviceType": "HMI",
+              "notes": "Phoenix WP 6000 web panel family"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "2711P",
+              "deviceType": "HMI",
+              "notes": "PanelView HMI"
+            }
+          ]
+        },
+        {
+          "sheetName": "pneumatic handling",
+          "deviceTypes": [
+            "Pneumatic Device"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "power supply devices",
+          "deviceTypes": [
+            "Battery",
+            "Power Supply",
+            "Transformer",
+            "UPS"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-E",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "CP-T",
+              "deviceType": "Power Supply",
+              "notes": "CP-T / CP-E DIN-rail PSUs"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "QUINT",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "TRIO",
+              "deviceType": "Power Supply"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1606",
+              "deviceType": "Power Supply",
+              "notes": "Allen-Bradley switched mode power supplies"
+            }
+          ]
+        },
+        {
+          "sheetName": "pump",
+          "deviceTypes": [
+            "Pump"
+          ],
+          "examples": []
+        },
+        {
+          "sheetName": "sensor - fluid",
+          "deviceTypes": [
+            "Flow Sensor",
+            "Level Sensor",
+            "Pressure Sensor",
+            "Temperature Sensor"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "839E",
+              "deviceType": "Flow Sensor",
+              "notes": "Allen-Bradley flow sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "840E",
+              "deviceType": "Level Sensor",
+              "notes": "Allen-Bradley level sensors"
+            },
+            {
+              "manufacturerId": "balluff",
+              "pattern": "BSP",
+              "deviceType": "Pressure Sensor"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "836P",
+              "deviceType": "Pressure Sensor",
+              "notes": "Allen-Bradley pressure sensors"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "837T",
+              "deviceType": "Temperature Sensor",
+              "notes": "Allen-Bradley temperature sensors"
+            }
+          ]
+        },
+        {
+          "sheetName": "servo controller",
+          "deviceTypes": [
+            "Soft Starter",
+            "Variable Speed Drive"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSE",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "abb",
+              "pattern": "PSTX",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "eaton",
+              "pattern": "DS7",
+              "deviceType": "Soft Starter"
+            },
+            {
+              "manufacturerId": "schneider",
+              "pattern": "ATS",
+              "deviceType": "Soft Starter",
+              "notes": "Altistart"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "3RW",
+              "deviceType": "Soft Starter",
+              "notes": "SIRIUS soft starter"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal",
+          "deviceTypes": [
+            "Terminal Block"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UK",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "UT",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492",
+              "deviceType": "Terminal Block"
+            },
+            {
+              "manufacturerId": "siemens",
+              "pattern": "8WH",
+              "deviceType": "Terminal Block",
+              "notes": "SIRIUS terminal blocks"
+            }
+          ]
+        },
+        {
+          "sheetName": "terminal endbracket",
+          "deviceTypes": [
+            "Terminal Accessory"
+          ],
+          "examples": [
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "CLIPFIX",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "phoenix",
+              "pattern": "E/UK",
+              "deviceType": "Terminal Accessory"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAH",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            },
+            {
+              "manufacturerId": "rockwell",
+              "pattern": "1492-EAJ",
+              "deviceType": "Terminal Accessory",
+              "notes": "1492 end anchors / end retainers"
+            }
+          ]
+        },
+        {
+          "sheetName": "ventil",
+          "deviceTypes": [
+            "Valve"
+          ],
+          "examples": []
+        }
+      ],
+      "deviceSheetCoverage": {
+        "covered": 1,
+        "total": 41
+      }
+    },
+    "fixtureCoverageRequired": false,
+    "accepted": false
+  },
+  "reports": [
+    {
+      "manufacturerId": "schneider",
+      "catalogNumber": "XUSL4E30H091N",
+      "caseType": "electrical",
+      "expectedDeviceType": "Safety Sensor",
+      "actualDeviceType": "Safety Sensor",
+      "deviceTypeMatched": true,
+      "riskTags": [
+        "cold",
+        "telemecanique-xusl",
+        "type-4-light-curtain",
+        "30mm-resolution",
+        "910mm-protected-height"
+      ],
+      "status": "found",
+      "confidence": 0.69,
+      "elapsedMs": 14262,
+      "scrapeElapsedMs": 1143,
+      "productUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+      "identityConfirmed": true,
+      "wrongProduct": false,
+      "officialUrlMatched": true,
+      "requiredDocumentsMatched": true,
+      "normalizedFieldsMatched": false,
+      "expectedAttributesMatched": true,
+      "pdtAuditMatched": true,
+      "pdtAuditPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015060753\\pdt\\schneider-XUSL4E30H091N-pdt_pdt-audit.json",
+      "pdtWrittenCells": 53,
+      "pdtBlankCells": 86,
+      "pdtSkippedCells": 11,
+      "pdtUnprovenSkipped": 3,
+      "pdtUnprovenWritten": 0,
+      "pdtWriteIssues": 2,
+      "pdtRequiredFieldIssues": 0,
+      "pdtUnexplainedRequiredFieldIssues": 0,
+      "customerDocumentsExpected": 0,
+      "customerDocumentsMatched": true,
+      "qualityMissing": [],
+      "resultEvidence": {
+        "title": "Safety light curtain, type 4, hand protection, R30, protected height 910 mm, sensing range 4–12 m",
+        "description": "Safety light curtain, type 4, hand protection, R30, protected height 910 mm, sensing range 4–12 m",
+        "productUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+        "localizedUrls": {
+          "en": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N"
+        },
+        "deviceTypeClassification": {
+          "type": "Safety Sensor",
+          "confidence": 0.98,
+          "evidence": "Product or Component Type: Safety light curtain type 4",
+          "alternatives": [
+            {
+              "type": "Sensor",
+              "score": 1360,
+              "channels": [
+                "text"
+              ]
+            }
+          ],
+          "scoreMargin": 328
+        },
+        "normalized": {
+          "material": "Aluminium: casing, polycarbonate: front panel, polypropylene: end caps",
+          "voltage": "24 V DC +/- 20 %",
+          "protection": "IP65, IP67",
+          "certificates": "cULus, CE, RoHS, REACH Regulation, TÜV",
+          "weight": "1.7 kg",
+          "color": "LED transmitter",
+          "operatingTemperatureMin": "-10",
+          "operatingTemperatureMax": "55",
+          "current": "42 mA no-load transmitter, 83 mA no-load receiver, 42 mA transmitter, 900 mA with maximum load receiver"
+        },
+        "requiredElectricalFields": [],
+        "attributes": [
+          {
+            "group": "Schneider Product Info",
+            "name": "Catalog Number",
+            "value": "XUSL4E30H091N",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Product Info",
+            "name": "Brand",
+            "value": "Telemecanique Sensors",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Product Info",
+            "name": "Description",
+            "value": "Safety light curtain, type 4, hand protection, R30, protected height 910 mm, sensing range 4–12 m",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Main",
+            "name": "Range of Product",
+            "value": "Telemecanique Safety light curtains XUSL",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Main",
+            "name": "Product or Component Type",
+            "value": "Safety light curtain type 4",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Main",
+            "name": "Device short name",
+            "value": "XUSL4E",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Main",
+            "name": "Output type",
+            "value": "2 safety outputs OSSD solid-state PNP (arc suppression)",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Main",
+            "name": "Product Specific Application",
+            "value": "For hand protection",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Main",
+            "name": "Control Type",
+            "value": "Selected by wiring",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Response time",
+            "value": "12.5 ms",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "[Us] rated supply voltage",
+            "value": "24 V DC +/- 20 %",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Supply",
+            "value": "Power supply conforming to IEC 61496-1, power supply conforming to IEC 60204-1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Current consumption",
+            "value": "42 mA no-load transmitter, 83 mA no-load receiver, 42 mA transmitter, 900 mA with maximum load receiver",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Output voltage",
+            "value": "24 V",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Output circuit type",
+            "value": "DC",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Voltage drop",
+            "value": "<0.5 V",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Electrical connection",
+            "value": "1 male connector M12 5 pins transmitter, 1 male connector M12 8 pins receiver",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Marking",
+            "value": "CE",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Material",
+            "value": "Aluminium: casing, polycarbonate: front panel, polypropylene: end caps",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Complementary",
+            "name": "Fixing mode",
+            "value": "By fixing brackets",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Environment",
+            "name": "Product certifications",
+            "value": "CEcULusTÜV",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Environment",
+            "name": "IP degree of protection",
+            "value": "IP65, IP67",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Environment",
+            "name": "Shock resistance",
+            "value": "10 gn for 16 ms conforming to IEC 61496-1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Environment",
+            "name": "Vibration resistance",
+            "value": "0.35 +/- 0.05 mm (f= 10-55 Hz) conforming to IEC 61496-1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "Schneider Packing Units",
+            "name": "Unit Type of Package 1",
+            "value": "PCE",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Supply voltage",
+            "value": "24 V DC",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Output voltage",
+            "value": "24 V",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Current consumption",
+            "value": "42 mA / 83 mA / 900 mA",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Operational current",
+            "value": "2 A",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Electrical Text",
+            "name": "Output current",
+            "value": "0.4 A",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Ambient air temperature for operation",
+            "value": "-10...55 °C",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Weight",
+            "value": "3.020 kg",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "20.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Width",
+            "value": "80.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "14.500 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Height",
+            "value": "75.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Length",
+            "value": "102.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Length",
+            "value": "120.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "XUSL4E30H091N",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "XUSL4E30H091N",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "[Us] rated supply voltage 24 V DC +/- 20 %",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "[Ie] rated operational current 2 A",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Current consumption 42 mA no-load transmitter",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Output current limits 0.4 A for safety outputs OSSD",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Output voltage 24 V",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Maximum voltage drop <0.5 V",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Marking CE",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Material Aluminium: casing",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Polycarbonate: front panel",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Product certifications cULus[RETURN]TÜV[RETURN]CE",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ambient air temperature for operation 14…131 °F",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ambient air temperature for storage -35…70 °C",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "IP degree of protection IP65",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "IP67",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Feature",
+            "value": "XUSL4E30H091N",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Download pdf datasheet",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "protection, Std",
+            "value": "sensing range, Hp = 910 mm,",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[Hp] Height",
+            "value": "protected 910 mm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "1 user guide with",
+            "value": "certificate of conformity on CD-ROM",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[Us] rated supply voltage",
+            "value": "24 V DC +/- 20 %",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "[Ie] rated operational current",
+            "value": "2 A",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Current consumption",
+            "value": "42 mA no-load transmitter",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Output current",
+            "value": "limits 0.4 A for safety outputs OSSD",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Output voltage",
+            "value": "24 V",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Maximum voltage",
+            "value": "drop <0.5 V",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Local signalling 1 multi-colour",
+            "value": "LED transmitter",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "2 dual colour",
+            "value": "LEDs receiver",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Marking",
+            "value": "CE",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Material",
+            "value": "Aluminium: casing",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Polycarbonate",
+            "value": "front panel",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Polypropylene",
+            "value": "end caps",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Colour",
+            "value": "Red",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "RAL",
+            "value": "3000",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Net weight",
+            "value": "1.7 kg",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Offer type Standard",
+            "value": "distance",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Product certifications",
+            "value": "cULus[RETURN]TÜV[RETURN]CE",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "PL",
+            "value": "e conforming to ISO 13849-1",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Safety reliability data PFHd",
+            "value": "1.30E-8 1/h conforming to IEC 61508",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ambient air temperature for operation",
+            "value": "14…131 °F",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Shock resistance",
+            "value": "10 gn for 16 ms conforming to IEC 61496-1",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 1 Height",
+            "value": "14.500 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 1 Width",
+            "value": "20.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 1 Length",
+            "value": "102.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 1 Weight",
+            "value": "3.020 kg",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 2 Height",
+            "value": "75.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 2 Width",
+            "value": "80.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 2 Length",
+            "value": "120.000 cm",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Package 2 Weight",
+            "value": "41.200 kg",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "California proposition 65 WARNING",
+            "value": "This product can expose you to chemicals including: Diisononyl",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "For all Reach",
+            "value": "Rohs enquiries contact us at sustainability@tesensors.com",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Dimensions",
+            "value": "Drawings",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Mounting",
+            "value": "and Clearance",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Pin 4",
+            "value": "Configuration_1 24 V 0 V 0 V 24 V",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet - Dimensions",
+            "name": "Pin 2",
+            "value": "Configuration_0 0 V 24 V 0 V 24 V",
+            "sourceUrl": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Température de fonctionnement",
+            "value": "30°C / 55°C",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Ontology Spec Miner",
+            "name": "Température de fonctionnement",
+            "value": "20°C / 55°C",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "XUSL4E30H091N",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "M 1,720",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "S2 1,720",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "S2",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "S1 1,720",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "S1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "M 14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "S1 15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "S2 14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "910 963 46 12,5 1,30 x 10-8 XUSL4E30H091N 1,700",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "XUSL4E30H091N 12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "910 963 46 12,5 1,30 x 10-8 XUSL4E30H091N 1,700",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "910 987 38 12,5 1,30 x 10-8 XUSL4E30H091NM 1,720",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "910 987 46 12,5 1,30 x 10-8 XUSL4E30H091NS2 1,720",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "910 963 46 12,5 1,30 x 10-8 XUSL4E30H091NS1 1,720",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "XUSL4E30H091N 12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "XUSL4E30H091NM 14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "XUSL4E30H091NS1 15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "XUSL4E30H091NS2 14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ce catalogue présente les produits vendus par TMSS France, ses filiales et autres sociétés affiliées.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Le contenu de ce document, y compris les spécifications et caractéristiques techniques des produits, sont susceptibles d'être révisés à tout moment sans préavis",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "résultant de ou en relation avec (a) les informations descriptives ou techniques contenues dans ce document, ou (b) toute erreur ou omission pouvant être",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "contenue dans ce catalogue, ou (c) toute utilisation faite, ou décision, acte pris(e) par toute personne ou tout tiers sur la base des informations fournies.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "ce catalogue sont la propriété TMSS France, de ses filiales ou autres sociétés affiliées ou, le cas échéant, de ses concédants de licence.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ce catalogue et son contenu sont protégés par les lois applicables en matière de droits d'auteur et ne sont fournis qu'à titre informatif.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "Ce catalogue ne peut être reproduit ou transmis, en tout ou partie, sous quelque forme ou par quelque moyen que ce soit, à quelque fin que ce soit, sans",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "concédants de licence. Aucun droit de quelque nature que ce soit n'est concédé, cédé ou transmis de quelque manière que ce soit aux personnes qui accèdent",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Feature",
+            "value": "En raison de l’évolution des normes et du matériel, les caractéristiques indiquées par les textes et les images de ce document ne nous engagent qu’après",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "Catalogue Barrières immatérielles de sécurité, Gamme XUSL (pdf)",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "b Plage de température de fonctionnement",
+            "value": "- 30°C…+ 55°C.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "b TM (Mission Time / Durée de vie)",
+            "value": "20 ans.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Référence",
+            "value": "Masse",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "mm",
+            "value": "mm | ms | kg",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Autres réalisations",
+            "value": "Les barrières maîtres/esclaves peuvent être commandées pour d’autres",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Références (suite)",
+            "value": "Solutions de détection de sécurité",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Résolution 14 mm",
+            "value": "Rttot = [0,06 x (Nbesclave1 + Nbmaître) + 0,9636] x 2",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rttot",
+            "value": "[0,06 x (Nbesclave1 + Nbesclave2 + Nbmaître) + 1,0036] x 2",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rttot",
+            "value": "[0,11 x (Nbesclave1 + Nbmaître) + 0,9376] x 2",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rttot",
+            "value": "[0,11 x (Nbesclave1 + Nbesclave2 + Nbmaître) + 1,0508] x 2",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "PFHDtot",
+            "value": "PFHDmaître + PFHDesclave1 (+ PFHDesclave2)",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Nb",
+            "value": "Nombre de faisceaux",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Rttot",
+            "value": "Temps de réponse total",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "PFHDtot",
+            "value": "Probabilité totale de défaillance dangereuse par heure",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Index",
+            "value": "Index des références",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H076NM",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H076NS1",
+            "value": "15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H076NS2",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H091L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H091LWC",
+            "value": "16",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H091LWH",
+            "value": "17",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H091N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H091NM",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H091NS1",
+            "value": "15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H091NS2",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H106L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H106LWC",
+            "value": "16",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H106LWH",
+            "value": "17",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H106N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H106NM",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H106NS1",
+            "value": "15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H106NS2",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H121L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H121N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H136L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H136N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H151L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H151N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H166L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H166N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H181L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H181N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E3BB081L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E3BB081LWC",
+            "value": "16",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E3BB081LWH",
+            "value": "17",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E3BB081N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E3BB081NM",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E3BB081NS1",
+            "value": "15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E3BB081NS2",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E4BB091L",
+            "value": "13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E4BB091LWC",
+            "value": "16",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E4BB091LWH",
+            "value": "17",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E4BB091N",
+            "value": "12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E4BB091NM",
+            "value": "14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E4BB091NS1",
+            "value": "15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Précautions d’installation",
+            "value": "(suite)",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "b Plage de température de fonctionnement",
+            "value": "- 20°C…+ 55°C.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "XUSL4E30H016N",
+            "value": "XUSL4E30H031N",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "v pour les barrières “détection du doigt”",
+            "value": "- 20°C…+ 55°C",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ce catalogue",
+            "value": "présente les produits vendus par TMSS France, ses filiales et autres sociétés affiliées.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Le contenu de ce",
+            "value": "document, y compris les spécifications et caractéristiques techniques des produits, sont susceptibles d'être révisés à tout moment sans préavis",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "contenue dans ce",
+            "value": "catalogue, ou (c) toute utilisation faite, ou décision, acte pris(e) par toute personne ou tout tiers sur la base des informations fournies.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "ce catalogue",
+            "value": "sont la propriété TMSS France, de ses filiales ou autres sociétés affiliées ou, le cas échéant, de ses concédants de licence.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ce catalogue",
+            "value": "et son contenu sont protégés par les lois applicables en matière de droits d'auteur et ne sont fournis qu'à titre informatif.",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF datasheet",
+            "name": "Ce catalogue",
+            "value": "ne peut être reproduit ou transmis, en tout ou partie, sous quelque forme ou par quelque moyen que ce soit, à quelque fin que ce soit, sans",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Catalog Number",
+            "value": "XUSL4E30H091N",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Description",
+            "value": "Safety light curtain type 4, Telemecanique Safety light",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Catalog Description Row",
+            "name": "Variant",
+            "value": "Safety",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Matched Rows",
+            "name": "Matched product row",
+            "value": "XUSL4E30H091N Safety light curtain type 4, Telemecanique Safety light",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.66
+          },
+          {
+            "group": "PDF certificate",
+            "name": "Feature",
+            "value": "XUSL4E30H091N Safety light curtain type 4, Telemecanique Safety light",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF Document",
+            "name": "Parsed document",
+            "value": "TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N (pdf)",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "n° ident. TVA",
+            "value": "FR 21 908 125 255",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "PFAS Global Declaration",
+            "value": "IED01 – June 2026",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "ANNEX",
+            "value": "PFAS information in TMSS products",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "curtains XUSL, XUSL For hand protection,",
+            "value": "Std sensing",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "range, Hp",
+            "value": "910 mm, R=30 mm",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          },
+          {
+            "group": "PDF certificate",
+            "name": "* Disclaimer: the information provided in this declaration",
+            "value": "is based on data received from our suppliers and/or",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "matchLevel": "exact",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "confidence": 0.78
+          }
+        ],
+        "documents": [
+          {
+            "type": "datasheet",
+            "label": "Download pdf datasheet",
+            "url": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015060753\\documents\\XUSL4E30H091N-datasheet-Download-pdf-datasheet.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "manual",
+            "label": "XUSL2E..., XUSL4E... Barreras fotoeléctricas de seguridad de tipo 2 y tipo 4, Manual de usuario (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEUG000307ES",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015060753\\documents\\XUSL4E30H091N-manual-XUSL2E...,-XUSL4E...-Barreras-fotoeléctricas-de-seguridad-de-tipo-2-y-tipo-4,-Ma.pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "datasheet",
+            "label": "Catalogue Barrières immatérielles de sécurité, Gamme XUSL (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015060753\\documents\\XUSL4E30H091N-datasheet-Catalogue-Barrières-immatérielles-de-sécurité,-Gamme-XUSL-(pdf).pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "datasheet",
+            "label": "Catalogue for Safety Light Curtains, XUSL range (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052EN",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "type": "manual",
+            "label": "XUSL2E..., XUSL4E... Barriere fotoelettriche di sicurezza di tipo 2 e tipo 4, Manuale dell’utente (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEUG000307IT",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "manual",
+            "label": "XUSL2E/XUSL4E - Cortinas de luz de segurança do Tipo 2 e Tipo 4 - Manual do usuário (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEUG000307PT",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "manual",
+            "label": "XUSL2E..., XUSL4E... Type 2 and Type 4 Safety Light Curtains, User Manual (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEUG000307EN",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "image",
+            "label": "XUSL4E30H091N Product image",
+            "url": "https://dam.telemecaniquesensors.com/addon/tmss/PF141791-preview",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015060753\\images\\SE.XUSL4E30H091N.png",
+            "downloadStatus": "downloaded",
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Panorama Safety - The best of the safey range in 12 pages (zip)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/SRC_Safety_Panorama",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "Panorama Safety - The best of the safey range in 12 pages (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000125",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "Telemecanique Sensors Détection de sécurité Panorama (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000323FR",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (stp)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dwg)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_6",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dwg)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_10",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dwg)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_2",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dwg)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_12",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dwg)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_4",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dwg)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_14",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dxf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_9",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dxf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_5",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dxf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_3",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dxf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_7",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dxf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_11",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dxf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_13",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dxf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_15",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "cad",
+            "label": "Safety light curtains Preventa XUS, detection type 4 , Standard range IP67 - 3D CAD (dwg)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/MCADID0004188_3D-CAD_8",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Barreras fotoeléctricas de seguridad de tipo 2 y tipo 4, Guía de inicio rápido (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV65900_ES_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Barriere fotoelettriche di sicurezza di tipo 2 e tipo 4, Guida Rapida (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV65900_IT_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Barrières immatérielles Type 2 et Type 4, Guide de démarrage rapide (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV65900_FR_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Cortinas de luz de segurança do Tipo 2 e Tipo 4, Guia de iniciação rápida (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV65900_PT_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Sicherheitslichtvorhang Typ 2 und Typ 4, Schnellstartanleitung (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV65900_DE_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Type 2 and Type 4 Safety Light Curtains, Quick Start Guide (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV65900_EN_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... 类型 2 和类型 4 安全光幕、快速入门指南 (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV65900_ZH_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL...WC / XUSL... Barriere fotoelettriche di sicurezza di tipo 2 e tipo 4 - Contenitore IP69K, Guida Rapida (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV75016_IT_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL...WC / XUSL...WH Barreras fotoeléctricas de seguridad de tipo 2 y tipo 4 - Carcasa IP69K, Guía de inicio rápido (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV75016_ES_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL...WC / XUSL...WH Barrières immatérielles Type 2 et Type 4 - IP69K avec tube de protection, Guide de démarrage rapide (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV75016_FR_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL...WC / XUSL...WH Cortinas de luz de segurança do Tipo 2 e Tipo 4 - Invólucro IP69K, Guia de iniciação rápida (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV75016_PT_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL...WC / XUSL...WH Sicherheitslichtvorhang Typ 2 und Typ 4 - IP69K Gehäuse, Schnellstartanleitung (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV75016_DE_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL...WC / XUSL...WH Type 2 and Type 4 Safety Light Curtains - IP69K Enclosure, Quick Start Guide (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV75016_EN_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL...WC / XUSL...WH 类型 2 和类型 4 安全光幕 - 外壳 , 快速入门指南 (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/EAV75016_ZH_1",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Barrières immatérielles Type 2 et Type 4, Manuel utilisateur (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEUG000307FR",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... Sicherheitslichtvorhang Typ 2 und Typ 4, Benutzerhandbuch (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEUG000307DE",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "XUSL2E..., XUSL4E... 类型 2 和类型 4 安全光幕、 用户手册 (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEUG000307CZ",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "Cybersecurity Product Information (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/Cybersecurity_information",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "other",
+            "label": "Cybersecurity Support Notice (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/Cybersecurity_Support_Notice",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "parseStatus": "skipped"
+          },
+          {
+            "type": "certificate",
+            "label": "TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88,
+            "localPath": "D:\\KATALOZI\\SKRIPTE\\product_scraper\\benchmarks\\output\\20261015060753\\documents\\XUSL4E30H091N-certificate-TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N-(pdf).pdf",
+            "downloadStatus": "downloaded",
+            "parseStatus": "parsed"
+          },
+          {
+            "type": "certificate",
+            "label": "TESEDEC0000EN_REACh_Declaration_for_XUSL4E30H091N (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_REACh_Declaration_for_XUSL4E30H091N",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          },
+          {
+            "type": "certificate",
+            "label": "TESEDEC0000EN_RoHS_Declaration_for_XUSL4E30H091N (pdf)",
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_RoHS_Declaration_for_XUSL4E30H091N",
+            "sourceUrl": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "confidence": 0.88
+          }
+        ],
+        "sources": [
+          {
+            "url": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+            "sourceType": "official",
+            "parser": "schneider-telemecanique-product-page",
+            "fetchedAt": "2026-10-15T06:07:55.900Z",
+            "statusCode": 200
+          },
+          {
+            "url": "https://downloads.telemecaniquesensors.com/dam/datasheets/en/XUSL4E30H091N_EN.pdf",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T06:08:00.972Z"
+          },
+          {
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEBRO000052FR",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "datasheet",
+            "fetchedAt": "2026-10-15T06:08:06.108Z"
+          },
+          {
+            "url": "https://telemecaniquesensors.com/global/en/download/dam/TESEDEC0000EN_PFAS_Global_Declaration_for_XUSL4E30H091N",
+            "sourceType": "generated",
+            "parser": "pdf-table-extractor",
+            "stage": "enrich-documents",
+            "reason": "certificate",
+            "fetchedAt": "2026-10-15T06:08:06.453Z"
+          }
+        ],
+        "qualityGate": {
+          "passed": true,
+          "identityConfirmed": true,
+          "score": 100,
+          "missing": [],
+          "reason": "Quality gate passed.",
+          "attempts": [
+            {
+              "stage": "schneider-telemecanique-product-page",
+              "url": "https://telemecaniquesensors.com/global/en/product/reference/XUSL4E30H091N",
+              "status": "passed",
+              "score": 100,
+              "missing": [],
+              "reason": "Quality gate passed.",
+              "sourceType": "official",
+              "parser": "schneider-telemecanique-product-page",
+              "statusCode": 200,
+              "attributeCount": 25,
+              "documentCount": 54,
+              "sectionAttributeCounts": {}
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

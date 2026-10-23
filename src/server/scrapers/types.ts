@@ -99,6 +99,12 @@ export interface ScrapeContext {
    * as a usable image URL is in hand. Used by the "Images only" run mode.
    */
   imageOnly?: boolean;
+  /**
+   * Focused value-only run. Connectors and shared fallback stages should return once all selected
+   * values are present, or stop after their first identity-checked result for a single-field run.
+   */
+  onlySelectedInfo?: boolean;
+  shouldStopSelectedInfoSearch?: (result: ProductResult) => boolean;
 }
 
 export interface ManufacturerConnector {
