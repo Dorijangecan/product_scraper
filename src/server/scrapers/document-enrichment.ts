@@ -17,6 +17,7 @@ import { extractElectricalSpecAttributesFromText, extractOntologySpecAttributesF
 import { extractComplianceMatrixAttributes, textHasComplianceMatrixGlyphs } from "./pdf-compliance-matrix.js";
 import { extractPositionedTableRows, extractPositionedTableRowsFromPages, extractPositionedTableRowsFromPdf, positionedItemOrientationFromTransform, type PositionedTextItem } from "./pdf-positioned-table.js";
 import { catalogTableKeyFor, isCatalogIdHeaderCell, isCatalogTableHeaderText } from "./catalog-table-vocabulary.js";
+import { matchProperty } from "./ontology.js";
 import { orderingCodeLegendValue } from "./ordering-code-legend.js";
 import { inferEatonRapidLinkOrderingRows } from "./eaton-ordering-inference.js";
 import { isPlausibleSpecLabel, isPlausibleSpecValue, looksLikeHeaderRowValue, specPlausibilityGateDisabled } from "./spec-plausibility.js";
@@ -1300,8 +1301,9 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
     if (table.length < 2) continue;
     const headerRowIndex = table.findIndex((row) => looksLikeCatalogTableHeader(row));
     if (headerRowIndex < 0) continue;
-    const header = table[headerRowIndex].map(cleanText);
-    for (let rowIndex = headerRowIndex + 1; rowIndex < table.length; rowIndex += 1) {
+    const headerInfo = mergedGridHeader(table, headerRowIndex);
+    const header = headerInfo.header;
+    for (let rowIndex = headerInfo.dataStart; rowIndex < table.length; rowIndex += 1) {
       const row = table[rowIndex].map(cleanText);
       if (row.every((cell) => !cell)) continue;
       const rowText = row.join(" ");
@@ -1322,6 +1324,7 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
       push("Voltage rating", mapped.get("voltage"));
       push("Current rating", mapped.get("current"));
       push("Dimensions", genericRowDimensions(mapped));
+      pushOntologyMappedTableAttributes(mapped, push);
     }
   }
   return attributes.slice(0, 60);
@@ -1329,8 +1332,37 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
 
 function looksLikeCatalogTableHeader(row: string[]): boolean {
   const cells = row.map(cleanText).filter(Boolean);
-  if (cells.length < 2) return false;
+  if (cells.length < 2 && !cells.some(isCatalogIdHeaderCell)) return false;
   return isCatalogTableHeaderText(cells.join(" "));
+}
+
+/**
+ * Some extracted PDF grids represent grouped headings as a parent row followed by one or more
+ * child-heading rows (for example "Wire Size" over "AWG" and "mm²"). Merge those cells by
+ * column before reading data, but only consume a continuation row when it is clearly header-like
+ * and has no catalog-number data. This keeps page/section captions and the first product row out
+ * of the header while preserving the measurement context needed to interpret the value.
+ */
+function mergedGridHeader(table: TableArray, headerRowIndex: number): { header: string[]; dataStart: number } {
+  const header = (table[headerRowIndex] ?? []).map(cleanText);
+  let dataStart = headerRowIndex + 1;
+  for (let offset = 0; offset < 2 && dataStart < table.length; offset += 1) {
+    const continuation = (table[dataStart] ?? []).map(cleanText);
+    if (!continuation.some(Boolean) || continuation.some((cell) => isCatalogIdHeaderCell(cell))) break;
+    const joined = continuation.filter(Boolean).join(" ");
+    const recognized = continuation.some((cell) => catalogTableKeyFor(cell) || matchProperty(cell));
+    const compatibleWidth = Math.abs(continuation.length - header.length) <= 1;
+    // A data row usually contains at least one quantity or SKU token. Header continuations tend
+    // to have a known label in a column whose parent already supplies the grouping context.
+    if (!compatibleWidth || !recognized || /\b\d{2,}[A-Z0-9-]{2,}\b/i.test(joined)) break;
+    for (let column = 0; column < Math.min(header.length, continuation.length); column += 1) {
+      const child = continuation[column];
+      if (!child) continue;
+      header[column] = [header[column], child].filter(Boolean).join(" ");
+    }
+    dataStart += 1;
+  }
+  return { header, dataStart };
 }
 
 function parsedDocumentAttribute(
@@ -3569,6 +3601,7 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
     push("Voltage rating", mapped.get("voltage"));
     push("Current rating", mapped.get("current"));
     push("Dimensions", genericRowDimensions(mapped));
+    pushOntologyMappedTableAttributes(mapped, push);
   }
   return attributes.slice(0, 60);
 }
@@ -3599,7 +3632,7 @@ function mapHeaderCellsToRow(header: string[], row: string[]): Map<string, strin
   const mapped = new Map<string, string>();
   const count = Math.min(header.length, row.length);
   for (let index = 0; index < count; index += 1) {
-    const key = genericCatalogTableKey(header[index]);
+    const key = genericCatalogTableKey(header[index]) ?? ontologyTableKey(header[index]);
     if (!key) continue;
     const value = valueWithHeaderUnit(row[index], header[index]);
     if (!value) continue;
@@ -3610,6 +3643,24 @@ function mapHeaderCellsToRow(header: string[], row: string[]): Map<string, strin
     }
   }
   return mapped;
+}
+
+function ontologyTableKey(header: string): string | undefined {
+  const property = matchProperty(header);
+  return property ? `property:${property.label}` : undefined;
+}
+
+function pushOntologyMappedTableAttributes(
+  mapped: Map<string, string>,
+  push: (name: string, value: string | undefined) => void
+): void {
+  for (const [key, value] of mapped) {
+    if (!key.startsWith("property:")) continue;
+    const property = matchProperty(key.slice("property:".length));
+    if (property) push(property.label, value);
+  }
+  const wireGauge = mapped.get("wireGauge");
+  if (wireGauge) push("Conductor cross-section", /\bawg\b/i.test(wireGauge) ? wireGauge : `${wireGauge} AWG`);
 }
 
 /**
@@ -3654,7 +3705,8 @@ function valueWithHeaderUnit(value: string, header: string): string {
   const cleaned = cleanText(value);
   if (!cleaned) return "";
   if (/[a-zA-Z%°]/.test(cleaned)) return cleaned;
-  const unit = header.match(/[\[(]\s*(mm|cm|m|in|inch|inches|kg|g|lb|lbs|v|vac|vdc|a|ma|ka|w|kw)\s*[\])]/i)?.[1];
+  const unit = header.match(/[\[(]\s*(mm|cm|m|in|inch|inches|kg|g|lb|lbs|v|vac|vdc|a|ma|ka|w|kw|awg|mm²|mm2|kcmil)\s*[\])]/i)?.[1] ??
+    (/\bawg\b/i.test(header) ? "AWG" : /\bmm²?\b/i.test(header) ? "mm²" : /\bkcmil\b/i.test(header) ? "kcmil" : undefined);
   return unit ? `${cleaned} ${canonicalPdfUnit(unit)}` : cleaned;
 }
 

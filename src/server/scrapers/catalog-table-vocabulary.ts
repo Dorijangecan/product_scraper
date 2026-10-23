@@ -33,7 +33,7 @@ const CATALOG_ID_CELL_RE =
  * column OR any recognized spec/description/dimension column. Used to decide whether a candidate
  * line is a table header worth mapping at all. */
 const CATALOG_TABLE_HEADER_KEYWORD_RE =
-  /\b(?:catalog(?:ue)?|cat(?:alog)?\.?\s*no|part\s*(?:number|no)|order(?:ing)?\s*(?:code|number|no)|article\s*(?:number|no)|art\.?[-\s]*nr|artikel(?:nummer)?|bestell(?:nummer|[-\s]*nr)|sach(?:nummer|[-\s]*nr)|ident[-\s]*nr|mlfb|type\s*code|typ[-\s]*code|r[ée]f[ée]?rence|codice|description|beschreibung|d[ée]signation|descrizione|material|werkstoff|mat[ée]riau|weight|mass|gewicht|poids|peso|width|height|depth|breite|h[öo]he|tiefe|dimensions?|abmessung(?:en)?|voltage|spannung|tension|current|strom|courant)\b/i;
+  /\b(?:catalog(?:ue)?|cat(?:alog)?\.?\s*no|part\s*(?:number|no)|order(?:ing)?\s*(?:code|number|no)|article\s*(?:number|no)|art\.?[-\s]*nr|artikel(?:nummer)?|bestell(?:nummer|[-\s]*nr)|sach(?:nummer|[-\s]*nr)|ident[-\s]*nr|mlfb|type\s*code|typ[-\s]*code|r[ée]f[ée]?rence|codice|description|beschreibung|d[ée]signation|descrizione|material|werkstoff|mat[ée]riau|weight|mass|gewicht|poids|peso|width|height|depth|breite|h[öo]he|tiefe|dimensions?|abmessung(?:en)?|voltage|spannung|tension|current|strom|courant|awg|wire\s+(?:size|gauge|cross[-\s]?section)|conductor\s+cross[-\s]?section)\b/i;
 
 /** Whole-cell test for the id ("catalog number") column label. */
 export function isCatalogIdHeaderCell(cell: string): boolean {
@@ -43,7 +43,8 @@ export function isCatalogIdHeaderCell(cell: string): boolean {
 
 /** True when a joined header-row text names any ordering-table column keyword. */
 export function isCatalogTableHeaderText(headerText: string): boolean {
-  return CATALOG_TABLE_HEADER_KEYWORD_RE.test(headerText);
+  return CATALOG_TABLE_HEADER_KEYWORD_RE.test(headerText) ||
+    headerText.split(/[|\t]/).some(isCatalogIdHeaderCell);
 }
 
 /**
@@ -71,6 +72,10 @@ export function catalogTableKeyFor(header: string): string | undefined {
   if (/\b(?:dimensions?|abmessung(?:en)?|dimensioni)\b/i.test(label)) return "dimensions";
   if (/\b(?:voltage|supply|input|output|spannung|tension|tensione)\b/i.test(label) && /\b(?:v|voltage|supply|spannung|tension)\b/i.test(label)) return "voltage";
   if (/\b(?:current|amp|load|strom|courant|corrente)\b/i.test(label)) return "current";
+  // Keep AWG wire-gauge cells as a dedicated recognized property. The value is still
+  // emitted under the ontology's canonical conductor cross-section label downstream.
+  if (/\b(?:awg|wire\s+gauge|american\s+wire\s+gauge)\b/i.test(label)) return "wireGauge";
+  if (/\b(?:wire\s+size|wire\s+cross[-\s]?section|conductor\s+cross[-\s]?section|cross[-\s]?section|querschnitt|leiterquerschnitt)\b/i.test(label)) return "conductorCrossSection";
   if (/\b(?:width|breite|largeur|larghezza)\b|^\s*w(?:idth)?\s*(?:\[|\(|$)/i.test(label)) return "width";
   if (/\b(?:height|hoehe|höhe|hauteur|altezza)\b|^\s*h(?:eight)?\s*(?:\[|\(|$)/i.test(label)) return "height";
   if (/\b(?:depth|tiefe|profondeur|profondità)\b|^\s*d(?:epth)?\s*(?:\[|\(|$)/i.test(label)) return "depth";
