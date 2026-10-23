@@ -150,6 +150,174 @@ const REQUIRED_COVERAGE_FIELDS = [
   { key: "current", label: "Current" }
 ] as const;
 
+const SUGGESTED_CUSTOM_COVERAGE_FIELDS = [
+  {
+    id: "common-awg",
+    label: "AWG / wire gauge",
+    pattern: "\\bAWG\\b|American\\s+Wire\\s+Gauge|wire\\s+gauge"
+  },
+  {
+    id: "common-conductor-cross-section",
+    label: "Conductor cross-section",
+    pattern: "conductor\\s+cross.?section|wire\\s+cross.?section|cross.?section|conductor\\s+size"
+  },
+  {
+    id: "common-number-of-poles",
+    label: "Number of poles",
+    pattern: "number\\s+of\\s+poles|no\\.?\\s*of\\s+poles|pole\\s+configuration|\\bpoles?\\b"
+  },
+  {
+    id: "common-rated-frequency",
+    label: "Rated frequency",
+    pattern: "rated\\s+frequency|frequency\\s+rating|\\bfrequency\\b"
+  },
+  {
+    id: "common-breaking-capacity",
+    label: "Breaking capacity",
+    pattern: "breaking\\s+capacity|short.?circuit\\s+breaking|ultimate\\s+breaking|service\\s+breaking|\\bIcu\\b|\\bIcs\\b"
+  },
+  {
+    id: "common-insulation-voltage",
+    label: "Rated insulation voltage",
+    pattern: "rated\\s+insulation\\s+voltage|\\bUi\\b"
+  },
+  {
+    id: "common-impulse-voltage",
+    label: "Impulse withstand voltage",
+    pattern: "impulse\\s+withstand\\s+voltage|\\bUimp\\b"
+  },
+  {
+    id: "common-rated-power",
+    label: "Rated power",
+    pattern: "rated\\s+power|power\\s+rating|output\\s+power"
+  },
+  {
+    id: "common-connection-type",
+    label: "Connection / terminal type",
+    pattern: "connection\\s+type|terminal\\s+type|connection\\s+method|electrical\\s+connection"
+  },
+  {
+    id: "common-terminal-torque",
+    label: "Terminal tightening torque",
+    pattern: "terminal\\s+torque|tightening\\s+torque|screw\\s+torque"
+  },
+  {
+    id: "common-stripping-length",
+    label: "Wire stripping length",
+    pattern: "strip(?:ping)?\\s+length|wire\\s+stripping\\s+length"
+  },
+  {
+    id: "common-contact-configuration",
+    label: "Contact configuration",
+    pattern: "contact\\s+configuration|contact\\s+arrangement|number\\s+of\\s+contacts|changeover\\s+contact"
+  },
+  {
+    id: "common-trip-characteristic",
+    label: "Trip / release characteristic",
+    pattern: "trip(?:ping)?\\s+(?:curve|characteristic)|release\\s+characteristic|time.?current"
+  },
+  {
+    id: "common-mounting-method",
+    label: "Mounting method",
+    pattern: "mounting\\s+(?:type|method|position)|DIN\\s+rail|panel\\s+mounting"
+  },
+  {
+    id: "common-ip-rating",
+    label: "IP rating",
+    pattern: "IP\\s*(?:rating|code)?|ingress\\s+protection"
+  },
+  {
+    id: "common-operating-temperature",
+    label: "Operating temperature range",
+    pattern: "operating\\s+temperature|ambient\\s+temperature|temperature\\s+range"
+  },
+  {
+    id: "common-insulation-class",
+    label: "Insulation / thermal class",
+    pattern: "insulation\\s+class|thermal\\s+class"
+  },
+  {
+    id: "common-short-circuit-making-capacity",
+    label: "Short-circuit making capacity",
+    pattern: "short.?circuit\\s+making\\s+capacity|making\\s+capacity|\\bIcm\\b"
+  },
+  {
+    id: "common-utilization-category",
+    label: "Utilization category",
+    pattern: "utili[sz]ation\\s+categor(?:y|ies)|category\\s+of\\s+use|\\bAC.?[0-9]+\\b|\\bDC.?[0-9]+\\b"
+  },
+  {
+    id: "common-trip-unit-type",
+    label: "Trip unit / release type",
+    pattern: "trip\\s+unit|release\\s+type|release\\s+unit|trip\\s+release"
+  },
+  {
+    id: "common-protection-function",
+    label: "Protection functions",
+    pattern: "protection\\s+functions?|protective\\s+functions?|overload\\s+protection|short.?circuit\\s+protection"
+  },
+  {
+    id: "common-pollution-degree",
+    label: "Pollution degree",
+    pattern: "pollution\\s+degree|degree\\s+of\\s+pollution"
+  },
+  {
+    id: "common-overvoltage-category",
+    label: "Overvoltage category",
+    pattern: "overvoltage\\s+category|installation\\s+category"
+  },
+  {
+    id: "common-electrical-endurance",
+    label: "Electrical endurance",
+    pattern: "electrical\\s+(?:endurance|durability)|electrical\\s+life|electrical\\s+operating\\s+cycles"
+  },
+  {
+    id: "common-mechanical-endurance",
+    label: "Mechanical endurance",
+    pattern: "mechanical\\s+(?:endurance|durability)|mechanical\\s+life|mechanical\\s+operating\\s+cycles"
+  },
+  {
+    id: "common-switching-cycles",
+    label: "Switching cycles / frequency",
+    pattern: "switching\\s+(?:cycles|frequency)|operating\\s+cycles|cycles\\s+per\\s+hour"
+  },
+  {
+    id: "common-backup-fuse",
+    label: "Maximum backup fuse",
+    pattern: "backup\\s+fuse|back.?up\\s+fuse|maximum\\s+fuse\\s+rating|maximum\\s+permissible\\s+fuse"
+  },
+  {
+    id: "common-operating-altitude",
+    label: "Operating altitude",
+    pattern: "operating\\s+altitude|altitude\\s+above\\s+sea\\s+level|maximum\\s+altitude"
+  },
+  {
+    id: "common-relative-humidity",
+    label: "Relative humidity",
+    pattern: "relative\\s+humidity|operating\\s+humidity|ambient\\s+humidity"
+  },
+  {
+    id: "common-communication-protocol",
+    label: "Communication interface / protocol",
+    pattern: "communication\\s+(?:interface|protocol)|fieldbus|communication\\s+bus|\\b(?:Modbus|PROFINET|PROFIBUS|EtherNet/IP|EtherCAT)\\b"
+  },
+  {
+    id: "common-channel-count",
+    label: "Number of channels",
+    pattern: "number\\s+of\\s+channels|channel\\s+count|\\bchannels?\\b"
+  },
+  {
+    id: "common-signal-type",
+    label: "Input / output signal type",
+    pattern: "input\\s+(?:signal\\s+)?type|output\\s+(?:signal\\s+)?type|signal\\s+type|analog\\s+input|digital\\s+input|analog\\s+output|digital\\s+output"
+  },
+  {
+    id: "common-safety-integrity-level",
+    label: "Safety integrity level (SIL)",
+    pattern: "safety\\s+integrity\\s+level|\\bSIL\\s*[0-9]+\\b"
+  }
+] as const;
+
 type CoverageKey = (typeof REQUIRED_COVERAGE_FIELDS)[number]["key"];
 // `key` is a CoverageKey for built-in tiles, or `custom:<id>` for a custom coverage tile.
 interface CoverageFocus {
@@ -328,6 +496,9 @@ export function App() {
   const [runCoverageFields, setRunCoverageFields] = useState<CustomCoverageFieldDraft[] | null>(null);
   const [runHiddenCoverageFields, setRunHiddenCoverageFields] = useState<string[]>([]);
   const [runCoverageExpanded, setRunCoverageExpanded] = useState(false);
+  const [suggestedCustomCoverageFieldId, setSuggestedCustomCoverageFieldId] = useState<string>(
+    SUGGESTED_CUSTOM_COVERAGE_FIELDS[0].id
+  );
   // Dashboard editor state — toggled by the "Edit" button on the coverage panel header.
   // Stays separate from the sidebar editor because it patches the live run's options.
   const [dashboardCoverageEditOpen, setDashboardCoverageEditOpen] = useState(false);
@@ -348,6 +519,14 @@ export function App() {
   const effectiveRunCoverageFields: CustomCoverageFieldDraft[] =
     runCoverageFields ??
     customCoverageDefaults.map((field) => ({ id: field.id, label: field.label, pattern: field.pattern }));
+  const availableSuggestedCustomCoverageFields = SUGGESTED_CUSTOM_COVERAGE_FIELDS.filter(
+    (suggestion) => !effectiveRunCoverageFields.some((field) =>
+      field.id === suggestion.id || field.label.trim().toLocaleLowerCase() === suggestion.label.toLocaleLowerCase()
+    )
+  );
+  const selectedSuggestedCustomCoverageField = availableSuggestedCustomCoverageFields.find(
+    (field) => field.id === suggestedCustomCoverageFieldId
+  ) ?? availableSuggestedCustomCoverageFields[0];
 
   // Switching the manufacturer must clear any per-run override; otherwise the user picks
   // ABB and silently keeps Balluff's IP-rating tile from the previous edit.
@@ -1867,10 +2046,9 @@ export function App() {
             </summary>
             <div className="run-coverage-editor-body">
               <p className="muted-note">
-                Click a built-in tile to switch it off: it is hidden here <em>and</em> no longer
-                required, so the scraper spends no fallback or retry looking for it. Add custom tiles
-                below — each matches by attribute name (regex, case-insensitive). Manufacturer default
-                loaded; edits apply to this run only.
+                Turn off built-in tiles you do not need. Add a suggested field below to fill in its
+                column name and product-page attribute names automatically. Added fields apply to this
+                run only.
               </p>
               <div className="coverage-builtin-toggles" role="group" aria-label="Built-in coverage tiles">
                 {REQUIRED_COVERAGE_FIELDS.map((field) => {
@@ -1922,6 +2100,10 @@ export function App() {
                 </div>
               )}
               <p className="muted-note">Custom tiles</p>
+              <p className="muted-note">
+                Suggested fields match the specification name on the product page, not the value itself.
+                For example, AWG matches an attribute named “Wire gauge”.
+              </p>
               {effectiveRunCoverageFields.map((field, index) => (
                 <div key={index} className="coverage-editor-row">
                   <label className="field">
@@ -1938,7 +2120,7 @@ export function App() {
                     />
                   </label>
                   <label className="field">
-                    <span>Match pattern (regex)</span>
+                    <span>Match product-page attribute name</span>
                     <input
                       value={field.pattern}
                       placeholder="ip rating|ingress"
@@ -1960,6 +2142,47 @@ export function App() {
                   </button>
                 </div>
               ))}
+              <div className="custom-field-suggestions">
+                <label className="field">
+                  <span>Add a suggested field</span>
+                  <select
+                    value={selectedSuggestedCustomCoverageField?.id ?? ""}
+                    disabled={availableSuggestedCustomCoverageFields.length === 0}
+                    onChange={(event) => setSuggestedCustomCoverageFieldId(event.target.value)}
+                  >
+                    {availableSuggestedCustomCoverageFields.length === 0 ? (
+                      <option value="">All suggested fields are added</option>
+                    ) : (
+                      availableSuggestedCustomCoverageFields.map((field) => (
+                        <option key={field.id} value={field.id}>{field.label}</option>
+                      ))
+                    )}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="secondary-action compact-action"
+                  disabled={!selectedSuggestedCustomCoverageField}
+                  onClick={() => {
+                    if (!selectedSuggestedCustomCoverageField) return;
+                    setRunCoverageFields([
+                      ...effectiveRunCoverageFields,
+                      {
+                        id: selectedSuggestedCustomCoverageField.id,
+                        label: selectedSuggestedCustomCoverageField.label,
+                        pattern: selectedSuggestedCustomCoverageField.pattern
+                      }
+                    ]);
+                  }}
+                >
+                  <Plus size={16} />
+                  Add this field
+                </button>
+              </div>
+              <p className="muted-note">
+                An added field is selected for Only selected info and gets its own Excel column. Remove it
+                with the red button if this run does not need it.
+              </p>
               <div className="run-coverage-editor-actions">
                 <button
                   type="button"

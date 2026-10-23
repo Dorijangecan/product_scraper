@@ -280,6 +280,7 @@ export class RunManager {
     const controller = new AbortController();
     this.activeRuns.set(runId, controller);
     let layout: RunOutputLayout | undefined;
+    let onlySelectedInfoTempDir: string | undefined;
     try {
       const run = this.db.getRun(runId);
       if (!run) return;
@@ -393,6 +394,9 @@ export class RunManager {
       // re-walked once per catalog number in the run.
       const customerDocumentCache = new CustomerDocumentParseCache();
       const sharedDocumentDownloads = new Map<string, Promise<string>>();
+      if (onlySelectedInfo) {
+        onlySelectedInfoTempDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-only-selected-info-"));
+      }
       const browserRenderer = new BrowserRenderSession();
       const pending = this.db.getPendingRunItems(run.id);
       const { GenericFallbackScraper } = await import("./scrapers/generic.js");
@@ -559,17 +563,84 @@ export class RunManager {
           this.updateItemStage(item.id, "quality-gate", "Checking required fields from official result");
           const initiallyGated = finalizeQualityGate(result, manufacturer);
           if (onlySelectedInfo) {
-            enriched = scopeOnlySelectedInfo(initiallyGated, onlySelectedFieldKeys, customOnlyFields);
-            initialAttributeCount = enriched.attributes.length;
-            await this.appendRunLog(layoutRef, hasOnlySelectedInfoValues(initiallyGated, onlySelectedFieldKeys, customOnlyFields)
+            const initialSelected = scopeOnlySelectedInfo(initiallyGated, onlySelectedFieldKeys, customOnlyFields);
+            const foundOnProductPage = hasOnlySelectedInfoValues(initiallyGated, onlySelectedFieldKeys, customOnlyFields);
+            let selectedInfoResult = initiallyGated;
+            let datasheetOutcome = "not-needed";
+            if (!foundOnProductPage && initiallyGated.qualityGate?.identityConfirmed === true) {
+              const exactProductDatasheet = initiallyGated.documents
+                .filter((doc) =>
+                  doc.type === "datasheet" &&
+                  doc.sourceType === "official" &&
+                  doc.enrichable !== false &&
+                  isTechnicalDatasheetCandidate(doc) &&
+                  Boolean(doc.sourceUrl) &&
+                  isDirectExactProductSourceUrl(initiallyGated, doc.sourceUrl!) &&
+                  shouldProbeRemoteDocument(doc)
+                )
+                .sort((left, right) => technicalDatasheetRank(right) - technicalDatasheetRank(left))[0];
+              if (!exactProductDatasheet) {
+                datasheetOutcome = "no-exact-official-datasheet";
+                await this.appendRunLog(layoutRef, "ONLY_SELECTED_INFO_DATASHEET_SKIPPED", {
+                  catalogNumber: item.catalogNumber,
+                  selectedFields: onlySelectedFieldKeys,
+                  sourceUrl: initiallyGated.productUrl,
+                  reason: "No probeable official datasheet linked directly from the identity-confirmed product page."
+                });
+              } else {
+                this.updateItemStage(item.id, "document-enrichment", "Reading official datasheet for selected fields");
+                await this.appendRunLog(layoutRef, "ONLY_SELECTED_INFO_DATASHEET_START", {
+                  catalogNumber: item.catalogNumber,
+                  selectedFields: onlySelectedFieldKeys,
+                  productUrl: initiallyGated.productUrl,
+                  datasheetUrl: exactProductDatasheet.url,
+                  datasheetLabel: exactProductDatasheet.label
+                });
+                const datasheetOnlyResult = {
+                  ...initiallyGated,
+                  documents: [exactProductDatasheet]
+                };
+                selectedInfoResult = await enrichFromRemoteDocumentsForMissingValues(
+                  datasheetOnlyResult,
+                  http,
+                  onlySelectedInfoMissingFields(initiallyGated, onlySelectedFieldKeys, customOnlyFields),
+                  itemSignal,
+                  {
+                    sharedDownloads: sharedDocumentDownloads,
+                    tempDir: onlySelectedInfoTempDir,
+                    maxDocuments: 1,
+                    budgetMs: itemDeadline.remainingMs()
+                  }
+                );
+                const foundAfterDatasheet = hasOnlySelectedInfoValues(selectedInfoResult, onlySelectedFieldKeys, customOnlyFields);
+                datasheetOutcome = foundAfterDatasheet ? "selected-values-found" : "selected-values-not-found";
+                await this.appendRunLog(layoutRef, "ONLY_SELECTED_INFO_DATASHEET_DONE", {
+                  catalogNumber: item.catalogNumber,
+                  selectedFields: onlySelectedFieldKeys,
+                  datasheetUrl: exactProductDatasheet.url,
+                  outcome: datasheetOutcome,
+                  documentProcessing: selectedInfoResult.diagnostics?.documentProcessing?.slice(-1),
+                  note: selectedInfoResult.diagnostics?.notes?.slice(-2)
+                });
+              }
+            }
+            enriched = scopeOnlySelectedInfo(selectedInfoResult, onlySelectedFieldKeys, customOnlyFields);
+            initialAttributeCount = initialSelected.attributes.length;
+            const selectedValuesFound = hasOnlySelectedInfoValues(selectedInfoResult, onlySelectedFieldKeys, customOnlyFields);
+            await this.appendRunLog(layoutRef, selectedValuesFound
               ? "ONLY_SELECTED_INFO_COMPLETE"
               : "ONLY_SELECTED_INFO_STOPPED_EARLY", {
               catalogNumber: item.catalogNumber,
               selectedFields: onlySelectedFieldKeys,
               sourceUrl: enriched.productUrl,
-              reason: hasOnlySelectedInfoValues(initiallyGated, onlySelectedFieldKeys, customOnlyFields)
-                ? "Selected values were found in the initial official scrape; skipped remaining downloads, document enrichment, fallbacks, and retries."
-                : "The initial official scrape did not contain every selected value; skipped remaining downloads, document enrichment, fallbacks, and retries."
+              outcome: datasheetOutcome,
+              reason: foundOnProductPage
+                ? "Selected values were found on the exact official product page; no datasheet or further search was needed."
+                : selectedValuesFound
+                  ? "The exact official product page missed selected values; one datasheet linked directly from that page was checked and supplied them. No other documents or search paths were used."
+                  : datasheetOutcome === "no-exact-official-datasheet"
+                    ? "Selected values were missing on the product page and no exact official datasheet was available; the item stopped without broader searching."
+                    : "Selected values were missing on the product page; one exact official datasheet was checked, but no value passed the selected-field validation. No other documents or search paths were used."
             });
           } else {
           // Persist the scrape result before any document/image download. If a later download
@@ -1183,6 +1254,9 @@ export class RunManager {
         await this.writeRunDebugBundle(layout, runId);
       }
     } finally {
+      if (onlySelectedInfoTempDir) {
+        await fs.rm(onlySelectedInfoTempDir, { recursive: true, force: true }).catch(() => undefined);
+      }
       const shouldResumeAfterPause = this.resumeAfterPauseRuns.has(runId) && this.db.getRun(runId)?.status === "paused";
       this.activeRuns.delete(runId);
       this.pausedRuns.delete(runId);
@@ -2370,6 +2444,37 @@ function canonicalDownloadUrl(url: string): string {
   }
 }
 
+function isDirectExactProductSourceUrl(result: ProductResult, sourceUrl: string): boolean {
+  if (result.productUrl && canonicalDownloadUrl(sourceUrl) === canonicalDownloadUrl(result.productUrl)) return true;
+  const source = result.sources.find((entry) =>
+    entry.sourceType === "official" && canonicalDownloadUrl(entry.url) === canonicalDownloadUrl(sourceUrl)
+  );
+  if (!source) return false;
+  try {
+    const parsed = new URL(sourceUrl);
+    const catalogNumber = result.catalogNumber.trim().toLocaleLowerCase();
+    const pathSegments = parsed.pathname.split("/").filter(Boolean).map((segment) => decodeURIComponent(segment).toLocaleLowerCase());
+    const queryValues = [...parsed.searchParams.values()].map((value) => value.trim().toLocaleLowerCase());
+    return pathSegments.includes(catalogNumber) || queryValues.includes(catalogNumber);
+  } catch {
+    return false;
+  }
+}
+
+function isTechnicalDatasheetCandidate(doc: DocumentRecord): boolean {
+  const signal = `${doc.label} ${doc.url} ${(doc.candidateUrls ?? []).join(" ")}`;
+  if (/\b(?:3d|2d|drawing|step|cad|certificate|certification|selectivity)\b/i.test(signal)) return false;
+  return /(?:\/td\/|[._-]td\d{2,}|\btechnical\s+data\b|\bdatasheet\b|\bdata\s*sheet\b|\bspecifications?\b)/i.test(signal);
+}
+
+function technicalDatasheetRank(doc: DocumentRecord): number {
+  const signal = `${doc.label} ${doc.url}`;
+  return (/\/td\//i.test(signal) ? 4 : 0) +
+    (/[._-]td\d{2,}/i.test(signal) ? 4 : 0) +
+    (/technical\s+data|specifications?/i.test(signal) ? 3 : 0) +
+    (/datasheet|data\s*sheet/i.test(signal) ? 2 : 0);
+}
+
 async function enrichFromDownloadedDocumentsIfPresent(result: ProductResult): Promise<ProductResult> {
   if (!result.documents.some((doc) => shouldParseDownloadedDocument(doc))) return result;
   const { enrichResultFromDownloadedDocuments } = await import("./scrapers/document-enrichment.js");
@@ -2380,7 +2485,13 @@ async function enrichFromRemoteDocumentsForMissingValues(
   result: ProductResult,
   http: CachedHttpClient,
   missingFields: string[],
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options: {
+    sharedDownloads?: Map<string, Promise<string>>;
+    tempDir?: string;
+    maxDocuments?: number;
+    budgetMs?: number;
+  } = {}
 ): Promise<ProductResult> {
   if (!missingFields.length) return result;
   if (!result.documents.some((doc) => shouldProbeRemoteDocument(doc))) {
@@ -2390,21 +2501,30 @@ async function enrichFromRemoteDocumentsForMissingValues(
   return enrichResultFromRemoteDocuments(
     result,
     async (doc) => {
-      const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "scraper-doc-probe-"));
+      const ownsTempDir = !options.tempDir;
+      const tempDir = options.tempDir ?? await fs.mkdtemp(path.join(os.tmpdir(), "scraper-doc-probe-"));
       const candidateUrls = documentDownloadCandidateUrls(doc);
       const { urls, forcePdf } = await resolvePdfDownloadPlan(http, doc, candidateUrls, signal);
       const extension = forcePdf ? ".pdf" : documentExtension(urls[0] ?? doc.url, doc.type);
       const suggestedName = `${result.catalogNumber}-${doc.type}-${safeLabel(doc.label)}${extension}`;
       try {
-        const downloaded = await downloadDocumentFromCandidates(http, undefined, urls.length ? urls : [doc.url], tempDir, suggestedName, signal);
+        const downloaded = await downloadDocumentFromCandidates(
+          http,
+          options.sharedDownloads,
+          urls.length ? urls : [doc.url],
+          tempDir,
+          suggestedName,
+          signal,
+          options.budgetMs
+        );
         return {
           localPath: downloaded.localPath,
           // Keep the stable viewer link as the parsed document's source URL, not the signed asset.
           url: forcePdf ? doc.url : downloaded.url,
-          cleanup: () => fs.rm(tempDir, { recursive: true, force: true })
+          cleanup: ownsTempDir ? () => fs.rm(tempDir, { recursive: true, force: true }) : undefined
         };
       } catch (error) {
-        await fs.rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+        if (ownsTempDir) await fs.rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
         throw error;
       }
     },
@@ -2415,7 +2535,7 @@ async function enrichFromRemoteDocumentsForMissingValues(
     // manual) alongside the datasheet. Parse only the highest-ranked document so a
     // single oversized auxiliary PDF cannot consume the whole item timeout; the
     // ranked datasheet remains available for missing-field fallback.
-    { maxDocuments: result.manufacturerId === "eaton" || result.manufacturerId === "schneider" ? 1 : 4 }
+    { maxDocuments: options.maxDocuments ?? (result.manufacturerId === "eaton" || result.manufacturerId === "schneider" ? 1 : 4) }
   );
 }
 
@@ -2711,7 +2831,11 @@ export function hasOnlySelectedInfoValues(
       if (!field) return false;
       try {
         const pattern = new RegExp(field.pattern, "i");
-        return result.attributes.some((attribute) => pattern.test(attribute.name) && Boolean(attribute.value.trim()));
+        return result.attributes.some((attribute) =>
+          pattern.test(attribute.name) &&
+          Boolean(attribute.value.trim()) &&
+          isPlausibleSelectedCustomValue(field, attribute.value)
+        );
       } catch {
         return false;
       }
@@ -2719,6 +2843,35 @@ export function hasOnlySelectedInfoValues(
     return Boolean(result.normalized[key as keyof ProductResult["normalized"]]) ||
       result.attributes.some((attribute) => fieldMatchesLabel(key as Parameters<typeof fieldMatchesLabel>[0], attribute.name) && Boolean(attribute.value.trim()));
   });
+}
+
+function isPlausibleSelectedCustomValue(
+  field: { label: string; pattern: string },
+  value: string
+): boolean {
+  if (!/\b(?:awg|wire\s+gauge)\b/i.test(`${field.label} ${field.pattern}`)) return true;
+  const gauge = String.raw`(?:[1-4]\/0{1,3}|0{1,3}|[1-9]|[1-4]\d)`;
+  return new RegExp(`^\\s*(?:AWG\\s*)?${gauge}\\s*(?:AWG)?(?:\\s*(?:,|;|–|-|\\bto\\b|\\bor\\b)\\s*(?:AWG\\s*)?${gauge}\\s*(?:AWG)?)*\\s*$`, "i").test(value.trim());
+}
+
+function onlySelectedInfoMissingFields(
+  result: ProductResult,
+  selectedKeys: string[],
+  customFields: Array<{ id: string; label: string; pattern: string }>
+): string[] {
+  const labels: Record<string, string> = {
+    weight: "Weight",
+    certificates: "Certificates",
+    dimensions: "Dimensions",
+    material: "Material",
+    voltage: "Voltage",
+    current: "Current"
+  };
+  return selectedKeys
+    .filter((key) => !hasOnlySelectedInfoValues(result, [key], customFields))
+    .map((key) => key.startsWith("custom:")
+      ? customFields.find((field) => `custom:${field.id}` === key)?.label ?? key
+      : labels[key] ?? key);
 }
 
 /**
@@ -2749,7 +2902,18 @@ export function scopeOnlySelectedInfo(
   const isSelectedAttribute = (name: string) =>
     selectedBuiltIns.some((key) => fieldMatchesLabel(key as Parameters<typeof fieldMatchesLabel>[0], name)) ||
     customPatterns.some((pattern) => pattern.test(name));
-  const attributes = result.attributes.filter((attribute) => isSelectedAttribute(attribute.name));
+  const attributes = result.attributes.filter((attribute) =>
+    selectedBuiltIns.some((key) => fieldMatchesLabel(key as Parameters<typeof fieldMatchesLabel>[0], attribute.name)) ||
+    customFields.some((field) => {
+      if (!selectedKeys.includes(`custom:${field.id}`)) return false;
+      try {
+        return new RegExp(field.pattern, "i").test(attribute.name) &&
+          isPlausibleSelectedCustomValue(field, attribute.value);
+      } catch {
+        return false;
+      }
+    })
+  );
   const normalized = Object.fromEntries(
     Object.entries(result.normalized).filter(([key, value]) => value && selectedBuiltIns.includes(key))
   ) as ProductResult["normalized"];

@@ -125,6 +125,9 @@ runDeterministicScrapePipeline (deterministic-pipeline.ts)
   │   └─ interaction-explorer.ts                                # semantic tab/accordion/download exploration
   └─ quality-gate.ts (evaluate/applyQualityGate)                # found | partial | failed
   ▼
+Only selected info (after initial identity/quality gate)         # exact-page values win; if a field is missing, probe at most one exact-source official technical datasheet; validate selected values, scope output, then stop
+  └─ no other PDFs/assets, fallback discovery, or retries in this mode
+  ▼ (standard mode continues below)
 connector.enrichDocuments? (optional, vendor-specific document generation after core scrape timing)
   ▼
 RunManager.downloadDocuments (download and verify required document artifacts)
