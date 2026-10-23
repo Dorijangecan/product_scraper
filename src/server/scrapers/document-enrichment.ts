@@ -1299,41 +1299,49 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
 
   for (const table of tables) {
     if (table.length < 2) continue;
-    const headerRowIndex = table.findIndex((row) => looksLikeCatalogTableHeader(row));
-    if (headerRowIndex < 0) continue;
-    const headerInfo = mergedGridHeader(table, headerRowIndex);
-    const header = headerInfo.header;
-    for (let rowIndex = headerInfo.dataStart; rowIndex < table.length; rowIndex += 1) {
-      const row = table[rowIndex].map(cleanText);
-      if (row.every((cell) => !cell)) continue;
-      const rowText = row.join(" ");
-      if (!catalogTextMatches(rowText, catalogNumber, { compact: true, ignoreCase: true })) continue;
-      const mapped = mapHeaderCellsToRow(header, row);
-      if (mapped.size < 2) continue;
-      // Same cross-reference bug as extractGenericCatalogTableRows above: the row-level match
-      // scans the WHOLE row including free-text description columns, so a sibling catalog
-      // cross-referenced in THIS row's own description ("...replacement for 1606-XLSBATASSY1...")
-      // would otherwise match a query for that sibling and inherit THIS row's values instead.
-      if (!mappedCatalogCellMatches(mapped.get("catalogNumber"), catalogNumber)) continue;
+    const headerIndexes = table.flatMap((row, index) => looksLikeCatalogTableHeader(row) ? [index] : []);
+    for (let headerIndex = 0; headerIndex < headerIndexes.length; headerIndex += 1) {
+      const headerRowIndex = headerIndexes[headerIndex];
+      const headerInfo = mergedGridHeader(table, headerRowIndex);
+      const nextHeader = headerIndexes[headerIndex + 1];
+      const sectionEnd = nextHeader !== undefined ? nextHeader : table.length;
+      const header = headerInfo.header;
+      for (let rowIndex = headerInfo.dataStart; rowIndex < sectionEnd; rowIndex += 1) {
+        const row = table[rowIndex].map(cleanText);
+        if (row.every((cell) => !cell)) continue;
+        const rowText = row.join(" ");
+        if (!catalogTextMatches(rowText, catalogNumber, { compact: true, ignoreCase: true })) continue;
+        const mapped = mapHeaderCellsToRow(header, row);
+        if (mapped.size < 2) continue;
+        // Same cross-reference bug as extractGenericCatalogTableRows above: the row-level match
+        // scans the WHOLE row including free-text description columns, so a sibling catalog
+        // cross-referenced in THIS row's own description ("...replacement for 1606-XLSBATASSY1...")
+        // would otherwise match a query for that sibling and inherit THIS row's values instead.
+        if (!mappedCatalogCellMatches(mapped.get("catalogNumber"), catalogNumber)) continue;
 
-      push("Catalog Number", ourCatalogCellValue(mapped.get("catalogNumber"), catalogNumber));
-      push("Description", mapped.get("description"));
-      push("Product Type", mapped.get("productType"));
-      push("Material", mapped.get("material"));
-      push("Weight", mapped.get("weight"));
-      push("Voltage rating", mapped.get("voltage"));
-      push("Current rating", mapped.get("current"));
-      push("Dimensions", genericRowDimensions(mapped));
-      pushOntologyMappedTableAttributes(mapped, push);
+        push("Catalog Number", ourCatalogCellValue(mapped.get("catalogNumber"), catalogNumber));
+        push("Description", mapped.get("description"));
+        push("Product Type", mapped.get("productType"));
+        push("Material", mapped.get("material"));
+        push("Weight", mapped.get("weight"));
+        push("Voltage rating", mapped.get("voltage"));
+        push("Current rating", mapped.get("current"));
+        push("Dimensions", genericRowDimensions(mapped));
+        pushOntologyMappedTableAttributes(mapped, push);
+      }
     }
   }
   return attributes.slice(0, 60);
 }
 
 function looksLikeCatalogTableHeader(row: string[]): boolean {
-  const cells = row.map(cleanText).filter(Boolean);
-  if (cells.length < 2 && !cells.some(isCatalogIdHeaderCell)) return false;
-  return isCatalogTableHeaderText(cells.join(" "));
+  const cells = row.map(cleanText);
+  const idColumnCount = cells.filter(isCatalogIdHeaderCell).length;
+  if (idColumnCount === 0) return false;
+  const recognizedColumnCount = cells.filter((cell) =>
+    isCatalogIdHeaderCell(cell) || catalogTableKeyFor(cell) !== undefined || matchProperty(cell) !== undefined
+  ).length;
+  return recognizedColumnCount >= 2 && isCatalogTableHeaderText(cells.join(" "));
 }
 
 /**
