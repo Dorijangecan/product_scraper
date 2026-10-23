@@ -1312,7 +1312,7 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
         const rowText = row.join(" ");
         if (!catalogTextMatches(rowText, catalogNumber, { compact: true, ignoreCase: true })) continue;
         const mapped = mapHeaderCellsToRow(header, row);
-        if (mapped.size < 2) continue;
+        if (mappedTableColumnCount(mapped) < 2) continue;
         // Same cross-reference bug as extractGenericCatalogTableRows above: the row-level match
         // scans the WHOLE row including free-text description columns, so a sibling catalog
         // cross-referenced in THIS row's own description ("...replacement for 1606-XLSBATASSY1...")
@@ -1328,6 +1328,7 @@ function extractGetTableCatalogRows(tables: TableArray[], catalogNumber: string,
         push("Current rating", mapped.get("current"));
         push("Dimensions", genericRowDimensions(mapped));
         pushOntologyMappedTableAttributes(mapped, push);
+        pushSourceHeaderTableAttributes(mapped, push);
       }
     }
   }
@@ -3597,7 +3598,7 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
     const header = nearestCatalogTableHeader(lines, index, row.length);
     if (!header) continue;
     const mapped = mapHeaderCellsToRow(header, row);
-    if (mapped.size < 2) continue;
+    if (mappedTableColumnCount(mapped) < 2) continue;
     // The row-level match above scans the WHOLE row text, including free-text description columns
     // — Rockwell's battery-accessory rows cross-reference a DIFFERENT sibling catalog right in
     // their own description ("...battery replacement for 1606-XLSBATASSY1..." on 1606-XLSBAT1's
@@ -3630,6 +3631,7 @@ function extractGenericCatalogTableRows(lines: string[], catalogNumber: string, 
     push("Current rating", mapped.get("current"));
     push("Dimensions", genericRowDimensions(mapped));
     pushOntologyMappedTableAttributes(mapped, push);
+    pushSourceHeaderTableAttributes(mapped, push);
   }
   return attributes.slice(0, 60);
 }
@@ -3669,8 +3671,15 @@ function mapHeaderCellsToRow(header: string[], row: string[]): Map<string, strin
     } else {
       mapped.set(key, value);
     }
+    if (key !== "catalogNumber" && key !== "description") {
+      mapped.set(`sourceHeader:${cleanText(header[index])}`, value);
+    }
   }
   return mapped;
+}
+
+function mappedTableColumnCount(mapped: Map<string, string>): number {
+  return [...mapped.keys()].filter((key) => !key.startsWith("sourceHeader:")).length;
 }
 
 function ontologyTableKey(header: string): string | undefined {
@@ -3689,6 +3698,24 @@ function pushOntologyMappedTableAttributes(
   }
   const wireGauge = mapped.get("wireGauge");
   if (wireGauge) push("Conductor cross-section", /\bawg\b/i.test(wireGauge) ? wireGauge : `${wireGauge} AWG`);
+}
+
+/** Preserve the manufacturer's exact column label as well as its canonical property name. */
+function pushSourceHeaderTableAttributes(
+  mapped: Map<string, string>,
+  push: (name: string, value: string | undefined) => void
+): void {
+  for (const [key, value] of mapped) {
+    if (!key.startsWith("sourceHeader:")) continue;
+    const header = key.slice("sourceHeader:".length);
+    const property = matchProperty(header);
+    const tableKey = genericCatalogTableKey(header);
+    const isWireGauge = tableKey === "wireGauge" || tableKey === "conductorCrossSection" || property?.key === "conductorCrossSection";
+    const sourceLabel = isWireGauge && /\bawg\b/i.test(value) && !/\bawg\b/i.test(header)
+      ? `${header} AWG`
+      : header;
+    push(sourceLabel, value);
+  }
 }
 
 /**
