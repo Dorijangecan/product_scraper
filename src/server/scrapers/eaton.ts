@@ -3357,9 +3357,9 @@ function readDescription(lines: string[], catalogNumber: string): string | undef
 export function stripEatonCatalogPrefix(value: string | undefined, catalogNumber: string): string | undefined {
   const cleaned = cleanText(value);
   if (!cleaned) return undefined;
-  const part = cleanText(catalogNumber);
+  const part = cleanText(catalogNumber).replace(/^EP-/i, "");
   if (!part) return cleaned;
-  const withoutPrefix = cleaned.replace(new RegExp(`^${escapeRegExp(part)}\\s*(?:[-–—:]\\s*)+`, "i"), "").trim();
+  const withoutPrefix = cleaned.replace(new RegExp(`^(?:EP-)?${escapeRegExp(part)}\\s*(?:[-–—:|]\\s*)+`, "i"), "").trim();
   return withoutPrefix || undefined;
 }
 

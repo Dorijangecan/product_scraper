@@ -444,7 +444,7 @@ function stripEatonCatalogPrefix(value: string | undefined, catalogNumber: strin
   if (!value) return value;
   const bare = (catalogNumber ?? "").replace(/^EP-/i, "");
   if (!bare) return value;
-  const pattern = new RegExp(`^\\s*EP-${bare.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\s*[-|:]\\s*`, "i");
+  const pattern = new RegExp(`^\\s*(?:EP-)?${bare.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}\\s*[-–—:|]\\s*`, "i");
   return value.replace(pattern, "").trim() || value;
 }
 // Enclosure-family device types whose manufacturer TITLE is the canonical structured product name

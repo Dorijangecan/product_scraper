@@ -76,6 +76,13 @@ describe("manufacturer parsers", () => {
     ).toBe("Eaton xEnergy Main Niederspannungs-Systeme Niederspannungs-Schaltgeräte Montageset, IZMX40, 3/4p, fest montierte Ausführung, B=1000mm, grau");
   });
 
+  it("removes Eaton catalog numbers followed by a pipe, with or without the EP prefix", () => {
+    expect(stripEatonCatalogPrefix("192691 | Eaton xEnergy Main LV systems LV switchgear", "192691"))
+      .toBe("Eaton xEnergy Main LV systems LV switchgear");
+    expect(stripEatonCatalogPrefix("EP-192691 | Eaton xEnergy Main LV systems LV switchgear", "EP-192691"))
+      .toBe("Eaton xEnergy Main LV systems LV switchgear");
+  });
+
   it("does not treat an Eaton site-search query URL as proof for unrelated documents", () => {
     const catalogNumber = "9999999999";
     const searchUrl = "https://www.eaton.com.cn/content/eaton/cn/zh-cn/site-search/jcr:content/root/responsivegrid/search_results.searchTerm$9999999999.SortBy$relevance.json";

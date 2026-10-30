@@ -233,7 +233,7 @@ export function localizedPdtDocumentUrlRules(ctx: PdtUrlContext): Array<AppliedP
       {
         name: "abb-pdt-document-url-de",
         rationale: "ABB manual PDT Additional Documents include deterministic German product link.",
-        value: { url: `https://new.abb.com/products/de/${encoded}`, language: "german", description: "Datenblatt" }
+        value: { url: `https://new.abb.com/products/de/${encoded}`, language: "german", description: "Datasheet(GER)" }
       }
     ];
   }
@@ -249,7 +249,7 @@ export function localizedPdtDocumentUrlRules(ctx: PdtUrlContext): Array<AppliedP
         {
           name: "eaton-cbe-pdt-document-url-de",
           rationale: "Eaton CBE article numbers come from the E6 catalog PDF; use the source PDF as the German datasheet document pending a localized PDF.",
-          value: { url: EATON_E6_CATALOG_PDF_URL, language: "german", description: "Datenblatt" }
+          value: { url: EATON_E6_CATALOG_PDF_URL, language: "german", description: "Datasheet(GER)" }
         }
       ];
     }
@@ -263,7 +263,7 @@ export function localizedPdtDocumentUrlRules(ctx: PdtUrlContext): Array<AppliedP
       {
         name: "eaton-pdt-document-url-de",
         rationale: "Eaton PDT Additional Documents should point at the downloadable localized specification PDF for the real skuPage identifier.",
-        value: { url: `https://www.eaton.com/de/de-de/skuPage.${encoded}.pdf`, language: "german", description: "Datenblatt" }
+        value: { url: `https://www.eaton.com/de/de-de/skuPage.${encoded}.pdf`, language: "german", description: "Datasheet(GER)" }
       }
     ];
   }

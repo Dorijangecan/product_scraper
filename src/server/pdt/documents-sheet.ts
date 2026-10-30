@@ -61,7 +61,7 @@ function localizedProductDocumentRows(item: RunItemRecord, preferProductUrl = fa
   const de = localized?.de;
   const rows: DocRow[] = [];
   if (en) rows.push({ url: en, language: "english", description: "Datasheet(EN)" });
-  if (de && de !== en) rows.push({ url: de, language: "german", description: "Datenblatt" });
+  if (de && de !== en) rows.push({ url: de, language: "german", description: "Datasheet(GER)" });
   return rows;
 }
 
@@ -109,7 +109,7 @@ function eatonDocumentLanguage(url: string): string {
 }
 
 function eatonDocumentDescription(url: string): string {
-  return /\/de\/de-de\//i.test(url) ? "Datenblatt" : "Datasheet(EN)";
+  return /\/de\/de-de\//i.test(url) ? "Datasheet(GER)" : "Datasheet(EN)";
 }
 
 function rockwellDirectDocumentRows(documents: DocumentRecord[]): DocRow[] {
@@ -132,7 +132,7 @@ function completeRockwellDocumentLanguages(primary: DocRow[], localizedRows: Doc
     if (rows.some((row) => row.language === localized.language)) continue;
     rows.push({
       ...localized,
-      description: localized.language === "german" ? "Datenblatt" : localized.description
+      description: localized.language === "german" ? "Datasheet(GER)" : localized.description
     });
   }
   return rows;

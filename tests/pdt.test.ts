@@ -1310,7 +1310,7 @@ describe("eclass resolvers", () => {
       {
         url: "https://www.eaton.com/de/de-de/skuPage.502419.pdf",
         language: "german",
-        description: "Datenblatt"
+        description: "Datasheet(GER)"
       }
     ]);
   });
@@ -1322,7 +1322,7 @@ describe("eclass resolvers", () => {
     expect(resolveProperty("AAQ326", "AAQ326", c)).toBe(pdf);
     expect(localizedPdtDocumentUrlRules({ manufacturerId: "eaton", catalogNumber: "CBE04417" }).map((rule) => rule.value)).toEqual([
       { url: pdf, language: "english", description: "Datasheet(EN)" },
-      { url: pdf, language: "german", description: "Datenblatt" }
+      { url: pdf, language: "german", description: "Datasheet(GER)" }
     ]);
   });
 
@@ -6712,7 +6712,7 @@ describe("Additional Documents PDT sheet", () => {
     expect(ws.getCell(8, 5).value).toBe("english");
     expect(ws.getCell(9, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
     expect(ws.getCell(9, 5).value).toBe("german");
-    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 7).value).toBe("Datasheet(GER)");
   });
 
   it("writes English and German Rockwell product-page rows for 1444-DYN04", () => {
@@ -6736,7 +6736,7 @@ describe("Additional Documents PDT sheet", () => {
     expect(ws.getCell(8, 5).value).toBe("english");
     expect(ws.getCell(9, 4).value).toEqual({ text: deUrl, hyperlink: deUrl });
     expect(ws.getCell(9, 5).value).toBe("german");
-    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 7).value).toBe("Datasheet(GER)");
   });
 
   it("uses scraped localized official URLs for manufacturers without PDT document rules", () => {
@@ -6798,7 +6798,7 @@ describe("Additional Documents PDT sheet", () => {
       hyperlink: "https://www.eaton.com/de/de-de/skuPage.142824.pdf"
     });
     expect(ws.getCell(9, 5).value).toBe("german");
-    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 7).value).toBe("Datasheet(GER)");
   });
 
   it("prefers direct Rockwell literature PDFs over product pages for unknown families", () => {
@@ -6845,7 +6845,7 @@ describe("Additional Documents PDT sheet", () => {
       hyperlink: "https://www.rockwellautomation.com/de-de/products/details.5094-IF8.html"
     });
     expect(ws.getCell(9, 5).value).toBe("german");
-    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 7).value).toBe("Datasheet(GER)");
   });
 
   it("uses direct Eaton skuPage PDFs from scraper documents without adding EP to the path", () => {
@@ -6882,7 +6882,7 @@ describe("Additional Documents PDT sheet", () => {
       hyperlink: "https://www.eaton.com/de/de-de/skuPage.284245.pdf"
     });
     expect(ws.getCell(9, 5).value).toBe("german");
-    expect(ws.getCell(9, 7).value).toBe("Datenblatt");
+    expect(ws.getCell(9, 7).value).toBe("Datasheet(GER)");
   });
 });
 
