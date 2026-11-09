@@ -11,14 +11,16 @@ import type { FetchedText } from "../src/server/scrapers/http-client.js";
 import type { ScrapeContext } from "../src/server/scrapers/types.js";
 
 const _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0";
-async function fetchTextStub(url: string, opts: { headers?: Record<string, string>; timeoutMs?: number } = {}): Promise<FetchedText> {
+async function fetchTextStub(url: string, opts: { headers?: Record<string, string>; timeoutMs?: number; method?: string; body?: string; signal?: AbortSignal } = {}): Promise<FetchedText> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), opts.timeoutMs ?? 25000);
   try {
     const r = await fetch(url, {
       headers: { "user-agent": _UA, accept: "text/html,application/json,*/*", "accept-language": "en-US,en", ...(opts.headers ?? {}) },
+      method: opts.method ?? "GET",
+      body: opts.body,
       redirect: "follow",
-      signal: controller.signal
+      signal: opts.signal ?? controller.signal
     });
     const text = await r.text();
     return { requestedUrl: url, effectiveUrl: r.url ?? url, statusCode: r.status, contentType: r.headers.get("content-type") ?? "", text, fetchedAt: new Date().toISOString(), fromCache: false };
@@ -38,17 +40,14 @@ function makeContext(): ScrapeContext {
 }
 
 const DEFAULT = [
-  "1SAP180400R0001",
-  "1SCA022871R9780",
-  "1SCA022871R9510",
-  "1SCA022860R5850",
-  "1SDA130199R1",
-  "1SDA124715R1",
-  "1SDA126493R1",
-  "1SDA126487R1",
-  "1SDA126492R1",
-  "1SDA128409R1",
-  "1SVR340667R1000"
+  "1STQ005321B0000", "1STQ005328B0000", "1STQ005329B0000", "1STQ005330B0000", "1STQ005331B0000",
+  "EC1440K", "EC1460K", "EC1480FC6K", "EC1480K", "EC1610K", "EC1640K", "EC1660K", "EC1680FC6K", "EC1680K",
+  "EC1810K", "EC1831K", "EC1840K", "EC1860K", "EC1880FC5K", "EC1880FC6K", "EC1880FC8K", "EC1880FV6K", "EC1880FV8K", "EC1880K", "EC1880VC2K", "EC1880VC4K",
+  "EC2012K", "EC2031K", "EC2040K", "EC2060K", "EC2080FC5K", "EC2080FC6K", "EC2080FC8K", "EC2080FV6K", "EC2080FV8K", "EC2080K", "EC2080VC2K", "EC2080VC4K",
+  "EC2210K", "EC2232K", "EC2240K", "EC2260K", "EC2280FC5K", "EC2280FC6K", "EC2280FC8K", "EC2280FV6K", "EC2280FV8K", "EC2280K", "EC2280VC2K", "EC2280VC4K",
+  "ED1412SK", "ED1612SK", "ED1804SK", "ED1810SK", "ED1812SK", "ED1816SK", "ED2002SK", "ED2004SK", "ED2010SK", "ED2012SK", "ED2016SK", "ED2202SK", "ED2204SK", "ED2210SK", "ED2212SK", "ED2216SK",
+  "EE1810K", "EE1860K", "EE1880K", "EE1906K", "EE1908K", "EE1910K", "EE2010K", "EE2060K", "EE2080K", "EE2106K", "EE2108K", "EE2110K", "EE2210K", "EE2260K", "EE2280K", "EE2306K", "EE2308K", "EE2310K",
+  "ET1810K", "ET1860K", "ET1880K", "ET2010K", "ET2060K", "ET2080K", "ET2211K", "ET2260K", "ET2280K"
 ];
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36";
@@ -120,6 +119,7 @@ async function main() {
     process.stdout.write(`\n[${catalog}] scraping... `);
     const parsed = await connector.scrape(catalog, makeContext());
     console.log(`status=${parsed.status} attrs=${parsed.attributes.length} docs=${parsed.documents.length}`);
+    if (parsed.diagnostics?.terminal) console.log(`terminal=${parsed.diagnostics.terminal.reason}; notes=${parsed.diagnostics.notes?.join(" | ") ?? "-"}`);
     const find = (re: RegExp) =>
       parsed.attributes.find((a) => re.test(`${a.group ?? ""} ${a.name}`))?.value ?? "-";
     const relatedCount = parsed.attributes.filter((a) => /related|accessor|spare|variant|used with/i.test(`${a.group ?? ""} ${a.name}`)).length;
