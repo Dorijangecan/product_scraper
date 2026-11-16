@@ -118,20 +118,8 @@ export class ABBConnector implements ManufacturerConnector {
       if (apiPrimary && hasAbbPisData(apiPrimary) && sameCatalogNumber(productId ?? "", catalogNumber)) {
         return attachGerman(apiPrimary);
       }
-      return {
-        ...emptyResult("abb", catalogNumber, `ABB's official product record did not confirm the exact catalog number ${catalogNumber}.`),
-        diagnostics: {
-          terminal: {
-            reason: apiPrimary === null ? "official-product-not-found" : "official-product-incomplete",
-            skipNetworkFallback: true
-          },
-          notes: [
-            exactGlobalSearch.urls.length
-              ? "The exact ABB global search result was found, but its PIS record did not confirm the requested Product ID."
-              : "ABB global search returned no exact SKU result; a direct exact-ID PIS lookup was attempted and failed identity validation."
-          ]
-        }
-      };
+      // Search already gave us the exact official product page. A missing or contradictory PIS
+      // detail response is not proof the product is absent; continue below and parse that page.
     }
     // If ABB's PIS search itself did not answer, a PIS detail request starts by asking the same
     // unavailable ABB token endpoint and only repeats the timeout. Keep the canonical PDP rescue
