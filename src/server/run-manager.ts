@@ -862,7 +862,12 @@ export class RunManager {
           // Remote document enrichment parses PDFs and manuals; it cannot recover a missing
           // product image. Keep the image gap visible in final completeness, but never burn a
           // document-download timeout trying to resolve it.
-          const remoteDocumentMissing = afterRepairFinalCompleteness.missing.filter((field) => field !== "image");
+          const classifiedType = classifyDeviceType(enriched).type;
+          const isAbbDoorOrEnclosure = manufacturer.id === "abb" &&
+            (classifiedType === "Enclosure" || classifiedType === "Cover / Door Accessory");
+          const remoteDocumentMissing = afterRepairFinalCompleteness.missing.filter((field) =>
+            field !== "image" && !(isAbbDoorOrEnclosure && field === "protection")
+          );
           if (remoteDocumentMissing.length) {
             const beforeRemoteMissing = remoteDocumentMissing;
             this.updateItemStage(item.id, "document-enrichment", `Reading datasheets/manuals for missing final fields: ${beforeRemoteMissing.join(", ")}`);

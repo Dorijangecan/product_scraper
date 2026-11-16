@@ -78,7 +78,13 @@ export class ABBConnector implements ManufacturerConnector {
     if (!exactGlobalSearch && !searchLookup.fetched && !context.imageOnly) {
       return {
         ...emptyResult("abb", catalogNumber, "ABB official product search did not respond."),
-        diagnostics: { terminal: { reason: "official-source-unavailable", skipNetworkFallback: true } }
+        // A search/API timeout is not evidence that the catalog number is absent. Leave the
+        // failure recoverable so run-manager can try its bounded official-source discovery
+        // fallback; otherwise one transient ABB outage permanently turns this SKU into failed.
+        diagnostics: {
+          terminal: { reason: "official-source-unavailable" },
+          notes: ["ABB search/PIS was temporarily unavailable; generic official-source fallback is allowed."]
+        }
       };
     }
 
